@@ -1,3 +1,5 @@
+#Betreibt funktion aus R und spewicher sie in Results
+
 library(dplyr)
 source("R/diff_marg_likelihood_pred_ext.R")
 
@@ -17,6 +19,7 @@ ind_res_on_the_fly = matrix(nrow = n_imp, ncol = N)
 for (iter in 1:N) {
   Sys.time() %>% print()
 
+  #Test Data
   test_rows = sample(nrow(data_frame), size = n_test)
   test_data = data_frame[test_rows,]
   
@@ -26,16 +29,18 @@ for (iter in 1:N) {
   # share of unlabeled obs
   n_imp = (nrow(data) * share_unlabeled) %>% round()
   
-  
   # create data setup by randomly unlabelling data points
   unlabeled_data_inst <- sample(nrow(data), n_imp)
   labeled_data <- data[-unlabeled_data_inst,]
   labeled_data <- cbind(labeled_data,nr = 0)
   unlabeled_data <- data[unlabeled_data_inst,]
+  
   # add number
   unlabeled_data <- cbind(unlabeled_data, nr = unlabeled_data_inst)
   true_labels = cbind(unlabeled_data$nr, unlabeled_data[c(target)])
   
+  
+  ############################### Funktion wird ausgeführt ###########################
   results_list <- diff_marg_likelihood_pred_ext(labeled_data = labeled_data, 
                                                   unlabeled_data = unlabeled_data,
                                                   test_data = test_data,

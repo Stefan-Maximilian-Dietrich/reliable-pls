@@ -71,8 +71,8 @@ feature_60 <- rnorm(n, mean = -6, sd = 11)
 
 
 lin_comb <- 2.4- 7.9*feature_1 
-
 prob = 1/(1+exp(-lin_comb))
+
 target_var <-rbinom(n, 1, prob = prob)
 sum(target_var)
 data_frame <- data_frame(target_var = target_var, feature_1 = feature_1, feature_2 = feature_2,

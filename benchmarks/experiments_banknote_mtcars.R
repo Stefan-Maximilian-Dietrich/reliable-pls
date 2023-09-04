@@ -2,15 +2,16 @@ library(dplyr)
 
 set.seed(2037420)
 
-N = 100
+N = 100 #wie oft wird gesampelt 
 
-share_setups = c(0.7, 0.8, 0.9, 0.95)
+share_setups = c(0.7, 0.8, 0.9, 0.95) #wie viel Prozent sind unlabeld 
 
 for (share_unlabeled in share_setups) {
     share_unlabeled %>% print
     try(
-      source(paste(getwd(),"/benchmarks/real world data/run_benchmarks_mtcars.R", sep=""))
+      source(paste(getwd(),"/benchmarks/real world data/run_benchmarks_mtcars.R", sep="")) #Ausführen
     )
+    print("Benchmark fertig")
     try(
       source(paste(getwd(),"/analyze/analyze_all.R", sep=""))
     )
