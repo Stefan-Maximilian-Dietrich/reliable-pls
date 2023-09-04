@@ -1,3 +1,4 @@
+#unfetrig?
 library(dplyr)
 library(checkmate,asserthat)
 
@@ -31,6 +32,7 @@ diff_marg_likelihood_pred <- function(labeled_data,
     predicted_target <- predict(logistic_model, 
                                 newdata= unlabeled_data, 
                                 type = "response")
+    
     # assign predicted (pseudo) labels to unlabeled data
     unlabeled_data[c(target)] <- ifelse(predicted_target > 0.5, 1,0)  
     

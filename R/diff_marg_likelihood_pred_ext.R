@@ -75,7 +75,7 @@ diff_marg_likelihood_pred_ext <- function(labeled_data,
     
     
     
-    winner <- which.max(unlist(marg_l_pseudo))
+    winner <- which.max(unlist(marg_l_pseudo)) #
     
     
 

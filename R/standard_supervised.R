@@ -25,19 +25,19 @@ standard_supervised <- function(labeled_data,
                           family = "binomial")
     # predict on unlabeled
     
-    predicted_target <- predict(logistic_model, newdata = unlabeled_data, type = "response")
-    new_labeled_obs <- unlabeled_data
-    new_labeled_obs[c(target)] <- ifelse(predicted_target > 0.5, 1,0)  
+    predicted_target <- predict(logistic_model, newdata = unlabeled_data, type = "response") ##gibt vector mit scalar [0,1] 
+    new_labeled_obs <- unlabeled_data ##
+    new_labeled_obs[c(target)] <- ifelse(predicted_target > 0.5, 1,0)  ##hier wird tatsächlich das Lable zugewiesen
     
    
     
     predicted_label <- new_labeled_obs[c(target)] %>% unlist()
     number <- new_labeled_obs$nr %>% unlist()
     results <- cbind(number, predicted_label)
-    
+
   # return transductive results (labels) and final model
   list(results, logistic_model)
   
 }
 
-
+# keine Label Wahl findet stadt, da Supervised learing 

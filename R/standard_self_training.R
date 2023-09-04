@@ -22,24 +22,24 @@ library(checkmate,asserthat)
     which_flip = seq(n_imp)
     for (i in seq(n_imp)) {
       
-      
       logistic_model <- glm(formula = formula, 
                             data = labeled_data, 
                             family = "binomial")
+      
       #choose instance whose prediction has most CERTAINTY (as opposed to confidence)
-      winner <- predict(logistic_model, newdata= unlabeled_data, se.fit = T)$se.fit %>% which.min()
+      winner <- predict(logistic_model, newdata= unlabeled_data, se.fit = T)$se.fit %>% which.min() #Datenpunkt mit minimalem Standartfehler
+      
       # predict it
       predicted_target <- predict(logistic_model, newdata= unlabeled_data[winner,], type = "response")
-      
       new_labeled_obs <- unlabeled_data[winner,]
       new_labeled_obs[c(target)] <- ifelse(predicted_target > 0.5, 1,0)  
       
-      
       # update labeled data
       labeled_data<- rbind(labeled_data, new_labeled_obs)
+      
       # evaluate test error (on-the-fly inductive learning results)
       logistic_model <- glm(formula = formula, data = labeled_data, family = "binomial") # refit model with added label
-      scores = predict(logistic_model, newdata = test_data, type = "response") 
+      scores = predict(logistic_model, newdata = test_data, type = "response") #Test Daten!!!
       prediction_test <- ifelse(scores > 0.5, 1, 0)
       test_acc <- sum(prediction_test == test_data[c(target)])/nrow(test_data)
       

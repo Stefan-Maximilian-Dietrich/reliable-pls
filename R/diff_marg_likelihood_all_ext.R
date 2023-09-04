@@ -31,13 +31,16 @@ diff_marg_likelihood_all_ext <- function(labeled_data,
     if(i >= 2){
       which_flip <- which_flip[-(winner)]
     }
+    
+    # Models with Target == 1
     unlabeled_data[,target] <- 1
     data_sets_1 = list()  
     for (flip_count in seq_along(which_flip)) {
-      flip = which_flip[flip_count]
+      flip = which_flip[flip_count] #Was tut der Flip
       new_data = rbind(labeled_data, unlabeled_data[flip_count,])
       data_sets_1[[flip_count]] = new_data 
     }
+    
     unlabeled_data[,target] <- 0
     data_sets_0 = list()  
     for (flip_count in seq_along(which_flip)) {
