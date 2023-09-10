@@ -61,7 +61,7 @@ root_function <- function(f, intervall, step) {
   return(roots)
 }
 
-AlphaCut_mu <- function(alpha, mu_priori_Lower, mu_priori_upper, data, sigma_priori, theta_sigma) {
+AlphaCut_mu_function <- function(alpha, mu_priori_Lower, mu_priori_upper, data, sigma_priori, theta_sigma) {
   m_mu_log_neg <- function(x) {
     return(-log(m_mu_functio(data = data, mu_priori = x, sigma_priori = sigma_priori, theta_sigma = theta_sigma)))
   }
@@ -79,3 +79,10 @@ AlphaCut_mu <- function(alpha, mu_priori_Lower, mu_priori_upper, data, sigma_pri
   return(root)
 }
 
+utility_function <- function(a, theta_mu, theta_sigma) {
+ 
+}
+
+expected_utility_function <- function(a) {
+  
+}
