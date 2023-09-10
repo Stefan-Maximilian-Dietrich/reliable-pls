@@ -79,6 +79,18 @@ gamma_maximin_function <- function(a, labeld_data, unlabeled_data, mu_priori_low
   return(result$value)
 }
 
+decision_function <- function(labeld_datam, unlabeled_data, mu_priori_lower, mu_priori_upper, sigma_priori) {
+  n_unlabeld <- nrow(unlabeled_data)
+  results <- c()
+  for(i in seq(n_unlabeld)) {
+    results_new <- gamma_maximin_function(a = i, labeld_data = labeld_data, unlabeled_data = unlabeled_data, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori)
+    results <- c(results, results_new)
+  }
+  decision <- which.max(results)
+  print(unlabeled_data[decision,])
+  return(decision)
+}
+
 m_derivat_function <- function(data, mu_priori, sigma_priori, theta_mu) {
   m_derivat <- likelihood_function(data = data, beta1 = theta_mu) * priori_function(theta_mu, mu_priori, sigma_priori)
   return(m_derivat)
