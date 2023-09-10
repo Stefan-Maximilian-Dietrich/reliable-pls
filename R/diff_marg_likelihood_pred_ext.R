@@ -71,7 +71,7 @@ diff_marg_likelihood_pred_ext <- function(labeled_data,
     })
     
     
-    marg_l_pseudo <- lapply(models_pseudo, get_log_marg_l)
+    marg_l_pseudo <- lapply(models_pseudo, get_log_marg_l) ##########
     
     
     

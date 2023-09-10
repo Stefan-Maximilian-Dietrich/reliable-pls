@@ -39,6 +39,46 @@ priori_function <- function(theta, mu_priori, sigma_priori) {
   return(priori)
 }
 
+utility_function <- function(a, labeld_data, unlabeled_data, theta_mu, mu_priori, sigma_priori) {
+  new_data <- rbind(labeld_data, unlabeled_data[a,])
+  fischer_info <-  sqrt((det(as.matrix(var(new_data)))))
+  likelihood <- likelihood_function(data = new_data, beta1 = theta_mu)
+  para_obs <- 2*pi/length(new_data)
+  priori <- priori_function(theta = theta_mu, mu_priori = mu_priori, sigma_priori = sigma_priori)
+  
+  return(para_obs * likelihood * priori / fischer_info)
+}
+
+expected_utility_function <- function(a, labeld_data, unlabeled_data, mu_priori, sigma_priori) {
+  g <- function(x) {
+    return(x * utility_function(a = a, labeld_data = labeld_data, unlabeled_data = unlabeled_data, theta_mu = x, mu_priori = mu_priori, sigma_priori = sigma_priori))
+  }
+  
+  h <- function(x) {
+    return(log(g(x)))
+  }
+  h_neg <- function(x) {
+    return(-h(x))
+  }
+  
+  x0 <- optim(par = 0.3, fn = h_neg, method = "BFGS")$par  #Ähnich wie Newtonverfahren 
+  hII_x0 <- fderiv(f = h, x = x0, n = 2, h = 5*10^-6)
+  
+  expected_utility <- exp( h(x0) ) * sqrt( (2*pi) / -hII_x0) # * (pnorm(b, mean = x0, sd = sqrt(-1 / hII_x0)) - pnorm(a, mean = x0, sd = sqrt(-1 / hII_x0))) falls Parameter eingeschränkt 
+  
+  return(expected_utility)
+}
+
+gamma_maximin_function <- function(a, labeld_data, unlabeled_data, mu_priori_lower, mu_priori_upper, sigma_priori) {
+  start <- (mu_priori_upper - mu_priori_lower)/2
+  f <- function(x) {
+    expected_utility <- expected_utility_function(a = a, labeld_data =labeld_data , unlabeled_data = unlabeled_data, mu_priori, sigma_priori =sigma_priori)
+    return(expected_utility)
+  }
+  result <- optim(par = start, fn = f, method = "L-BFGS-B", lower = mu_priori_lower, upper = mu_priori_upper)
+  return(result$value)
+}
+
 m_derivat_function <- function(data, mu_priori, sigma_priori, theta_mu) {
   m_derivat <- likelihood_function(data = data, beta1 = theta_mu) * priori_function(theta_mu, mu_priori, sigma_priori)
   return(m_derivat)
@@ -66,6 +106,7 @@ root_function <- function(f, intervall, step) {
   roots <- c()
   seq <- seq(from = intervall[1], to = intervall[2], by = step)
   for(i in seq(length(seq)-1)) {
+    # print(paste("Unten: ", f(seq[i]) , " Obern: " , f(seq[i+1])))
     if(f(seq[i]) * f(seq[i+1]) < 0 ) {
       inter <- c(seq[i], seq[i+1])
       roots <- c(roots, uniroot(f, inter)$root)
@@ -80,54 +121,16 @@ AlphaCut_mu_function <- function(alpha, mu_priori_Lower, mu_priori_upper, data, 
   }
   max_par <- optim(par = 0, fn = m_mu_log_neg, method = "BFGS")$par  #Ähnich wie Newtonverfahren 
   max_m <- m_mu_function(data = data, mu_priori = max_par, sigma_priori = sigma_priori)
- 
+
   f <- function(x) {
     return(m_mu_function(data = data, mu_priori = x, sigma_priori = sigma_priori) - alpha * max_m)
+    print(m_mu_function(data = data, mu_priori = x, sigma_priori = sigma_priori))
+    print(alpha * max_m)
   }
   
   intervall <- c(mu_priori_Lower, mu_priori_upper)
-  step = 0.1
+  step = 0.01
   
   root <- root_function(f, intervall, step)
   return(root)
-}
-
-utility_function <- function(a, labeld_data, unlabeled_data, theta_mu, mu_priori, sigma_priori) {
-  new_data <- c(labeld_data, unlabeled_data[a])
-  fischer_info <-  - 0.25 * log(det(matrix(var(new_data))))
-  log_likelihood <- log(likelihood_function(data = new_data, beta1 = theta_mu))
-  para_obs <- 1/2 * log(2*pi/length(new_data))
-  log_priori <- log(priori_function(theta = theta_mu, mu_priori = mu_priori, sigma_priori = sigma_priori))
-  
-  print(fischer_info)
-  print(log_likelihood)
-  print(para_obs)
-  print(log_priori)
-  
-
-  return(log_likelihood + para_obs + fischer_info + log_priori)
-}
-
-expected_utility_function <- function(a, labeld_data, unlabeled_data, mu_priori, sigma_priori) {
-  g <- function(x) {
-    return(utility_function(a = a, labeld_data = labeld_data, unlabeled_data = unlabeled_data, theta_mu = x, mu_priori = mu_priori, sigma_priori = sigma_priori))
-  }
-  
-  h <- function(x) {
-    return(log(g(x)))
-  }
-  h_neg <- function(x) {
-    return(-h(x))
-  }
-  
-  x0 <- optim(par = 20, fn = h_neg, method = "BFGS")$par  #Ähnich wie Newtonverfahren 
-  hII_x0 <- fderiv(f = h, x = x0, n = 2, h = 5*10^-6)
-  
-  expected_utility <- exp( h(x0) ) * sqrt( (2*pi) / -hII_x0) # * (pnorm(b, mean = x0, sd = sqrt(-1 / hII_x0)) - pnorm(a, mean = x0, sd = sqrt(-1 / hII_x0))) falls Parameter eingeschränkt 
-  
-  return(expected_utility)
-}
-
-gamma_maximin_function <- function(a, labeld_data, unlabeled_data, mu_priori_lower, mu_priori_upper, sigma_priori) {
-  
 }
