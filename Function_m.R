@@ -9,16 +9,19 @@ library(pracma)
 
 product_function <- function(data, mean, sigma){
   product <- 1
-  for(j in seq(nrow(data))) {
-    product <- product * dmvnorm(x  = unlist(data[j, ]), mean = mean, sigma = matrix(sigma))
+  for(j in seq(length(data))) {
+    product <- product * dmvnorm(x  = unlist(data[j]), mean = mean, sigma = matrix(sigma))
   }
   return(product)
 }
 
 likelihood_function <- function(data, theta_mu, theta_sigma) {
   likelihood <- product_function(data, mean = theta_mu, sigma = theta_sigma)
+  print(likelihood)
   return(likelihood)
 }
+
+#################################################################################
 
 priori_function <- function(theta, mu_priori, sigma_priori) {
   priori <- dmvnorm(x = theta, mean = mu_priori, sigma = matrix(sigma_priori)) #hier wirs nur die wahrscheilichekit des Mittelwerts betrachtet nicht die der sTREUUNG
@@ -79,10 +82,42 @@ AlphaCut_mu_function <- function(alpha, mu_priori_Lower, mu_priori_upper, data, 
   return(root)
 }
 
-utility_function <- function(a, theta_mu, theta_sigma) {
- 
+utility_function <- function(a, labeld_data, unlabeled_data, theta_mu, theta_sigma, mu_priori, sigma_priori) {
+  new_data <- c(labeld_data, unlabeled_data[a])
+  fischer_info <-  - 0.25 * log(det(matrix(var(new_data))))
+  log_likelihood <- log(likelihood_function(data = new_data, theta_mu = theta_mu, theta_sigma = theta_sigma))
+  para_obs <- 1/2 * log(2*pi/length(new_data))
+  log_priori <- log(priori_function(theta = theta_mu, mu_priori = mu_priori, sigma_priori = sigma_priori))
+  
+  print(fischer_info)
+  print(log_likelihood)
+  print(para_obs)
+  print(log_priori)
+  
+
+  return(log_likelihood + para_obs + fischer_info + log_priori)
 }
 
-expected_utility_function <- function(a) {
+expected_utility_function <- function(a, labeld_data, unlabeled_data, theta_sigma, mu_priori, sigma_priori) {
+  g <- function(x) {
+    return(utility_function(a = a, labeld_data = labeld_data, unlabeled_data = unlabeled_data, theta_mu = x, theta_sigma = theta_sigma, mu_priori = mu_priori, sigma_priori = sigma_priori))
+  }
+  
+  h <- function(x) {
+    return(log(g(x)))
+  }
+  h_neg <- function(x) {
+    return(-h(x))
+  }
+  
+  x0 <- optim(par = 20, fn = h_neg, method = "BFGS")$par  #Ähnich wie Newtonverfahren 
+  hII_x0 <- fderiv(f = h, x = x0, n = 2, h = 5*10^-6)
+  
+  expected_utility <- exp( h(x0) ) * sqrt( (2*pi) / -hII_x0) # * (pnorm(b, mean = x0, sd = sqrt(-1 / hII_x0)) - pnorm(a, mean = x0, sd = sqrt(-1 / hII_x0))) falls Parameter eingeschränkt 
+  
+  return(expected_utility)
+}
+
+gamma_maximin_function <- function(a, labeld_data, unlabeled_data, theta_sigma, mu_priori_lower, mu_priori_upper, sigma_priori) {
   
 }
