@@ -83,6 +83,5 @@ ggplot(DF, aes(x = V1, y = V2)) +
   geom_hline(yintercept= 0.6 * max(DF$V2))
 
 
-AC <- AlphaCut_mu(alpha = 0.6, mu_priori_Lower = -5, mu_priori_upper = 10, data = data, sigma_priori = 1, theta_sigma = 1)
-print(AC)
 
+AC <- AlphaCut_mu(alpha = 0.6, mu_priori_Lower = -5, mu_priori_upper = 10, data = data, sigma_priori = 1, theta_sigma = 1)
