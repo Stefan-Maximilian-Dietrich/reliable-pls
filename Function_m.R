@@ -39,7 +39,7 @@ priori_function <- function(theta, mu_priori, sigma_priori) {
   return(priori)
 }
 
-utility_function <- function(a, labeld_data, unlabeled_data, theta_mu, mu_priori, sigma_priori) {
+utility_approximation_function <- function(a, labeld_data, unlabeled_data, theta_mu, mu_priori, sigma_priori) {
   new_data <- rbind(labeld_data, unlabeled_data[a,])
   fischer_info <-  sqrt((det(as.matrix(var(new_data)))))
   likelihood <- likelihood_function(data = new_data, beta1 = theta_mu)
@@ -50,29 +50,24 @@ utility_function <- function(a, labeld_data, unlabeled_data, theta_mu, mu_priori
 }
 
 expected_utility_function <- function(a, labeld_data, unlabeled_data, mu_priori, sigma_priori) {
-  g <- function(x) {
-    return(x * utility_function(a = a, labeld_data = labeld_data, unlabeled_data = unlabeled_data, theta_mu = x, mu_priori = mu_priori, sigma_priori = sigma_priori))
+  f <- function(x) {
+    expected_utility <- utility_approximation_function(a = a, labeld_data = labeld_data, unlabeled_data = unlabeled_data, theta_mu = x, mu_priori = mu_priori, sigma_priori = sigma_priori)
+    return(expected_utility)
   }
-  
   h <- function(x) {
-    return(log(g(x)))
+    return(-log(f(x)))
   }
-  h_neg <- function(x) {
-    return(-h(x))
-  }
+  arg_max_likelihood <- optim(par = 0, fn =  h, method = "BFGS")$par
+
+  result <- utility_approximation_function(a =a, labeld_data = labeld_data, unlabeled_data = unlabeled_data, theta_mu = arg_max_likelihood, mu_priori = mu_priori, sigma_priori = sigma_priori)
   
-  x0 <- optim(par = 0.3, fn = h_neg, method = "BFGS")$par  #Ähnich wie Newtonverfahren 
-  hII_x0 <- fderiv(f = h, x = x0, n = 2, h = 5*10^-6)
-  
-  expected_utility <- exp( h(x0) ) * sqrt( (2*pi) / -hII_x0) # * (pnorm(b, mean = x0, sd = sqrt(-1 / hII_x0)) - pnorm(a, mean = x0, sd = sqrt(-1 / hII_x0))) falls Parameter eingeschränkt 
-  
-  return(expected_utility)
-}
+  return(result)
+} 
 
 gamma_maximin_function <- function(a, labeld_data, unlabeled_data, mu_priori_lower, mu_priori_upper, sigma_priori) {
   start <- (mu_priori_upper - mu_priori_lower)/2
   f <- function(x) {
-    expected_utility <- expected_utility_function(a = a, labeld_data =labeld_data , unlabeled_data = unlabeled_data, mu_priori, sigma_priori =sigma_priori)
+    expected_utility <- expected_utility_function(a = a, labeld_data =labeld_data , unlabeled_data = unlabeled_data, mu_priori = x, sigma_priori =sigma_priori)
     return(expected_utility)
   }
   result <- optim(par = start, fn = f, method = "L-BFGS-B", lower = mu_priori_lower, upper = mu_priori_upper)
