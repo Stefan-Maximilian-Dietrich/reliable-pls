@@ -28,6 +28,7 @@ likelihood_function <- function(theta, data_matrix, response) {
   
   return(result)
 }
+#######
 
 priori_function <- function(theta, mu_priori, sigma_priori) {
   priori <- dmvnorm(x = theta, mean = mu_priori, sigma = sigma_priori) #hier wirs nur die wahrscheilichekit des Mittelwerts betrachtet nicht die der sTREUUNG
@@ -82,7 +83,6 @@ decision_function <- function(labeld_datam, unlabeled_data, mu_priori_lower, mu_
   return(decision)
 }
 
-#######
 
 m_derivat_function <- function(data, mu_priori, sigma_priori, theta_mu) {
   m_derivat <- likelihood_function(data = data, beta1 = theta_mu) * priori_function(theta_mu, mu_priori, sigma_priori)

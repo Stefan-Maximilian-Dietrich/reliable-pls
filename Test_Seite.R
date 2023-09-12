@@ -45,8 +45,10 @@ decision_function(labeld_datam = labeld_datam, unlabeled_data = unlabeled_data, 
 
 ### Test N Dimensional 
 theta <- c(17.9, -0.22, -1.32, -0.04)
+mu_priori <- c(15, 0, -1, 0)
+sigma_priori <- rbind(beta0 = c(1,0,0,0),cbind(beta0 = c(0,0,0),cov(mtcars[c(1,2,4)])))
 data <-  as.matrix(mtcars[c(1,2,4)])
 response <- mtcars[c(8)]
 
 likelihood_function(theta = theta, data = data, response = response) 
-
+priori_function(theta, mu_priori, sigma_priori)
