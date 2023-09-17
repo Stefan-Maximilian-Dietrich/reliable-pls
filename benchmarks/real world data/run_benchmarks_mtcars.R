@@ -35,12 +35,12 @@ data = data_frame[-test_rows,]
 # share of unlabeled obs
 n_imp = (nrow(data) * share_unlabeled) %>% round()
 
-
 # create data setup by randomly unlabelling data points
 unlabeled_data_inst <- sample(nrow(data), n_imp)
 labeled_data <- data[-unlabeled_data_inst,]
 labeled_data <- cbind(labeled_data,nr = 0)
 unlabeled_data <- data[unlabeled_data_inst,]
+
 # formula for glm
 formula = vs ~1 + mpg + cyl + disp #+ hp + drat +wt + qsec + am + gear + carb
 

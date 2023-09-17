@@ -40,6 +40,7 @@ utility_approximation_function <- function(data_matrix, response, theta, mu_prio
   para_obs <- 2*pi/nrow(data_matrix)
   priori <- priori_function(theta = theta, mu_priori = mu_priori, sigma_priori = sigma_priori)
   
+  
   return(para_obs * likelihood * priori / fischer_info)
 }
 
@@ -61,20 +62,19 @@ expected_utility_function <- function(data_matrix, response, mu_priori, sigma_pr
   return(result)
 } 
 
-gamma_maximin_function <- function(data_fram, target, mu_priori_lower, mu_priori_upper, sigma_priori) {
-  data_matrix <-  as.matrix(data_fram[, !colnames(data_fram) %in% target])
-  response <- as.matrix(data_fram[, target]) 
+gamma_maximin_function <- function(a, labeld_data_matrix, unlabeled_data_matrix, response, pseudo_response, mu_priori_lower, mu_priori_upper, sigma_priori) {
+  data_matrix <- rbind(labeld_data_matrix, unlabeled_data_matrix[a,])
+  response <- rbind(response, pseudo_response[a, ])
+
   start <- (mu_priori_upper - mu_priori_lower)/2
   f <- function(x) {
-    expected_utility <- expected_utility_function(data_matrix = data_matrix , response = response, mu_priori = x, sigma_priori = sigma_priori)
+    expected_utility <- expected_utility_function(data_matrix = data_matrix , response = response, mu_priori = x, sigma_priori =sigma_priori)
     return(expected_utility)
   }
-  parameter <- optim(par = start, fn = f, method = "L-BFGS-B", lower = mu_priori_lower, upper = mu_priori_upper)$par
-  result <- f(parameter)
-  return(result)
+  result <- optim(par = start, fn = f, method = "L-BFGS-B", lower = mu_priori_lower, upper = mu_priori_upper)
+  return(result$value)
 }
- 
-#######
+
 decision_function <- function(labeld_data, unlabeled_data, target,  mu_priori_lower, mu_priori_upper, sigma_priori) {
   labeld_data_matrix <- as.matrix(labeld_data[, !colnames(labeld_data) %in% target])
   unlabeled_data_matrix <- as.matrix(unlabeled_data[, !colnames(labeld_data) %in% target])

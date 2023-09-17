@@ -25,7 +25,7 @@ n_test = round(n_test)
 name_df = "banknote" # for results 
 data = "banknote"
 # formula for glm
-formula = target ~1 + Diagonal+ Bottom + Length #Length + Left + Right + Bottom + Top + Diagonal    
+formula = target ~  Diagonal+ Bottom + Length #Length + Left + Right + Bottom + Top + Diagonal    
 target = "target" 
 data_frame[c(target)] <- data_frame[c(target)] %>% unlist() %>% as.factor()
 levels_present <- levels(data_frame[c(target)] %>% unlist())
@@ -33,7 +33,7 @@ levels_present <- levels(data_frame[c(target)] %>% unlist())
 levels_present
 levels(data_frame[, which(names(data_frame) %in% target)]) <- c(0,1)
 
-glm(formula = formula, data = data_frame, family = "binomial") %>% summary
+glm(formula = formula, data = data_frame) %>% summary
 
 # multi model
 formula_alt1 =  target ~1 + Diagonal+ Bottom
