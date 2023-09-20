@@ -5,6 +5,8 @@ library(numDeriv)
 library(mvtnorm)
 library(ggplot2)
 library(pracma)
+library(nloptr)
+library(tidyverse)
 
 # n dim 
 ################################################################################
@@ -57,45 +59,16 @@ expected_utility_function <- function(data_matrix, response, mu_priori, sigma_pr
   arg_max_likelihood <- optim(par = start, fn =  h, method = "BFGS")$par
   
   result <- utility_approximation_function(data_matrix = data_matrix, response = response, theta = arg_max_likelihood, mu_priori = mu_priori, sigma_priori = sigma_priori)
+
+  print(paste("mu_priori_b0:", format(round(mu_priori[1], 5), nsmall = 5),"mu_priori_b1:", format(round(mu_priori[2], 5), nsmall = 5), "mu_priori_b2:", format(round(mu_priori[3], 5), nsmall = 5),"  e_utility:", result))
+  #print(paste("mu_priori_b0:", format(round(mu_priori[1], 5), nsmall = 5),"mu_priori_b1:", format(round(mu_priori[2], 5), nsmall = 5), "  e_utility:", result))
+  
   
   return(result)
 } 
 
-gamma_maximin_function <- function(data_fram, target, mu_priori_lower, mu_priori_upper, sigma_priori) {
-  data_matrix <-  as.matrix(data_fram[, !colnames(data_fram) %in% target])
-  response <- as.matrix(data_fram[, target]) 
-  start <- (mu_priori_upper - mu_priori_lower)/2
-  f <- function(x) {
-    expected_utility <- expected_utility_function(data_matrix = data_matrix , response = response, mu_priori = x, sigma_priori = sigma_priori)
-    return(expected_utility)
-  }
-  parameter <- optim(par = start, fn = f, method = "L-BFGS-B", lower = mu_priori_lower, upper = mu_priori_upper)$par
-  result <- f(parameter)
-  return(result)
-}
- 
-#######
-decision_function <- function(labeld_data, unlabeled_data, target,  mu_priori_lower, mu_priori_upper, sigma_priori) {
-  labeld_data_matrix <- as.matrix(labeld_data[, !colnames(labeld_data) %in% target])
-  unlabeled_data_matrix <- as.matrix(unlabeled_data[, !colnames(labeld_data) %in% target])
-  response <- as.matrix(labeld_data[c(target)])
-  pseudo_response <- as.matrix(unlabeled_data[c(target)])
-  
-  n_unlabeld <- nrow(unlabeled_data)
-  results <- c()
-  for(i in seq(n_unlabeld)) {
-    results_new <- gamma_maximin_function(a = i, labeld_data_matrix = labeld_data_matrix, unlabeled_data_matrix = unlabeled_data_matrix, response = response, pseudo_response = pseudo_response, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori)
-    results <- c(results, results_new)
-  }
-  decision <- which.max(results)
-  print(unlabeled_data[decision,])
-  return(decision)
-}
-
 m_derivat_function <- function(data_matrix, response, mu_priori, sigma_priori, theta) {
-  #print(paste("Likelihood: ",likelihood_function(theta = theta, data_matrix = data_matrix, response = response)))
-  #print(paste("priori:     ",priori_function(theta = theta, mu_priori = mu_priori, sigma_priori = sigma_priori)))
-  m_derivat <- likelihood_function(theta = theta, data_matrix = data_matrix, response = response) * priori_function(theta = theta, mu_priori = mu_priori, sigma_priori = sigma_priori)
+   m_derivat <- likelihood_function(theta = theta, data_matrix = data_matrix, response = response) * priori_function(theta = theta, mu_priori = mu_priori, sigma_priori = sigma_priori)
   return(m_derivat)
 }
 
@@ -113,50 +86,92 @@ m_mu_function <- function(data_matrix, response, mu_priori, sigma_priori) {
   
   start <- rep(0, times = ncol(data_matrix) + 1)
   x0 <- optim(par = start, fn = h_neg, method = "BFGS")$par  #Ähnich wie Newtonverfahren 
-
+  
   hII_x0 <- hessian(h, x0)
 
-  m_mu <- exp( h(x0) ) * sqrt( (2*pi)^2 / det(hII_x0)) # * (pnorm(b, mean = x0, sd = sqrt(-1 / hII_x0)) - pnorm(a, mean = x0, sd = sqrt(-1 / hII_x0))) falls Parameter eingeschränkt 
+  m_mu <- exp( h(x0) ) * sqrt( (2*pi)^2 / abs(det(hII_x0))) # * (pnorm(b, mean = x0, sd = sqrt(-1 / hII_x0)) - pnorm(a, mean = x0, sd = sqrt(-1 / hII_x0))) falls Parameter eingeschränkt 
   return(m_mu)
 } 
 
-
-####### hier 
-
-root_function <- function(f, intervall, step) {
-  roots <- c()
-  seq <- seq(from = intervall[1], to = intervall[2], by = step)
-  for(i in seq(length(seq)-1)) {
-    # print(paste("Unten: ", f(seq[i]) , " Obern: " , f(seq[i+1])))
-    if(f(seq[i]) * f(seq[i+1]) < 0 ) {
-      inter <- c(seq[i], seq[i+1])
-      roots <- c(roots, uniroot(f, inter)$root)
-    }
+m_alpha_function <- function(data_matrix , response , mu_priori , sigma_priori, alpha) {
+  
+  fn <- function(x) {
+    result <- - m_mu_function(data_matrix = data_matrix, response = response, mu_priori = x, sigma_priori = sigma_priori) 
+    return(result)
   }
-  return(roots)
+  
+  x0 <- rep(0, ncol(data_matrix) + 1)
+  m_max <- - nloptr(x0 = x0, eval_f = fn, opts = list("algorithm"="NLOPT_LN_COBYLA"))$objective
+  
+  result <-  m_mu_function(data_matrix = data_matrix, response = response, mu_priori = mu_priori, sigma_priori = sigma_priori) - m_max * alpha
+  
+  return(result)
 }
 
-# Drehen und mit elypse aproximieren 
-
-AlphaCut_mu_function <- function(alpha, mu_priori_Lower, mu_priori_upper, data, sigma_priori) {
-  m_mu_log_neg <- function(x) {
-    return(-log(m_mu_function(data = data, mu_priori = x, sigma_priori = sigma_priori)))
+gamma_maximin_alpaC_function <- function(data_matrix, response, mu_priori_lower, mu_priori_upper, sigma_priori, alpha) {
+  expected_utility <- function(x) {
+    result <- expected_utility_function(data_matrix = data_matrix, response = response, mu_priori = x, sigma_priori = sigma_priori)
+    return(result)
   }
-  max_par <- optim(par = 0, fn = m_mu_log_neg, method = "BFGS")$par  #Ähnich wie Newtonverfahren 
-  max_m <- m_mu_function(data = data, mu_priori = max_par, sigma_priori = sigma_priori)
   
+  m_alpha <- function(y) {
+    result <- - m_alpha_function(data_matrix = data_matrix , response = response, mu_priori = y, sigma_priori = sigma_priori, alpha = alpha)
+    return(result)
+  }
+  
+  x0 <- (mu_priori_upper + mu_priori_lower)/2
+  result <- nloptr(x0=x0, eval_f = expected_utility, lb = mu_priori_lower, ub = mu_priori_upper, eval_g_ineq = m_alpha, opts = list("algorithm"="NLOPT_LN_COBYLA"))
+  
+  return(result)
+}
+
+gamma_maximin_function <- function(data_fram, target, mu_priori_lower, mu_priori_upper, sigma_priori) {
+  data_matrix <-  as.matrix(data_fram[, !colnames(data_fram) %in% target])
+  response <- as.matrix(data_fram[, target]) 
+  start <- (mu_priori_upper - mu_priori_lower)/2
   f <- function(x) {
-    return(m_mu_function(data = data, mu_priori = x, sigma_priori = sigma_priori) - alpha * max_m)
-    print(m_mu_function(data = data, mu_priori = x, sigma_priori = sigma_priori))
-    print(alpha * max_m)
+    expected_utility <- expected_utility_function(data_matrix = data_matrix , response = response, mu_priori = x, sigma_priori = sigma_priori)
+    return(expected_utility)
   }
-  
-  intervall <- c(mu_priori_Lower, mu_priori_upper)
-  step = 0.01
-  
-  root <- root_function(f, intervall, step)
-  return(root)
+  parameter <- optim(par = start, fn = f, method = "L-BFGS-B", lower = mu_priori_lower, upper = mu_priori_upper)$par
+  result <- f(parameter)
+  return(result)
 }
+
+decision_function <- function(labeld_data, unlabeled_data, target,  mu_priori_lower, mu_priori_upper, sigma_priori) {
+  labeld_data_matrix <- as.matrix(labeld_data[, !colnames(labeld_data) %in% target])
+  unlabeled_data_matrix <- as.matrix(unlabeled_data[, !colnames(labeld_data) %in% target])
+  response <- as.matrix(labeld_data[c(target)])
+  pseudo_response <- as.matrix(unlabeled_data[c(target)])
+  
+  n_unlabeld <- nrow(unlabeled_data)
+  results <- c()
+  for(i in seq(n_unlabeld)) {
+    results_new <- gamma_maximin_function(a = i, labeld_data_matrix = labeld_data_matrix, unlabeled_data_matrix = unlabeled_data_matrix, response = response, pseudo_response = pseudo_response, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori)
+    results <- c(results, results_new)
+  }
+  decision <- which.max(results)
+  print(unlabeled_data[decision,])
+  return(decision)
+}
+
+decision_function <- function(labeld_data, unlabeled_data, target,  mu_priori_lower, mu_priori_upper, sigma_priori) {
+  labeld_data_matrix <- as.matrix(labeld_data[, !colnames(labeld_data) %in% target])
+  unlabeled_data_matrix <- as.matrix(unlabeled_data[, !colnames(labeld_data) %in% target])
+  response <- as.matrix(labeld_data[c(target)])
+  pseudo_response <- as.matrix(unlabeled_data[c(target)])
+  
+  n_unlabeld <- nrow(unlabeled_data)
+  results <- c()
+  for(i in seq(n_unlabeld)) {
+    results_new <- gamma_maximin_function(a = i, labeld_data_matrix = labeld_data_matrix, unlabeled_data_matrix = unlabeled_data_matrix, response = response, pseudo_response = pseudo_response, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori)
+    results <- c(results, results_new)
+  }
+  decision <- which.max(results)
+  print(unlabeled_data[decision,])
+  return(decision)
+}
+
 
 # 2dim 
 ################################################################################

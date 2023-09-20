@@ -203,3 +203,26 @@ View(df1)
 
 ################################################################################
 (gamma_maximin(labeled_data = labled_data, unlabeled_data = unlabled_data, test_data = test_data, target = "vs", glm_formula = formula, mu_priori_Lower = c(-14, -1), mu_priori_upper = c(-8, 8), sigma_priori = sigma_priori))
+
+################################################################################ 2 Dim
+mu_priori_lower <- c(-14, -8)
+mu_priori_upper <- c(-4, 8)
+sigma_priori <- rbind(beta0 = c(1,0),cbind(beta0 = c(0),cov(mtcars[c(1)])))
+response1 <- mtcars[c(8)]
+data_matrix1 <- mtcars[c(1)]
+
+
+gamma_maximin_alpaC_function(data_matrix = data_matrix1, response = response1, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = 0.7)
+
+
+################################################################################ 3 Dim
+mu_priori_lower2 <- c(-15, -15, -15)
+mu_priori_upper2 <- c(15, 15, 15)
+sigma_priori2 <- rbind(beta0 = c(1,0,0),cbind(beta0 = c(0,0),cov(mtcars[c(1, 4)])))
+response2 <- mtcars[c(8)]
+data_matrix2 <- mtcars[c(1,4)]
+
+
+gamma_maximin_alpaC_function(data_matrix = data_matrix2, response = response2, mu_priori_lower = mu_priori_lower2, mu_priori_upper = mu_priori_upper2, sigma_priori = sigma_priori2, alpha = 0.7)
+
+  

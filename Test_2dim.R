@@ -46,7 +46,7 @@ Grafik_m <- function(df) {
     geom_tile()
 }
 
-Grafik_e_utility <- function(df, limes) {
+Grafik_e_utility <- function(df) {
   ggplot(data = df, aes(x = beta0_priori, y = beta1_priori, fill = e_utility)) +
     geom_tile() +
     geom_point(data = subset(df, e_utility == min(e_utility, na.rm = TRUE)), aes(x = beta0_priori, y = beta1_priori), color = "red", size = 3)  # Tiefpunkt als Punkt markieren
@@ -68,6 +68,17 @@ Grafik_e_utility(e_utility_priori)
 Grafik_e_utility(e_utility_priori_alpha)
 
 
+mu_priori_lower <- c(-14, -8)
+mu_priori_upper <- c(-4, 8)
+sigma_priori <- rbind(beta0 = c(1,0),cbind(beta0 = c(0),cov(mtcars[c(1)])))
+response1 <- mtcars[c(8)]
+data_matrix1 <- mtcars[c(1)]
+
+response1 <- mtcars[c(8)]
+data_matrix1 <- mtcars[c(1)]
+
+
+gamma_maximin_alpaC_function(data_matrix = data_matrix1, response = response1, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori)
 
 
 #Normal
