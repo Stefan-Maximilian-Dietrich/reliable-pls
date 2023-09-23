@@ -1,6 +1,7 @@
 #install.packages("numDeriv")
 #install.packages("mvtnorm")
 #install.packages("pracma")
+#install.packages("foreach")
 library(numDeriv)
 library(mvtnorm)
 library(ggplot2)
@@ -133,3 +134,6 @@ gamma_maximin_alpaC_addapter <- function(data, glm_formula, target, mu_priori_lo
   result <- gamma_maximin_alpaC_function(data_matrix = data_matrix, response = response, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)$objective
   return(result)
 }
+
+
+  
