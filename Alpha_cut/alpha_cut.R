@@ -1,9 +1,16 @@
 library(dplyr)
 library(checkmate,asserthat)
-library("foreach")
-library("doParallel")
-source("Function.R")
+library(foreach)
+library(doParallel)
+library(numDeriv)
+library(mvtnorm)
+library(ggplot2)
+library(pracma)
+library(nloptr)
+library(tidyverse)
 
+
+source("Alpha_cut/Function.R")
 
 alpha_cut <- function(labeled_data,
                       unlabeled_data,
@@ -55,11 +62,13 @@ alpha_cut <- function(labeled_data,
       new_data 
     })
     
-    
-    cl <- parallel::makeForkCluster(8)
+    core <- as.numeric(length(data_sets_pred))
+    print(core)
+    print("Parallel")
+    cl <- parallel::makeForkCluster(core)
     doParallel::registerDoParallel(cl)
     gamma <- foreach(i = 1:length(data_sets_pred), .combine = 'c') %dopar% {
-      gamma_maximin_alpaC_addapter(data = data_sets_pred[[i]], glm_formula = formula, target = "y", mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
+      gamma_maximin_alpaC_addapter(data = data_sets_pred[[i]], glm_formula = formula, target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
     }
     parallel::stopCluster(cl)
     

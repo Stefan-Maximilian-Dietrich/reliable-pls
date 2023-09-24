@@ -13,4 +13,15 @@
 
 
 ######### Notizen 20. September 
+-nur auf ungelabedlte daten fitten 
+-auf pseudo label 
+-labeld daten rausziehen
+-doParall
+-doParallel:: um alle keren zu beutzen 
+-kollogium schicken Julian 
 
+
+
+- masterveranstalunen belegen 
+- dozenten nach "schein" fragen 
+- annerkennungsabteg 

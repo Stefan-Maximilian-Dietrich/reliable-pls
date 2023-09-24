@@ -1,14 +1,3 @@
-#install.packages("numDeriv")
-#install.packages("mvtnorm")
-#install.packages("pracma")
-#install.packages("foreach")
-library(numDeriv)
-library(mvtnorm)
-library(ggplot2)
-library(pracma)
-library(nloptr)
-library(tidyverse)
-
 likelihood_function <- function(theta, data_matrix, response) {
   X <- as.matrix(cbind(1, data_matrix))
   Y <- as.matrix(response)
@@ -59,7 +48,7 @@ expected_utility_function <- function(data_matrix, response, mu_priori, sigma_pr
   
   result <- utility_approximation_function(data_matrix = data_matrix, response = response, theta = arg_max_likelihood, mu_priori = mu_priori, sigma_priori = sigma_priori)
 
-  print(paste("mu_priori_b0:", format(round(mu_priori[1], 4), nsmall = 5),"mu_priori_b1:", format(round(mu_priori[2], 4), nsmall = 5), "mu_priori_b2:", format(round(mu_priori[3], 4), nsmall = 5), "mu_priori_b3:", format(round(mu_priori[4], 4), nsmall = 5),"  e_utility:", result))
+  #print(paste("mu_priori_b0:", format(round(mu_priori[1], 4), nsmall = 5),"mu_priori_b1:", format(round(mu_priori[2], 4), nsmall = 5), "mu_priori_b2:", format(round(mu_priori[3], 4), nsmall = 5), "mu_priori_b3:", format(round(mu_priori[4], 4), nsmall = 5),"  e_utility:", result))
   #print(paste("mu_priori_b0:", format(round(mu_priori[1], 5), nsmall = 5),"mu_priori_b1:", format(round(mu_priori[2], 5), nsmall = 5), "  e_utility:", result))
   
   
@@ -119,7 +108,7 @@ gamma_maximin_alpaC_function <- function(data_matrix, response, mu_priori_lower,
   }
   
   x0 <- (mu_priori_upper + mu_priori_lower)/2
-  print("Approximation der nidrigsten Expected Utility unter Nebenbedingung")
+  #print("Approximation der nidrigsten Expected Utility unter Nebenbedingung")
   result <- nloptr(x0=x0, eval_f = expected_utility, lb = mu_priori_lower, ub = mu_priori_upper, eval_g_ineq = m_alpha, opts = list("algorithm"="NLOPT_LN_COBYLA"))
   
   return(result)
