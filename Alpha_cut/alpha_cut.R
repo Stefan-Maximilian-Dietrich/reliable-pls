@@ -8,7 +8,8 @@ alpha_cut <- function(labeled_data,
                       mu_priori_lower,
                       mu_priori_upper, 
                       sigma_priori,
-                      alpha) {
+                      alpha,
+                      paralell = TRUE) {
   
   print("Starte Prozess")
   # some input checking
@@ -54,25 +55,26 @@ alpha_cut <- function(labeled_data,
       new_data 
     })
     
-    ##### 2funktionen
-    core <- as.numeric(length(data_sets_pred))
-    print(core)
-    print("Parallel")
-    cl <- parallel::makeForkCluster(core)
-    doParallel::registerDoParallel(cl)
-    gamma <- foreach(i = 1:length(data_sets_pred), .combine = 'c') %dopar% {
-      gamma_maximin_alpaC_addapter(data = data_sets_pred[[i]], glm_formula = formula, target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
+    
+    if(paralell) {
+      core <- as.numeric(length(data_sets_pred))
+      print(core)
+      print("Parallel")
+      cl <- parallel::makeForkCluster(core)
+      doParallel::registerDoParallel(cl)
+      gamma <- foreach(i = 1:length(data_sets_pred), .combine = 'c') %dopar% {
+        gamma_maximin_alpaC_addapter(data = data_sets_pred[[i]], glm_formula = formula, target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
+      }
+      parallel::stopCluster(cl)
     }
-    parallel::stopCluster(cl)
-    ###################
     
-
-    #gamma <- c()
-    #for(i in 1:length(data_sets_pred)) {
-    #  g <- gamma_maximin_alpaC_addapter(data = data_sets_pred[[i]], glm_formula = formula, target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
-    #  gamma <- c(gamma, g)
-    #}
-    
+    if(!paralell) {
+      gamma <- c()
+      for(i in 1:length(data_sets_pred)) {
+        g <- gamma_maximin_alpaC_addapter(data = data_sets_pred[[i]], glm_formula = formula, target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
+        gamma <- c(gamma, g)
+      }
+    }
 
     winner <- which.max(unlist(gamma)) #
     

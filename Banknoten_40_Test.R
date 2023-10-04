@@ -32,7 +32,7 @@ for(i in 1:100) {
     NA  
   })
   
-  if(!is.na(Test_banknoten_40)) {
+  if(length(Test_banknoten_40) != 1)) {
     data <- Accuracy_Result(Test_banknoten_40)
     ggplot(data = data, aes(x = Runde, y = Genauichkeit))+
       geom_line() +
