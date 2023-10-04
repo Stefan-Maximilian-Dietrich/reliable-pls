@@ -19,7 +19,7 @@ mu_priori_lower <- c(-20, 1, 1, 1)
 sigma_priori <-  rbind(beta0 = c(7,0,0,0),cbind(beta0 = c(0,0,0), cov(data_frame[c(7,5,2)]) ))
 alpha = 0.8
 
-for(i in 1:100) {
+for(i in 1:2) {
   data_frame_40 = data_frame[sample(nrow(data_frame), 40),]
   test_40 <- anti_join(data_frame, data_frame_40)
   unlabeld_40 <- data_frame_40[sample(nrow(data_frame_40), round(40*0.8)),]
