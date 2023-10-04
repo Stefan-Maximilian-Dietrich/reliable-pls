@@ -5,8 +5,7 @@ formula = target ~  Diagonal + Bottom + Length
 data(banknote)
 data_frame <- banknote %>% as.data.frame()
 names(data_frame)[names(data_frame) == 'Status'] <- 'target'
-levels(data_frame[, which(names(data_frame) %in% target)]) <- c(0,1)
-data_frame$target <- as.numeric(data_frame$target) -1
+data_frame$target <- as.numeric(data_frame$target == "genuine")
 
 modell <- glm(formula = target ~  Diagonal + Bottom + Length, data = data_frame)
 summary(modell)

@@ -1,17 +1,3 @@
-library(dplyr)
-library(checkmate,asserthat)
-library(foreach)
-library(doParallel)
-library(numDeriv)
-library(mvtnorm)
-library(ggplot2)
-library(pracma)
-library(nloptr)
-library(tidyverse)
-library(MixGHD)
-
-
-
 source("Alpha_cut/Function.R")
 
 alpha_cut <- function(labeled_data,
