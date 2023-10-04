@@ -16,7 +16,7 @@ formula <- formula(y ~ x1 + x2 + x3)
 
 data100 <- df[1:100, ]
 data100_u <- df[101:200, c(2,3,4)]
-data1000_t <- df[1001:2000, ]
+data5000_t <- df[1001:6000, ]
 data20_u <- df[101:120, c(2,3,4)]
 
 logistic_model <- glm(formula = formula, data = data100, family = "binomial")
@@ -31,9 +31,17 @@ alpha <- 0.8
 
 
 #Tests
-#100/4
+#100/3
 start <- Sys.time()
-Test100_4 <- alpha_cut(labeled_data = data100, unlabeled_data = df[101:104, c(2,3,4)], test_data = data1000_t, target =  "y", glm_formula = formula , mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
+Test100_3 <- alpha_cut(labeled_data = df[5:8,], unlabeled_data = df[104:105, c(2,3,4)], test_data = data1000_t, target =  "y", glm_formula = formula , mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
+End <- Sys.time()
+End - start
+
+
+#Tests
+#100/50
+start <- Sys.time()
+Test100_4 <- alpha_cut(labeled_data = data100, unlabeled_data = df[101:150, c(2,3,4)], test_data = data1000_t, target =  "y", glm_formula = formula , mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
 End <- Sys.time()
 End - start
 
