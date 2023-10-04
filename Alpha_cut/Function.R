@@ -121,8 +121,12 @@ gamma_maximin_alpaC_function <- function(data_matrix, response, mu_priori_lower,
   
   x0 <- (mu_priori_upper + mu_priori_lower)/2
   print("Approximation der nidrigsten Expected Utility unter Nebenbedingung")
-  result <- nloptr(x0=x0, eval_f = expected_utility, lb = mu_priori_lower, ub = mu_priori_upper, eval_g_ineq = m_alpha, opts = list("algorithm"="NLOPT_LN_COBYLA", "xtol_rel" = 0.1))
   
+  result <- tryCatch({
+    nloptr(x0=x0, eval_f = expected_utility, lb = mu_priori_lower, ub = mu_priori_upper, eval_g_ineq = m_alpha, opts = list("algorithm"="NLOPT_LN_COBYLA", "xtol_rel" = 0.1))  }, 
+    error = function(e) {
+    0  
+  })
   return(result)
 }
 
