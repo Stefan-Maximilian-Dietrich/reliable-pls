@@ -1,4 +1,5 @@
 source("R/Alpha_cut/alpha_cut.R")
+set.seed(2037420)
 
 method = "alpha_cut"
 time_in <- vector()
@@ -7,15 +8,20 @@ trans_res = vector()
 ind_res = vector()
 
 # share of unlabeled obs
-n_imp = ((nrow(data_frame) - n_test) * share_unlabeled) %>% round()
-
-ind_res_on_the_fly = matrix(nrow = n_imp, ncol = N)
 
 
-for (iter in 1:N) {
+
+for (iter in 1:30) {
+  
+  source("R/Alpha_cut/Alpha_Test.R")
+  
+  n_imp = ((nrow(data_frame) - n_test) * share_unlabeled) %>% round()
+  
+  ind_res_on_the_fly = matrix(nrow = n_imp, ncol = N)
   
   test_rows = sample(nrow(data_frame), size = n_test)
   test_data = data_frame[test_rows,]
+
   
   # data frame for SSL
   data = data_frame[-test_rows,]

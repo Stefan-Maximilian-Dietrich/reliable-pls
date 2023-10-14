@@ -1,5 +1,3 @@
-set.seed(2037420)
-N = 30
 share_unlabeled = 0.8
 
 # read in data frame
@@ -8,11 +6,11 @@ data_frame <- banknote %>% as.data.frame()
 names(data_frame)[names(data_frame) == 'Status'] <- 'target'
 
 #get number of instances
-data_frame = data_frame[sample(nrow(data_frame), 200),]
+data_frame = data_frame[sample(nrow(data_frame), 80),]
 
 
 #train test splict
-n_test = nrow(data_frame)*0.8
+n_test = nrow(data_frame)*0.5
 n_test = round(n_test)
 
 
