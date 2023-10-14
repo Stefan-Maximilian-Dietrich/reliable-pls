@@ -3,8 +3,8 @@
 ###############
 library(dplyr)
 library(MixGHD)
-#N = 100
-#share_unlabeled = 0.8
+N = 100
+share_unlabeled = 0.8
 p = 3
 n = 200
 
@@ -32,6 +32,7 @@ levels_present <- levels(data_frame[c(target)] %>% unlist())
 # check whether labels are suited for replacement by 0,1
 levels_present
 levels(data_frame[, which(names(data_frame) %in% target)]) <- c(0,1)
+data_frame$target <- as.numeric(data_frame$target) - 1 # Musste uch hinzufügen 
 
 glm(formula = formula, data = data_frame) %>% summary
 

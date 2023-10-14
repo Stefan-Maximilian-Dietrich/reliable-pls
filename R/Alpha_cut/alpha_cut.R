@@ -1,4 +1,6 @@
-source("Alpha_cut/Function.R")
+source("R/Alpha_cut/Function.R")
+
+
 
 alpha_cut <- function(labeled_data,
                       unlabeled_data,
@@ -11,7 +13,6 @@ alpha_cut <- function(labeled_data,
                       alpha,
                       paralell = TRUE) {
   
-  print("Starte Prozess")
   # some input checking
   assert_data_frame(labeled_data)
   assert_data_frame(unlabeled_data)
@@ -19,31 +20,27 @@ alpha_cut <- function(labeled_data,
   assert_formula(glm_formula)
   assert_character(target)
   
-  print("check compleat")
-  
   formula = glm_formula
   
   n_imp = nrow(unlabeled_data)
-  results = list()
+  results = matrix(nrow = n_imp, ncol = 3)
   which_flip = seq(n_imp)
   
   for (i in seq(n_imp)) {
     print(paste("Iteration:", i))
     
-    print(formula)
-    print(labeled_data)
     # fit model to labeled data
     logistic_model <- glm(formula = formula, 
                           data = labeled_data, 
                           family = "binomial")
-
+    
     # predict on unlabeled data
     predicted_target <- predict(logistic_model, 
                                 newdata= unlabeled_data, 
                                 type = "response")
     # assign predicted (pseudo) labels to unlabeled data
     unlabeled_data[c(target)] <- ifelse(predicted_target > 0.5, 1,0)  
-
+    
     
     # create datasets that contain labeled data and one predicted instance each
     if(i >= 2){
@@ -63,7 +60,7 @@ alpha_cut <- function(labeled_data,
       cl <- parallel::makeForkCluster(core)
       doParallel::registerDoParallel(cl)
       gamma <- foreach(i = 1:length(data_sets_pred), .combine = 'c') %dopar% {
-        gamma_maximin_alpaC_addapter(data = data_sets_pred[[i]], glm_formula = formula, target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
+        gamma_maximin_alpaC_addapter(data = data_sets_pred[[i]], glm_formula = glm_formula, target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
       }
       parallel::stopCluster(cl)
     }
@@ -71,15 +68,12 @@ alpha_cut <- function(labeled_data,
     if(!paralell) {
       gamma <- c()
       for(i in 1:length(data_sets_pred)) {
-        g <- gamma_maximin_alpaC_addapter(data = data_sets_pred[[i]], glm_formula = formula, target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
+        g <- gamma_maximin_alpaC_addapter(data = data_sets_pred[[i]], glm_formula = glm_formula, target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
         gamma <- c(gamma, g)
       }
     }
-
-    winner <- which.max(unlist(gamma)) #
     
-    print("Gewinner:")
-    print(winner)
+    winner <- which.max(unlist(gamma)) #
     
     
     # predict on it again and add to labeled data
@@ -92,12 +86,11 @@ alpha_cut <- function(labeled_data,
     prediction_test <- ifelse(scores > 0.5, 1, 0)
     test_acc <- sum(prediction_test == test_data[c(target)])/nrow(test_data)
     
-    print(paste("Testresultat:", test_acc))
     
     # update labeled data
     labeled_data<- rbind(labeled_data, new_labeled_obs)
     # store results
-    results[[i]] <- list(Test = test_acc, Neun = new_labeled_obs, Utility = cbind(unlabeled_data, gamma))
+    results[i,] <- c(unlabeled_data[winner,]$nr, new_labeled_obs[c(target)], test_acc) %>% unlist()
     unlabeled_data <- unlabeled_data[-winner,]
     
   }
@@ -106,6 +99,6 @@ alpha_cut <- function(labeled_data,
                                        data = labeled_data, 
                                        family = "binomial")
   # return transductive results (labels) and final model
-  return(results)
+  list(results, final_model)
+  
 }
-
