@@ -32,7 +32,7 @@ for (iter in 1:N) {
   time_in <- c(time_in, Sys.time())
   
   results_list <- alpha_cut(labeled_data = labeled_data ,
-                            unlabeled_data = unlabeled_data[c(1),],
+                            unlabeled_data = unlabeled_data,
                             test_data = test_data,
                             target = target,
                             glm_formula = formula,

@@ -12,7 +12,7 @@ data_frame = data_frame[sample(nrow(data_frame), 200),]
 
 
 #train test splict
-n_test = nrow(data_frame)*0.5
+n_test = nrow(data_frame)*0.8
 n_test = round(n_test)
 
 
