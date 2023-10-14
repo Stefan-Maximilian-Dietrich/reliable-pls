@@ -54,7 +54,7 @@ alpha_cut <- function(labeled_data,
     
     
     if(paralell) {
-      core <- as.numeric(length(data_sets_pred))
+      core <- as.numeric(parallel::detectCores() - 1)
       print(core)
       print("Parallel")
       cl <- parallel::makeForkCluster(core)
