@@ -1,7 +1,8 @@
 source("R/Alpha_cut/alpha_cut.R")
 
 method = "alpha_cut"
-
+time_in <- vector()
+time_out <- vector()
 trans_res = vector()
 ind_res = vector()
 
@@ -28,6 +29,8 @@ for (iter in 1:N) {
   unlabeled_data <- cbind(unlabeled_data, nr = unlabeled_data_inst)
   true_labels = cbind(unlabeled_data$nr, unlabeled_data[c(target)])
   
+  time_in <- c(time_in, Sys.time())
+  
   results_list <- alpha_cut(labeled_data = labeled_data ,
                             unlabeled_data = unlabeled_data[c(1),],
                             test_data = test_data,
@@ -37,7 +40,10 @@ for (iter in 1:N) {
                             mu_priori_upper = c(5, 5, 5, 5), 
                             sigma_priori = matrix(c(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1), nrow = 4),
                             alpha = 0.8,
-                            paralell = FALSE)
+                            paralell = TRUE)
+  
+  time_out <- c(time_out, Sys.time())
+  
   
   # get transductive and inductive results
   results <- results_list[[1]]
