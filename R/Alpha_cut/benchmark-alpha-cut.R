@@ -1,6 +1,6 @@
 source("R/Alpha_cut/alpha_cut.R")
 set.seed(2037420)
-
+N = 30
 method = "alpha_cut"
 time_in <- vector()
 time_out <- vector()
@@ -10,8 +10,7 @@ ind_res = vector()
 # share of unlabeled obs
 
 
-
-for (iter in 1:30) {
+for (iter in 1:N) {
   
   source("R/Alpha_cut/Alpha_Test.R")
   
