@@ -1,9 +1,9 @@
 # berechne m Tensor für alle 
 library(data.table)
-Limits <- matrix(c(-5,5,2.5,
-                       -5,5,2.5,
-                       -5,5,2.5,
-                       -5,5,2.5), ncol = 3, byrow = TRUE)
+Limits <- matrix(c(-5,5,1,
+                       -5,5,1,
+                       -5,5,1,
+                       -5,5,1), ncol = 3, byrow = TRUE)
 
 x1 <- rnorm(10000, mean = 0, sd = 1)
 x2 <- rnorm(10000, mean = 2, sd = 5)
@@ -104,10 +104,9 @@ alpha_cut_eu <- function(acm_grid, eu_grid) {
 start <- Sys.time()
 grid_vars <- get_variable_grid(Limits)
 m_grid <- get_m_grid(grid_vars)
-ac_m_grid <- alpha_cut_m(m_grid, 0.5)
+ac_m_grid <- alpha_cut_m(m_grid, 0.7)
 eu_grid <- get_eu_grid(grid_vars)
 ac_eu_grid <- alpha_cut_eu(ac_m_grid, eu_grid)
-
 end <- Sys.time()
 end - start
 
