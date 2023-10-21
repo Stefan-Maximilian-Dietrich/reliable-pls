@@ -1,9 +1,9 @@
 # berechne m Tensor für alle 
 library(data.table)
-Limits <- matrix(c(-5,5,1,
-                       -5,5,1,
-                       -5,5,1,
-                       -5,5,1), ncol = 3, byrow = TRUE)
+Limits <- matrix(c(-5,5,2.5,
+                       -5,5,2.5,
+                       -5,5,2.5,
+                       -5,5,2.5), ncol = 3, byrow = TRUE)
 
 x1 <- rnorm(10000, mean = 0, sd = 1)
 x2 <- rnorm(10000, mean = 2, sd = 5)
@@ -65,7 +65,7 @@ get_variable_grid <- function(Limits) {
 
 get_m_grid <- function(grid) {
   n <- nrow(grid)
-  core <- min(as.numeric(parallel::detectCores() - 1), as.numeric(n))
+  core <- min(as.numeric(parallel::detectCores() - 1), as.numeric(n),  as.numeric(7))
   #core <- as.numeric(1)
   cl <- parallel::makeForkCluster(core)
   doParallel::registerDoParallel(cl)
@@ -85,7 +85,7 @@ alpha_cut_m <- function(m_grid, alpha) {
 
 get_eu_grid <- function(grid) {
   n <- nrow(grid)
-  core <- min(as.numeric(parallel::detectCores() - 1), as.numeric(n))
+  core <- min(as.numeric(parallel::detectCores() - 1), as.numeric(n), as.numeric(7))
   cl <- parallel::makeForkCluster(core)
   doParallel::registerDoParallel(cl)
   eu_grid <- foreach(i = 1:n) %dopar% {
