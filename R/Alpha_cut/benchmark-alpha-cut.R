@@ -1,4 +1,6 @@
 source("R/Alpha_cut/alpha_cut.R")
+source("R/Alpha_cut/Alpha_Test.R")
+
 set.seed(2037420)
 N = 100
 method = "alpha_cut"
@@ -13,6 +15,7 @@ n_imp = ((nrow(data_frame) - n_test) * share_unlabeled) %>% round()
 ind_res_on_the_fly = matrix(nrow = n_imp, ncol = N)
 
 for (iter in 1:N) {
+  print(paste("Iteration:", iter ))
   
   source("R/Alpha_cut/Alpha_Test.R")
   
@@ -39,9 +42,9 @@ for (iter in 1:N) {
                             test_data = test_data,
                             target = target,
                             glm_formula = formula,
-                            mu_priori_lower = c(-5, -5, -5, -5),
-                            mu_priori_upper = c(5, 5, 5, 5), 
-                            sigma_priori = matrix(c(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1), nrow = 4),
+                            mu_priori_lower = c(-50, -1, -1, -1),
+                            mu_priori_upper =  c(-20, 2, 1, 1), 
+                            sigma_priori =rbind(beta0 = c(7,0,0,0),cbind(beta0 = c(0,0,0), cov(data_frame[c(7,5,2)]) )),
                             alpha = 0.8,
                             paralell = TRUE)
   
@@ -55,6 +58,7 @@ for (iter in 1:N) {
   
   # on the fly test results
   ind_res_on_the_fly[,iter] <- results[,3] # acc
+  View(ind_res_on_the_fly)
   
   sorted_results = results[order(results[,1]),]
   sorted_true_labels = true_labels[order(true_labels[,1]),]

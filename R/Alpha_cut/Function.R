@@ -51,9 +51,8 @@ expected_utility_function <- function(data_matrix, response, mu_priori, sigma_pr
     return(-log(f(x)))
   }
   start <- rep(0, times = ncol(data_matrix) + 1)
-
-  arg_max_likelihood <- nloptr(x0 = start, eval_f = h, opts = list("algorithm"="NLOPT_LN_COBYLA", "xtol_rel" = 0.001))$solution
-
+  arg_max_likelihood <- optim(par = start, fn =  h, method = "BFGS")$par
+  
   result <- utility_approximation_function(data_matrix = data_matrix, response = response, theta = arg_max_likelihood, mu_priori = mu_priori, sigma_priori = sigma_priori)
   
   print(paste("mu_priori_b0:", format(round(mu_priori[1], 4), nsmall = 5),"mu_priori_b1:", format(round(mu_priori[2], 4), nsmall = 5), "mu_priori_b2:", format(round(mu_priori[3], 4), nsmall = 5), "mu_priori_b3:", format(round(mu_priori[4], 4), nsmall = 5),"  e_utility:", result))
@@ -84,8 +83,8 @@ m_mu_function <- function(data_matrix, response, mu_priori, sigma_priori) {
   }
   
   start <- rep(0, times = ncol(data_matrix) + 1)
-  x0 <- nloptr(x0 = start, eval_f = h_neg, opts = list("algorithm"="NLOPT_LN_COBYLA", "xtol_rel" = 0.001))$solution #, "xtol_rel" = 0.1
-
+  x0 <- optim(par = start, fn = h_neg, method = "BFGS")$par  #Ähnich wie Newtonverfahren 
+  
   hII_x0 <- hessian(h, x0)
   
   m_mu <- exp( h(x0) ) * sqrt( (2*pi)^2 / abs(det(hII_x0))) # * (pnorm(b, mean = x0, sd = sqrt(-1 / hII_x0)) - pnorm(a, mean = x0, sd = sqrt(-1 / hII_x0))) falls Parameter eingeschränkt 
@@ -95,18 +94,13 @@ m_mu_function <- function(data_matrix, response, mu_priori, sigma_priori) {
 m_alpha_function <- function(data_matrix , response , mu_priori , sigma_priori, alpha, m_max) {
   #print("m_alpha_function")
   
-  fn <- function(x) {
-    result <- - m_mu_function(data_matrix = data_matrix, response = response, mu_priori = x, sigma_priori = sigma_priori) 
-    return(result)
-  }
   
-
   result <-  m_mu_function(data_matrix = data_matrix, response = response, mu_priori = mu_priori, sigma_priori = sigma_priori) - m_max * alpha
   
   return(result)
 }
 
-m_max_alpha_function <- function(data_matrix, response, sigma_priori, mu_priori_lower, mu_priori_upper) {
+m_max_alpha_function <- function(data_matrix , response , sigma_priori, mu_priori_lower, mu_priori_upper) {
   #print("m_alpha_function")
   
   fn <- function(x) {
@@ -114,9 +108,8 @@ m_max_alpha_function <- function(data_matrix, response, sigma_priori, mu_priori_
     return(result)
   }
   
-  x0 <- (mu_priori_upper + mu_priori_lower)/2
-  m_max <- nloptr(x0 = x0, eval_f = fn, lb = mu_priori_lower, ub = mu_priori_upper, opts = list("algorithm"="NLOPT_LN_COBYLA", "xtol_rel" = 0.001)) #, "xtol_rel" = 0.1
-  
+  x0 <- (mu_priori_lower + mu_priori_upper)/2
+  m_max <- - nloptr(x0 = x0, eval_f = fn, lb = mu_priori_lower, ub = mu_priori_upper, opts = list("algorithm"="NLOPT_LN_COBYLA", "xtol_rel" = 0.001))$objective
   
   return(m_max)
 }
@@ -124,11 +117,9 @@ m_max_alpha_function <- function(data_matrix, response, sigma_priori, mu_priori_
 gamma_maximin_alpaC_function <- function(data_matrix, response, mu_priori_lower, mu_priori_upper, sigma_priori, alpha) {
   #print("gamma_maximin_alpaC_function")
   
-  m_max <- m_max_alpha_function(data_matrix = data_matrix, response = response, sigma_priori = sigma_priori, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper)
-  m_max_value <- - m_max$objective
-  m_max_solution <- m_max$solution
-  print(paste("m maximum:", m_max_value))
-    
+  m_max <- m_max_alpha_function(data_matrix = data_matrix , response = response , sigma_priori = sigma_priori, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper)
+  print(m_max)
+  
   
   expected_utility <- function(x) {
     result <- expected_utility_function(data_matrix = data_matrix, response = response, mu_priori = x, sigma_priori = sigma_priori)
@@ -136,17 +127,15 @@ gamma_maximin_alpaC_function <- function(data_matrix, response, mu_priori_lower,
   }
   
   m_alpha <- function(y) {
-    result <- - m_alpha_function(data_matrix = data_matrix , response = response, mu_priori = y, sigma_priori = sigma_priori, alpha = alpha, m_max = m_max_value)
+    result <- - m_alpha_function(data_matrix = data_matrix , response = response, mu_priori = y, sigma_priori = sigma_priori, alpha = alpha, m_max = m_max)
     return(result)
   }
   
-  x0 <- m_max_solution
+  x0 <- (mu_priori_upper + mu_priori_lower)/2
   print("Approximation der nidrigsten Expected Utility unter Nebenbedingung")
   
-  
-  
   result <- tryCatch({
-    nloptr(x0=x0, eval_f = expected_utility, lb = mu_priori_lower, ub = mu_priori_upper, eval_g_ineq = m_alpha, opts = list("algorithm"="NLOPT_LN_COBYLA", "xtol_rel" = 0.001))  }, #, "xtol_rel" = 0.1
+    nloptr(x0=x0, eval_f = expected_utility, lb = mu_priori_lower, ub = mu_priori_upper, eval_g_ineq = m_alpha, opts = list("algorithm"="NLOPT_LN_COBYLA", "xtol_rel" = 0.001))  }, 
     error = function(e) {
       0  
     })

@@ -36,8 +36,8 @@ test_2 <- anti_join(data_frame, data_frame_2)
 unlabeld_2 <- data_frame_2[sample(nrow(data_frame_2), round(2*0.8)),]
 labled_2 <- anti_join(data_frame_2, unlabeld_2)
 
-mu_priori_lower <- c(-45, -1, -1, -1)
-mu_priori_lower <- c(-20, 1, 1, 1)
+mu_priori_lower <- c(-50, -1, -1, -1)
+mu_priori_upper <- c(-20, 2, 1, 1)
 sigma_priori <-  rbind(beta0 = c(7,0,0,0),cbind(beta0 = c(0,0,0), cov(data_frame[c(7,5,2)]) ))
 alpha = 0.8
 
@@ -48,7 +48,7 @@ End <- Sys.time()
 End - start
 
 start <- Sys.time()
-Test_banknoten_40 <- alpha_cut(labeled_data = labled_40[c(1,7,5,2)], unlabeled_data = unlabeld_40[c(7,5,2)], test_data = test_40[c(1,7,5,2)], target =  "target", glm_formula = formula , mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_lower, sigma_priori = sigma_priori, alpha = alpha)
+Test_banknoten_40 <- alpha_cut(labeled_data = labled_40[c(1,7,5,2)], unlabeled_data = unlabeld_40[c(7,5,2)], test_data = test_40[c(1,7,5,2)], target =  "target", glm_formula = formula , mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha, paralell = FALSE)
 End <- Sys.time()
 End - start
 

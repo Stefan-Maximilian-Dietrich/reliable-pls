@@ -26,3 +26,8 @@ levels_present
 levels(data_frame[, which(names(data_frame) %in% target)]) <- c(0,1)
 data_frame$target <- as.numeric(data_frame$target) - 1 # Musste uch hinzufügen 
 
+
+glm_1 <- glm(formula = formula, data = data_frame, family = "binomial")
+
+n_imp = ((nrow(data_frame) - n_test) * share_unlabeled) %>% round()
+ind_res_on_the_fly = matrix(nrow = n_imp, ncol = N)
