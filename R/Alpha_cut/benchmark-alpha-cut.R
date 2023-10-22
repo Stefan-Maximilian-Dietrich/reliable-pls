@@ -15,7 +15,7 @@ n_imp = ((nrow(data_frame) - n_test) * share_unlabeled) %>% round()
 ind_res_on_the_fly = matrix(nrow = n_imp, ncol = N)
 
 for (iter in 1:N) {
-  print(paste("Iteration:", iter ))
+  print(paste("ITERATION:", iter ))
   
   source("R/Alpha_cut/Alpha_Test.R")
   
