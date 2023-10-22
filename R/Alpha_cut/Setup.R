@@ -10,6 +10,8 @@ install.packages("pracma")
 install.packages("nloptr")
 install.packages("tidyverse")
 install.packages("MixGHD")
+install.packages("bigstatsr")
+install.packages("profvis")
 
 
 library(dplyr)
@@ -23,4 +25,6 @@ library(pracma)
 library(nloptr)
 library(tidyverse)
 library(MixGHD)
+library(bigstatsr)
+library(profvis)
 

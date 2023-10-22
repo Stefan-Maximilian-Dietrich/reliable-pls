@@ -25,10 +25,11 @@ sigma_priori_2  <- rbind(beta0 = c(1,0,0,0),cbind(beta0 = c(0,0,0), cov(data100_
 
 formula <- as.formula( y ~ x1 + x2 + x3)
 
-start <- Sys.time()
-e <- gamma_maximin_alpaC_addapter(data = data100_1, glm_formula = formula, target = "y", mu_priori_lower = c(-5,-5,-5,-5), mu_priori_upper = c(5,5,5,5), sigma_priori = sigma_priori_1, alpha = 0.7) 
-end <- Sys.time()
-end - start
+profvis({
+  e <- gamma_maximin_alpaC_addapter(data = data100_1, glm_formula = formula, target = "y", mu_priori_lower = c(-5,-5,-5,-5), mu_priori_upper = c(5,5,5,5), sigma_priori = sigma_priori_1, alpha = 0.7)
+  e
+})
+
 
 start <- Sys.time()
 f <- gamma_maximin_alpaC_addapter(data = data100_2, glm_formula = formula, target = "y", mu_priori_lower = c(-5,-5,-5,-5), mu_priori_upper = c(5,5,5,5), sigma_priori = sigma_priori_2, alpha = 0.7) 

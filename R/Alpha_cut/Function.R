@@ -51,8 +51,9 @@ expected_utility_function <- function(data_matrix, response, mu_priori, sigma_pr
     return(-log(f(x)))
   }
   start <- rep(0, times = ncol(data_matrix) + 1)
-  arg_max_likelihood <- optim(par = start, fn =  h, method = "BFGS")$par
-  
+
+  arg_max_likelihood <- nloptr(x0 = start, eval_f = h, opts = list("algorithm"="NLOPT_LN_COBYLA", "xtol_rel" = 0.001))$solution
+
   result <- utility_approximation_function(data_matrix = data_matrix, response = response, theta = arg_max_likelihood, mu_priori = mu_priori, sigma_priori = sigma_priori)
   
   print(paste("mu_priori_b0:", format(round(mu_priori[1], 4), nsmall = 5),"mu_priori_b1:", format(round(mu_priori[2], 4), nsmall = 5), "mu_priori_b2:", format(round(mu_priori[3], 4), nsmall = 5), "mu_priori_b3:", format(round(mu_priori[4], 4), nsmall = 5),"  e_utility:", result))
@@ -83,8 +84,8 @@ m_mu_function <- function(data_matrix, response, mu_priori, sigma_priori) {
   }
   
   start <- rep(0, times = ncol(data_matrix) + 1)
-  x0 <- optim(par = start, fn = h_neg, method = "BFGS")$par  #Ähnich wie Newtonverfahren 
-  
+  x0 <- nloptr(x0 = start, eval_f = h_neg, opts = list("algorithm"="NLOPT_LN_COBYLA", "xtol_rel" = 0.001))$solution #, "xtol_rel" = 0.1
+
   hII_x0 <- hessian(h, x0)
   
   m_mu <- exp( h(x0) ) * sqrt( (2*pi)^2 / abs(det(hII_x0))) # * (pnorm(b, mean = x0, sd = sqrt(-1 / hII_x0)) - pnorm(a, mean = x0, sd = sqrt(-1 / hII_x0))) falls Parameter eingeschränkt 
@@ -114,7 +115,6 @@ m_max_alpha_function <- function(data_matrix, response, sigma_priori, mu_priori_
   }
   
   x0 <- (mu_priori_upper + mu_priori_lower)/2
-  #m_max <- - nloptr(x0 = x0, eval_f = fn, opts = list("algorithm"="NLOPT_LN_COBYLA"))$objective
   m_max <- nloptr(x0 = x0, eval_f = fn, lb = mu_priori_lower, ub = mu_priori_upper, opts = list("algorithm"="NLOPT_LN_COBYLA", "xtol_rel" = 0.001)) #, "xtol_rel" = 0.1
   
   
