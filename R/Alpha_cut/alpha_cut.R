@@ -27,8 +27,9 @@ alpha_cut <- function(labeled_data,
   which_flip = seq(n_imp)
   
   for (i in seq(n_imp)) {
-    print(paste("Iteration:", i))
+    print(paste("Vortschritt:", i/n_imp*100, "%"))
     
+    Zeit_Start <- Sys.time()
     # fit model to labeled data
     logistic_model <- glm(formula = formula, 
                           data = labeled_data, 
@@ -54,7 +55,7 @@ alpha_cut <- function(labeled_data,
     
     
     if(paralell) {
-      core <- as.numeric(parallel::detectCores() - 1)
+      core <- as.numeric(bigstatsr::nb_cores())
       print(core)
       print("Parallel")
       cl <- parallel::makeForkCluster(core)
@@ -93,6 +94,8 @@ alpha_cut <- function(labeled_data,
     results[i,] <- c(unlabeled_data[winner,]$nr, new_labeled_obs[c(target)], test_acc) %>% unlist()
     unlabeled_data <- unlabeled_data[-winner,]
     
+    Zeit_Ende <- Sys.time()
+    print(paste("Für Schritt", i, "wurden", Zeit_Ende - Zeit_Start, "gebraucht"))
   }
   # get final model
   final_model <- logistic_model <- glm(formula = formula, 

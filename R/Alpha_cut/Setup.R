@@ -12,6 +12,7 @@ install.packages("tidyverse")
 install.packages("MixGHD")
 install.packages("bigstatsr")
 install.packages("profvis")
+install.packages("mmeln")
 
 
 library(dplyr)
@@ -27,4 +28,6 @@ library(tidyverse)
 library(MixGHD)
 library(bigstatsr)
 library(profvis)
+library(mmeln)
+
 
