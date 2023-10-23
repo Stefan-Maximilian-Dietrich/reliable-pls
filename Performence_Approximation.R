@@ -71,10 +71,12 @@ levels_present <- levels(data_frame[c(target)] %>% unlist())
 levels_present
 levels(data_frame[, which(names(data_frame) %in% target)]) <- c(0,1)
 data_frame$target <- as.numeric(data_frame$target) - 1 # Musste uch hinzufügen 
+mu_priori_lower <- c(-50, -1, -1, -1)
+mu_priori_upper <-  c(-20, 2, 1, 1)
+sigma_priori <- rbind(beta0 = c(7,0,0,0),cbind(beta0 = c(0,0,0), cov(data_frame[c(7,5,2)]) ))
+alpha = 0.8
 
-
-glm_1 <- glm(formula = formula, data = data_frame, family = "binomial")
-
-n_imp = ((nrow(data_frame) - n_test) * share_unlabeled) %>% round()
-ind_res_on_the_fly = matrix(nrow = n_imp, ncol = N)
-
+profvis({
+  e <- gamma_maximin_alpaC_addapter(data = data_frame, glm_formula = formula, target = "target", mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = 0.8)
+  e
+})

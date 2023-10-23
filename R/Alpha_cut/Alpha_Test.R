@@ -6,7 +6,7 @@ data_frame <- banknote %>% as.data.frame()
 names(data_frame)[names(data_frame) == 'Status'] <- 'target'
 
 #get number of instances
-data_frame = data_frame[sample(nrow(data_frame), 80),]
+data_frame = data_frame[sample(nrow(data_frame), 120),]
 
 
 #train test splict
@@ -25,5 +25,7 @@ levels_present <- levels(data_frame[c(target)] %>% unlist())
 levels_present
 levels(data_frame[, which(names(data_frame) %in% target)]) <- c(0,1)
 data_frame$target <- as.numeric(data_frame$target) - 1 # Musste uch hinzufügen 
+
+cov(data_frame[c(1,2,3),])
 
 

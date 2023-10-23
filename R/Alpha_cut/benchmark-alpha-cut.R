@@ -1,8 +1,8 @@
 source("R/Alpha_cut/alpha_cut.R")
-source("R/Alpha_cut/Alpha_Test.R")
+source("R/Alpha_cut/Mushrooms_AC.R")
 
 set.seed(2037420)
-N = 100
+N = 40
 method = "alpha_cut"
 time_in <- vector()
 time_out <- vector()
@@ -17,7 +17,7 @@ ind_res_on_the_fly = matrix(nrow = n_imp, ncol = N)
 for (iter in 1:N) {
   print(paste("ITERATION:", iter ))
   
-  source("R/Alpha_cut/Alpha_Test.R")
+  source("R/Alpha_cut/Mushrooms_AC.R")
   
   test_rows = sample(nrow(data_frame), size = n_test)
   test_data = data_frame[test_rows,]
@@ -42,11 +42,11 @@ for (iter in 1:N) {
                             test_data = test_data,
                             target = target,
                             glm_formula = formula,
-                            mu_priori_lower = c(-50, -1, -1, -1),
-                            mu_priori_upper =  c(-20, 2, 1, 1), 
-                            sigma_priori =rbind(beta0 = c(7,0,0,0),cbind(beta0 = c(0,0,0), cov(data_frame[c(7,5,2)]) )),
+                            mu_priori_lower = c(-1, -1, -1, -1),
+                            mu_priori_upper =  c(1, 1, 1, 1), 
+                            sigma_priori = matrix(c(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1),  nrow = 4),
                             alpha = 0.8,
-                            paralell = TRUE)
+                            paralell = FALSE)
   
   time_out <- c(time_out, Sys.time())
   

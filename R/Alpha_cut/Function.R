@@ -24,7 +24,7 @@ likelihood_function <- function(theta, data_matrix, response) {
 priori_function <- function(theta, mu_priori, sigma_priori) {
   #print("priori_function")
   
-  priori <- dmvnorm(x = theta, mean = mu_priori, sigma = sigma_priori) #hier wirs nur die wahrscheilichekit des Mittelwerts betrachtet nicht die der sTREUUNG
+  priori <- mmeln::dmnorm(X = theta, Mu = mu_priori, Sigma = sigma_priori) #hier wirs nur die wahrscheilichekit des Mittelwerts betrachtet nicht die der sTREUUNG
   return(priori)
 }
 
