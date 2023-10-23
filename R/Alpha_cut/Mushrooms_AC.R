@@ -18,7 +18,7 @@ data_frame = na.omit(data_frame)
 
 #get number of instances
 
-data_frame = data_frame[sample(nrow(data_frame), 120),]
+data_frame = data_frame[sample(nrow(data_frame), 160),]
 
 #train test splict
 n_test = nrow(data_frame)*0.5
