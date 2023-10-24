@@ -1,8 +1,8 @@
   source("R/Alpha_cut/alpha_cut.R")
-  source("R/Alpha_cut/Cars_AC.R")
+  source("R/Alpha_cut/Simulated_AC.R")
 
   set.seed(2037420)
-  N = 1
+  N = 50
   method = "alpha_cut"
   time_in <- vector()
   time_out <- vector()
@@ -16,7 +16,7 @@
   for (iter in 1:N) {
     print(paste("ITERATION:", iter ))
     
-    source("R/Alpha_cut/Cars_AC.R")
+    source("R/Alpha_cut/Simulated_AC.R")
     
     test_rows = sample(nrow(data_frame), size = n_test)
     test_data = data_frame[test_rows,]
@@ -41,9 +41,9 @@
                               test_data = test_data,
                               target = target,
                               glm_formula = formula,
-                              mu_priori_lower = c(-1, -1, -1, -1),
-                              mu_priori_upper =  c(1, 1, 1, 1), 
-                              sigma_priori = matrix(c(1,0,0,0,0,11,0,0,0,0,1,0,0,0,0,1),  nrow = 4),
+                              mu_priori_lower = mu_priori_lower,
+                              mu_priori_upper =   mu_priori_upper, 
+                              sigma_priori = sigma_priori,
                               alpha = 0.8,
                               paralell = FALSE)
     
