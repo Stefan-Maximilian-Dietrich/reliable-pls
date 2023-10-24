@@ -1,5 +1,6 @@
   source("R/Alpha_cut/alpha_cut.R")
   source("R/Alpha_cut/Cars_AC.R")
+  browser()
   
   set.seed(2037420)
   N = 100
@@ -10,7 +11,6 @@
   ind_res = vector()
   
   # share of unlabeled obs
-  
   n_imp = ((nrow(data_frame) - n_test) * share_unlabeled) %>% round()
   ind_res_on_the_fly = matrix(nrow = n_imp, ncol = N)
   
