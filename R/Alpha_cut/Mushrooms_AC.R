@@ -1,6 +1,6 @@
 library(dplyr)
 library(MixGHD)
-N = 40
+N = 1
 share_unlabeled = 0.8
 p = 3
 #n = 500
@@ -40,4 +40,7 @@ levels_present
 levels(data_frame[, which(names(data_frame) %in% target)]) <- c(0,1)
 data_frame$target <- as.numeric(data_frame$target) - 1
 
-
+logistic_model <- glm(formula = formula, 
+                      data = data_frame, 
+                      family = "binomial")
+summary(logistic_model)

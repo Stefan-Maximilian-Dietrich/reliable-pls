@@ -1,9 +1,8 @@
   source("R/Alpha_cut/alpha_cut.R")
   source("R/Alpha_cut/Cars_AC.R")
-  browser()
-  
+
   set.seed(2037420)
-  N = 100
+  N = 1
   method = "alpha_cut"
   time_in <- vector()
   time_out <- vector()
@@ -42,11 +41,11 @@
                               test_data = test_data,
                               target = target,
                               glm_formula = formula,
-                              mu_priori_lower = c(0, -1, -4, -1),
-                              mu_priori_upper =  c(20, 1, 0, 1), 
-                              sigma_priori = matrix(c(11,0,0,0,0,0.1,0,0,0,0,2,0,0,0,0,0.1),  nrow = 4),
+                              mu_priori_lower = c(-1, -1, -1, -1),
+                              mu_priori_upper =  c(1, 1, 1, 1), 
+                              sigma_priori = matrix(c(1,0,0,0,0,11,0,0,0,0,1,0,0,0,0,1),  nrow = 4),
                               alpha = 0.8,
-                              paralell = TRUE)
+                              paralell = FALSE)
     
     time_out <- c(time_out, Sys.time())
     

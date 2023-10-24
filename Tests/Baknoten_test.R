@@ -47,10 +47,7 @@ Test_banknoten_2 <- alpha_cut(labeled_data = labled_2[c(1,7,5,2)], unlabeled_dat
 End <- Sys.time()
 End - start
 
-start <- Sys.time()
 Test_banknoten_40 <- alpha_cut(labeled_data = labled_40[c(1,7,5,2)], unlabeled_data = unlabeld_40[c(7,5,2)], test_data = test_40[c(1,7,5,2)], target =  "target", glm_formula = formula , mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha, paralell = FALSE)
-End <- Sys.time()
-End - start
 
 start <- Sys.time()
 Test_banknoten_40 <- alpha_cut(labeled_data = labled_80[c(1,7,5,2)], unlabeled_data = unlabeld_80[c(7,5,2)], test_data = test_80[c(1,7,5,2)], target =  "target", glm_formula = formula , mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_lower, sigma_priori = sigma_priori, alpha = alpha)

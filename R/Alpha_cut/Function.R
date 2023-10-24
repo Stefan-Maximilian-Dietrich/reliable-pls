@@ -155,4 +155,3 @@ gamma_maximin_alpaC_addapter <- function(data, glm_formula, target, mu_priori_lo
 
 
 
-  
