@@ -1,25 +1,25 @@
-set.seed(33456456)
+set.seed(2037420)
 
-x1 <- rnorm(10000, mean = 0, sd = 1)
-x2 <- rnorm(10000, mean = 2, sd = 5)
-x3 <- rnorm(10000, mean = 1, sd = 2)
 
-lin_comb <- -8.4 - 7.9*x1 +  2.8*x2 + 0.4*x3
+formula = target ~  Diagonal + Bottom + Length
 
-prob = 1/(1+exp(-lin_comb))
+data(banknote)
+data_frame <- banknote %>% as.data.frame()
+names(data_frame)[names(data_frame) == 'Status'] <- 'target'
+data_frame$target <- as.numeric(data_frame$target == "genuine")
 
-y <-rbinom(10000, 1, prob = prob)
+modell <- glm(formula = target ~  Diagonal + Bottom + Length, data = data_frame)
 
-df <- as.data.frame(cbind(y, x1, x2, x3))
+mu_priori_lower <- c(-45, -2, -2, -2)
+mu_priori_lower <- c(-20, 2, 2, 2)
+sigma_priori <-  rbind(beta0 = c(7,0,0,0),cbind(beta0 = c(0,0,0), cov(data_frame[c(7,5,2)]) ))
+alpha = 0.8
 
-formula <- formula(y ~ x1 + x2 + x3)
+data_frame_40 = data_frame[sample(nrow(data_frame), 40),]
+test_40 <- anti_join(data_frame, data_frame_40)
+unlabeld_40 <- data_frame_40[sample(nrow(data_frame_40), round(40*0.8)),]
+labled_40 <- anti_join(data_frame_40, unlabeld_40)
 
-data100_1 <- df[1:100, ]
-data100_u <- df[101:200, c(2,3,4)]
-data5000_t <- df[1001:6000, ]
-data20_u <- df[101:120, c(2,3,4)]
-
-sigma_priori_1  <- rbind(beta0 = c(1,0,0,0),cbind(beta0 = c(0,0,0), cov(data100[c(2,3,4)]) ))
 
 
 likelihood_function <- function(theta, data_matrix, response) {
@@ -179,10 +179,7 @@ gamma_maximin_alpaC_addapter <- function(data, glm_formula, target, mu_priori_lo
 
 
 
-
-
-
 profvis({
-  e <- gamma_maximin_alpaC_addapter(data = data100_1, glm_formula = formula, target = "y", mu_priori_lower = c(-5,-5,-5,-5), mu_priori_upper = c(5,5,5,5), sigma_priori = sigma_priori_1, alpha = 0.8)
-  e
+  alpha_cut(labeled_data = labled_40[c(1,7,5,2)], unlabeled_data = unlabeld_40[c(7,5,2)], test_data = test_40[c(1,7,5,2)], target =  "target", glm_formula = formula , mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_lower, sigma_priori = sigma_priori, alpha = alpha) 
 })
+
