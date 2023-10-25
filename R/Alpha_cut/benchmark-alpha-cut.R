@@ -46,8 +46,8 @@
                               mu_priori_lower = mu_priori_lower,
                               mu_priori_upper =   mu_priori_upper, 
                               sigma_priori = sigma_priori,
-                              alpha = 0.8,
-                              paralell = FALSE)
+                              alpha = alpha,
+                              paralell = TRUE)
     
     time_out <- c(time_out, Sys.time())
     
