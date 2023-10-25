@@ -9,7 +9,7 @@
   trans_res = vector()
   ind_res = vector()
   
-  Error <- liste()
+  Error <- list()
   saveRDS(Error, "Errors.rds") 
   # share of unlabeled obs
   n_imp = ((nrow(data_frame) - n_test) * share_unlabeled) %>% round()

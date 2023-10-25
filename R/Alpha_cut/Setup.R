@@ -13,6 +13,7 @@ install.packages("MixGHD")
 install.packages("bigstatsr")
 install.packages("profvis")
 install.packages("mmeln")
+install.packages("mvnfast")
 
 
 library(dplyr)
@@ -29,5 +30,6 @@ library(MixGHD)
 library(bigstatsr)
 library(profvis)
 library(mmeln)
+library(mvnfast)
 
 
