@@ -64,6 +64,11 @@ alpha_cut <- function(labeled_data,
       tryCatch({
         gamma_maximin_alpaC_addapter(data = data_sets_pred[[i]], glm_formula = glm_formula, target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
         }, error = function(e) {
+          Error <- readRDS("Errors.rds") 
+          lenght <- length(Error)
+          Error[[lenght + 1]] <- list(data = data_sets_pred[[i]], glm_formula = glm_formula, target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
+          saveRDS(Error, "Errors.rds") 
+          
           return(0)
         })
       }
