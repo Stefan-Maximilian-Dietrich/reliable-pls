@@ -61,10 +61,7 @@
     ind_res_on_the_fly[,iter] <- results[,3] # acc
     ############################################################################
     View(ind_res_on_the_fly)
-    Ergebniss <- as.data.frame(cbind(y = rowMeans(ind_res_on_the_fly,na.rm = TRUE),x =  1:n_imp))
-    
-    ggplot(data = Ergebniss, aes(x = x, y = y )) +
-      geom_line()
+
     ############################################################################ 
     sorted_results = results[order(results[,1]),]
     sorted_true_labels = true_labels[order(true_labels[,1]),]
@@ -126,7 +123,7 @@
   
   
   # save results so that they can be accessed and visualized later
-  path = paste(getwd(),"/results/alpaha_cut",
+  path = paste(getwd(),"/results/alpaha_cut_",
              as.character(share_unlabeled),"_",as.character(name_df),
              "_n=", as.character(nrow(data_frame)), "_p=", as.character(p), sep="")
 save(saved_results, file = path)

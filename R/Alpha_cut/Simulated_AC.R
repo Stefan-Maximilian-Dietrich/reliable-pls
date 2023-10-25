@@ -2,7 +2,7 @@ share_unlabeled = 0.8
 
 # simulate data
 p = 6 
-n = 60
+n = 140
 
 feature_1 <- rnorm(n, mean = 0.2)
 feature_2 <- rnorm(n, mean = -2)
