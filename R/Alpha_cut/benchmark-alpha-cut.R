@@ -57,8 +57,13 @@
     
     # on the fly test results
     ind_res_on_the_fly[,iter] <- results[,3] # acc
+    ############################################################################
     View(ind_res_on_the_fly)
+    Ergebniss <- as.data.frame(cbind(y = rowMeans(ind_res_on_the_fly,na.rm = TRUE),x =  1:n_imp))
     
+    ggplot(data = Ergebniss, aes(x = x, y = y )) +
+      geom_line()
+    ############################################################################ 
     sorted_results = results[order(results[,1]),]
     sorted_true_labels = true_labels[order(true_labels[,1]),]
     

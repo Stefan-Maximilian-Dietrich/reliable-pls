@@ -1,5 +1,4 @@
 share_unlabeled = 0.8
-set.seed(2138720)
 
 # simulate data
 p = 6 

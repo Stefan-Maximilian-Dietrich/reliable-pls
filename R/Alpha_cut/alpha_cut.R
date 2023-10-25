@@ -61,7 +61,11 @@ alpha_cut <- function(labeled_data,
       cl <- parallel::makeForkCluster(core)
       doParallel::registerDoParallel(cl)
       gamma <- foreach(i = 1:length(data_sets_pred), .combine = 'c') %dopar% {
+      tryCatch({
         gamma_maximin_alpaC_addapter(data = data_sets_pred[[i]], glm_formula = glm_formula, target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
+        }, error = function(e) {
+          return(0)
+        })
       }
       parallel::stopCluster(cl)
     }
