@@ -1,3 +1,4 @@
+#Main
 likelihood_function <- function(X, theta, response) {
   #print("likelihood_function")
   
