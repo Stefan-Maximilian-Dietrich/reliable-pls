@@ -1,4 +1,5 @@
 #Performace
+profvis({
 likelihood_function <- function(X, theta, response) {
   #print("likelihood_function")
   
@@ -23,19 +24,13 @@ likelihood_function <- function(X, theta, response) {
   return(result)
 }
 
-priori_function <- function(theta, mu_priori, sigma_priori) {
-  #print("priori_function")
-  
-  priori <- mvnfast::dmvn(X = theta, mu = mu_priori, sigma = sigma_priori) #hier wirs nur die wahrscheilichekit des Mittelwerts betrachtet nicht die der sTREUUNG
-  return(priori)
-}
 
 utility_approximation_function <- function(X, fischer_info, response, theta, mu_priori, sigma_priori) {
   #print("utility_approximation_function")
   
   likelihood <- likelihood_function(X = X, theta = theta, response = response)
   para_obs <- 2*pi/(nrow(X) - 1)
-  priori <- priori_function(theta = theta, mu_priori = mu_priori, sigma_priori = sigma_priori)
+  priori <-  mvnfast::dmvn(X = theta, mu = mu_priori, sigma = sigma_priori)
   return(para_obs * likelihood * priori / fischer_info)
 }
 
@@ -55,7 +50,7 @@ expected_utility_function <- function(X, fischer_info, response, mu_priori, sigm
   
   result <- utility_approximation_function(X = X, fischer_info = fischer_info, response = response, theta = arg_max_likelihood, mu_priori = mu_priori, sigma_priori = sigma_priori)
   
-  print(paste("mu_priori_b0:", format(round(mu_priori[1], 4), nsmall = 5),"mu_priori_b1:", format(round(mu_priori[2], 4), nsmall = 5), "mu_priori_b2:", format(round(mu_priori[3], 4), nsmall = 5), "mu_priori_b3:", format(round(mu_priori[4], 4), nsmall = 5),"  e_utility:", result))
+  #print(paste("mu_priori_b0:", format(round(mu_priori[1], 4), nsmall = 5),"mu_priori_b1:", format(round(mu_priori[2], 4), nsmall = 5), "mu_priori_b2:", format(round(mu_priori[3], 4), nsmall = 5), "mu_priori_b3:", format(round(mu_priori[4], 4), nsmall = 5),"  e_utility:", result))
   #print(paste("mu_priori_b0:", format(round(mu_priori[1], 5), nsmall = 5),"mu_priori_b1:", format(round(mu_priori[2], 5), nsmall = 5), "  e_utility:", result))
   
   
@@ -65,7 +60,7 @@ expected_utility_function <- function(X, fischer_info, response, mu_priori, sigm
 m_derivat_function <- function(X,  response, mu_priori, sigma_priori, theta) {
   #print("m_derivat_function")
   
-  m_derivat <- likelihood_function(X = X, theta = theta,  response = response) * priori_function(theta = theta, mu_priori = mu_priori, sigma_priori = sigma_priori)
+  m_derivat <- likelihood_function(X = X, theta = theta,  response = response) * mvnfast::dmvn(X = theta, mu = mu_priori, sigma = sigma_priori) 
   return(m_derivat)
 }
 
@@ -75,6 +70,11 @@ m_mu_function <- function(X,  response, mu_priori, sigma_priori) {
   g <- function(x) {
     return(m_derivat_function(X = X, response = response, mu_priori = mu_priori, sigma_priori = sigma_priori, theta = x))
   }
+  
+  g2 <- function(x) {
+    return(- m_derivat_function(X = X, response = response, mu_priori = mu_priori, sigma_priori = sigma_priori, theta = x))
+  }
+  
   h <- function(x) {
     return(log(g(x)))
   }
@@ -83,7 +83,15 @@ m_mu_function <- function(X,  response, mu_priori, sigma_priori) {
   }
   
   start <- rep(0, times = ncol(X))
-  x0 <- optim(par = start, fn = h_neg, method = "BFGS")$par  #Ähnich wie Newtonverfahren 
+  
+  #x3 <- nmk(par = start, fn = g2)$par
+  #x2 <- hjk(par = start, fn = g2)$par
+  #x1 <- optim(par = start, fn =  g2, method = "BFGS")$par  #Ähnich wie Newtonverfahren 
+  x0 <- optim(par = start, fn = h_neg, method = "BFGS")$par  #Ähnich wie Newtonverfahren
+  
+
+  
+
   
   hII_x0 <- hessian(h, x0)
   
@@ -157,3 +165,30 @@ gamma_maximin_alpaC_addapter <- function(data, glm_formula, target, mu_priori_lo
   result <- gamma_maximin_alpaC_function(X = X, fischer_info = fischer_info, response = response, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)$objective
   return(result)
 }
+
+  gamma_maximin_alpaC_addapter(data = labled_40[c(1,7,5,2)], glm_formula = formula, target =  'target', mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha) 
+  
+})
+
+set.seed(2037420)
+
+
+formula = target ~  Diagonal + Bottom + Length
+
+data(banknote)
+data_frame <- banknote %>% as.data.frame()
+names(data_frame)[names(data_frame) == 'Status'] <- 'target'
+data_frame$target <- as.numeric(data_frame$target == "genuine")
+
+modell <- glm(formula = target ~  Diagonal + Bottom + Length, data = data_frame)
+
+mu_priori_lower <- c(-45, -2, -2, -2)
+mu_priori_upper <- c(-20, 2, 2, 2)
+sigma_priori <-  rbind(beta0 = c(7,0,0,0),cbind(beta0 = c(0,0,0), cov(data_frame[c(7,5,2)]) ))
+alpha = 0.8
+
+data_frame_40 = data_frame[sample(nrow(data_frame), 40),]
+test_40 <- anti_join(data_frame, data_frame_40)
+unlabeld_40 <- data_frame_40[sample(nrow(data_frame_40), round(40*0.8)),]
+labled_40 <- anti_join(data_frame_40, unlabeld_40)
+
