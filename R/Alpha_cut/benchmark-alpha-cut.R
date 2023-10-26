@@ -1,8 +1,7 @@
   source("R/Alpha_cut/alpha_cut.R")
-  source("R/Alpha_cut/Simulated_AC.R")
+  source("R/Alpha_cut/Banknoten_AC.R")
 
   set.seed(2037420)
-  N = 50
   method = "alpha_cut"
   time_in <- vector()
   time_out <- vector()
@@ -18,7 +17,7 @@
   for (iter in 1:N) {
     print(paste("ITERATION:", iter ))
     
-    source("R/Alpha_cut/Simulated_AC.R")
+    source("R/Alpha_cut/Banknoten_AC.R")
     
     test_rows = sample(nrow(data_frame), size = n_test)
     test_data = data_frame[test_rows,]
