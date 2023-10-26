@@ -1,8 +1,6 @@
-#Performace
-profvis({
+#Main
 likelihood_function <- function(X, theta, response) {
   #print("likelihood_function")
-  
   Y <- response
   
   logistic_function <- function(X, theta) {
@@ -24,7 +22,6 @@ likelihood_function <- function(X, theta, response) {
   return(result)
 }
 
-
 utility_approximation_function <- function(X, fischer_info, response, theta, mu_priori, sigma_priori) {
   #print("utility_approximation_function")
   
@@ -36,8 +33,6 @@ utility_approximation_function <- function(X, fischer_info, response, theta, mu_
 
 expected_utility_function <- function(X, fischer_info, response, mu_priori, sigma_priori) {
   #print("expected_utility_function")
-  
-  
   f <- function(x) {
     expected_utility <- utility_approximation_function(X = X, fischer_info = fischer_info, response = response, theta = x, mu_priori = mu_priori, sigma_priori = sigma_priori)
     return(expected_utility)
@@ -52,29 +47,20 @@ expected_utility_function <- function(X, fischer_info, response, mu_priori, sigm
   
   #print(paste("mu_priori_b0:", format(round(mu_priori[1], 4), nsmall = 5),"mu_priori_b1:", format(round(mu_priori[2], 4), nsmall = 5), "mu_priori_b2:", format(round(mu_priori[3], 4), nsmall = 5), "mu_priori_b3:", format(round(mu_priori[4], 4), nsmall = 5),"  e_utility:", result))
   #print(paste("mu_priori_b0:", format(round(mu_priori[1], 5), nsmall = 5),"mu_priori_b1:", format(round(mu_priori[2], 5), nsmall = 5), "  e_utility:", result))
-  
-  
   return(result)
 } 
 
 m_derivat_function <- function(X,  response, mu_priori, sigma_priori, theta) {
   #print("m_derivat_function")
-  
   m_derivat <- likelihood_function(X = X, theta = theta,  response = response) * mvnfast::dmvn(X = theta, mu = mu_priori, sigma = sigma_priori) 
   return(m_derivat)
 }
 
 m_mu_function <- function(X,  response, mu_priori, sigma_priori) {
   #print("m_mu_function")
-  
   g <- function(x) {
     return(m_derivat_function(X = X, response = response, mu_priori = mu_priori, sigma_priori = sigma_priori, theta = x))
   }
-  
-  g2 <- function(x) {
-    return(- m_derivat_function(X = X, response = response, mu_priori = mu_priori, sigma_priori = sigma_priori, theta = x))
-  }
-  
   h <- function(x) {
     return(log(g(x)))
   }
@@ -83,16 +69,7 @@ m_mu_function <- function(X,  response, mu_priori, sigma_priori) {
   }
   
   start <- rep(0, times = ncol(X))
-  
-  #x3 <- nmk(par = start, fn = g2)$par
-  #x2 <- hjk(par = start, fn = g2)$par
-  #x1 <- optim(par = start, fn =  g2, method = "BFGS")$par  #Ähnich wie Newtonverfahren 
   x0 <- optim(par = start, fn = h_neg, method = "BFGS")$par  #Ähnich wie Newtonverfahren
-  
-
-  
-
-  
   hII_x0 <- hessian(h, x0)
   
   m_mu <- exp( h(x0) ) * sqrt( (2*pi)^2 / abs(det(hII_x0))) # * (pnorm(b, mean = x0, sd = sqrt(-1 / hII_x0)) - pnorm(a, mean = x0, sd = sqrt(-1 / hII_x0))) falls Parameter eingeschränkt 
@@ -101,8 +78,6 @@ m_mu_function <- function(X,  response, mu_priori, sigma_priori) {
 
 m_alpha_function <- function(X,  response , mu_priori , sigma_priori, alpha, m_max) {
   #print("m_alpha_function")
-  
-  
   result <-  m_mu_function(X = X,  response = response, mu_priori = mu_priori, sigma_priori = sigma_priori) - m_max * alpha
   
   return(result)
@@ -110,24 +85,21 @@ m_alpha_function <- function(X,  response , mu_priori , sigma_priori, alpha, m_m
 
 m_max_alpha_function <- function(X,  response , sigma_priori, mu_priori_lower, mu_priori_upper) {
   #print("m_alpha_function")
-  
   fn <- function(x) {
     result <- - m_mu_function(X = X, response = response, mu_priori = x, sigma_priori = sigma_priori) 
     return(result)
   }
   
   x0 <- (mu_priori_lower + mu_priori_upper)/2
-  m_max <- - nloptr(x0 = x0, eval_f = fn, lb = mu_priori_lower, ub = mu_priori_upper, opts = list("algorithm"="NLOPT_LN_COBYLA", "xtol_rel" = 0.001))$objective
   
+
+  m_max <- - nloptr(x0 = x0, eval_f = fn, lb = mu_priori_lower, ub = mu_priori_upper, opts = list("algorithm"="NLOPT_LN_COBYLA", "xtol_rel" = 0.01))$objective
   return(m_max)
 }
 
 gamma_maximin_alpaC_function <- function(X, fischer_info, response, mu_priori_lower, mu_priori_upper, sigma_priori, alpha) {
   #print("gamma_maximin_alpaC_function")
-  
   m_max <- m_max_alpha_function(X = X, response = response , sigma_priori = sigma_priori, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper)
-  print(m_max)
-  
   
   expected_utility <- function(x) {
     result <- expected_utility_function(X = X, fischer_info = fischer_info, response = response, mu_priori = x, sigma_priori = sigma_priori)
@@ -143,7 +115,7 @@ gamma_maximin_alpaC_function <- function(X, fischer_info, response, mu_priori_lo
   #print("Approximation der nidrigsten Expected Utility unter Nebenbedingung")
   
   result <- tryCatch({
-    nloptr(x0=x0, eval_f = expected_utility, lb = mu_priori_lower, ub = mu_priori_upper, eval_g_ineq = m_alpha, opts = list("algorithm"="NLOPT_LN_COBYLA", "xtol_rel" = 0.001))  }, 
+    nloptr(x0=x0, eval_f = expected_utility, lb = mu_priori_lower, ub = mu_priori_upper, eval_g_ineq = m_alpha, opts = list("algorithm"="NLOPT_LN_COBYLA", "xtol_rel" = 0.01))  }, 
     error = function(e) {
       0  
     })
@@ -153,42 +125,15 @@ gamma_maximin_alpaC_function <- function(X, fischer_info, response, mu_priori_lo
 gamma_maximin_alpaC_addapter <- function(data, glm_formula, target, mu_priori_lower, mu_priori_upper, sigma_priori, alpha) {
   #browser()
   #print("gamma_maximin_alpaC_addapter")
-  
   variables <- all.vars(glm_formula)
   pred_variables <- variables[variables != target]
   data_matrix <- as.matrix(selected_column <- subset(data, select = pred_variables))
   X <- cbind(1, data_matrix)
   fischer_info <- sqrt((det(var(data_matrix))))
-  
   response <- as.matrix(selected_column <- subset(data, select = target))
   
   result <- gamma_maximin_alpaC_function(X = X, fischer_info = fischer_info, response = response, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)$objective
   return(result)
 }
 
-  gamma_maximin_alpaC_addapter(data = labled_40[c(1,7,5,2)], glm_formula = formula, target =  'target', mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha) 
-  
-})
-
-set.seed(2037420)
-
-
-formula = target ~  Diagonal + Bottom + Length
-
-data(banknote)
-data_frame <- banknote %>% as.data.frame()
-names(data_frame)[names(data_frame) == 'Status'] <- 'target'
-data_frame$target <- as.numeric(data_frame$target == "genuine")
-
-modell <- glm(formula = target ~  Diagonal + Bottom + Length, data = data_frame)
-
-mu_priori_lower <- c(-45, -2, -2, -2)
-mu_priori_upper <- c(-20, 2, 2, 2)
-sigma_priori <-  rbind(beta0 = c(7,0,0,0),cbind(beta0 = c(0,0,0), cov(data_frame[c(7,5,2)]) ))
-alpha = 0.8
-
-data_frame_40 = data_frame[sample(nrow(data_frame), 40),]
-test_40 <- anti_join(data_frame, data_frame_40)
-unlabeld_40 <- data_frame_40[sample(nrow(data_frame_40), round(40*0.8)),]
-labled_40 <- anti_join(data_frame_40, unlabeld_40)
 

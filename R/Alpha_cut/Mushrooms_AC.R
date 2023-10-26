@@ -3,7 +3,10 @@ library(MixGHD)
 N = 1
 share_unlabeled = 0.8
 p = 3
-#n = 500
+mu_priori_lower <- c(-2, -2, -2, -2)
+mu_priori_upper <-  c(2, 2, 2, 2)
+sigma_priori <- matrix(c(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1),  nrow = 4)
+alpha = 0.4
 
 # read in data frame
 

@@ -61,6 +61,11 @@
     ind_res_on_the_fly[,iter] <- results[,3] # acc
     ############################################################################
     View(ind_res_on_the_fly)
+    Ergebniss <- as.data.frame(cbind(y = rowMeans(ind_res_on_the_fly,na.rm = TRUE),x =  1:n_imp))
+    Grafik <-  ggplot(data = Ergebniss, aes(x = x, y = y )) +
+      geom_line() + 
+      geom_point()
+    
 
     ############################################################################ 
     sorted_results = results[order(results[,1]),]
