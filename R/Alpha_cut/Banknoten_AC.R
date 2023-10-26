@@ -1,4 +1,9 @@
+N = 100
 share_unlabeled = 0.8
+mu_priori_lower <- c(-2, -2, -2, -2)
+mu_priori_upper <-  c(2, 2, 2, 2)
+sigma_priori <- matrix(c(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1),  nrow = 4)
+alpha = 0.8
 
 # read in data frame
 data(banknote)
@@ -26,6 +31,6 @@ levels_present
 levels(data_frame[, which(names(data_frame) %in% target)]) <- c(0,1)
 data_frame$target <- as.numeric(data_frame$target) - 1 # Musste uch hinzufügen 
 
-cov(data_frame[c(1,2,3),])
+
 
 
