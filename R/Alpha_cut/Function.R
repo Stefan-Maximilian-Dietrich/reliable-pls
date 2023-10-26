@@ -1,3 +1,4 @@
+#Performace
 likelihood_function <- function(X, theta, response) {
   #print("likelihood_function")
   
@@ -144,6 +145,7 @@ gamma_maximin_alpaC_function <- function(X, fischer_info, response, mu_priori_lo
 gamma_maximin_alpaC_addapter <- function(data, glm_formula, target, mu_priori_lower, mu_priori_upper, sigma_priori, alpha) {
   #browser()
   #print("gamma_maximin_alpaC_addapter")
+  
   variables <- all.vars(glm_formula)
   pred_variables <- variables[variables != target]
   data_matrix <- as.matrix(selected_column <- subset(data, select = pred_variables))
