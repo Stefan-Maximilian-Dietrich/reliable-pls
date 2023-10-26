@@ -53,11 +53,11 @@ alpha_cut <- function(labeled_data,
       new_data 
     })
     
+    saveRDS(data_sets_pred, "Last.rds") 
     
     if(paralell) {
       core <- as.numeric(bigstatsr::nb_cores())
-      print(core)
-      print("Parallel")
+      print(paste("Parallel", core))
       cl <- parallel::makeForkCluster(core)
       doParallel::registerDoParallel(cl)
       gamma <- foreach(i = 1:length(data_sets_pred), .combine = 'c') %dopar% {
