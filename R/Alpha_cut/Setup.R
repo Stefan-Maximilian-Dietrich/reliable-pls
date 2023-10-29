@@ -14,6 +14,8 @@ install.packages("bigstatsr")
 install.packages("profvis")
 install.packages("mmeln")
 install.packages("mvnfast")
+install.packages("ggpubr")
+
 
 
 library(dplyr)
@@ -31,4 +33,4 @@ library(bigstatsr)
 library(profvis)
 library(mmeln)
 library(mvnfast)
-
+library(ggpubr)

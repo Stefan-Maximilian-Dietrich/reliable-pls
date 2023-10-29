@@ -142,6 +142,12 @@ levels_present <- levels(data_frame[c(target)] %>% unlist())
 levels_present
 levels(data_frame[, which(names(data_frame) %in% target)]) <- c(0,1)
 
+# Alpha cut 
+mu_priori_lower <- c(1, -10, -1, -1, -1, -1, -1)
+mu_priori_upper <-  c(5, 0, 3, 1, 1, 1, 1) 
+sigma_priori <- cbind(beta_0 = c(1,0,0,0,0,0,0), rbind(beta_0 = c(0,0,0,0,0,0), cov(data_frame[, -c(1)])))
+alpha = 0.8
+
 ##########################
 # source experiments files
 ##########################
@@ -153,6 +159,8 @@ path_to_experiments = paste(getwd(),"/benchmarks/experiments", sep = "")
 
 
 # parallel sourcing
+source(paste(getwd(),"/R/Alpha_cut/benchmark-alpha-cut.R", sep = ""))
+
 files_to_source = list.files(path_to_experiments, pattern=".R",
                              full.names = TRUE)
 

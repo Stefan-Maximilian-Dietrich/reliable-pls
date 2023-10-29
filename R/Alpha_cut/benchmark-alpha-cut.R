@@ -1,6 +1,6 @@
   source("R/Alpha_cut/alpha_cut.R")
 
-  set.seed(2037420)
+  set.seed(3405934)
   method = "alpha_cut"
   
   trans_res = vector()
@@ -40,8 +40,7 @@
     unlabeled_data <- cbind(unlabeled_data, nr = unlabeled_data_inst)
     true_labels = cbind(unlabeled_data$nr, unlabeled_data[c(target)])
     
-    time_in <- c(time_in, Sys.time())
-    
+
     results_list <- alpha_cut(labeled_data = labeled_data ,
                               unlabeled_data = unlabeled_data,
                               test_data = test_data,
@@ -53,8 +52,7 @@
                               alpha = alpha,
                               paralell = TRUE)
     
-    time_out <- c(time_out, Sys.time())
-    
+
     
     # get transductive and inductive results
     results <- results_list[[1]]
