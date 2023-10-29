@@ -1,17 +1,17 @@
   source("R/Alpha_cut/alpha_cut.R")
-  source("R/Alpha_cut/Banknoten_AC.R")
 
   set.seed(2037420)
   method = "alpha_cut"
-  time_in <- vector()
-  time_out <- vector()
+  
   trans_res = vector()
   ind_res = vector()
   
+  ############################ Fehlersammlung 
   Error <- list()
   Last <- c()
   saveRDS(Error, "Errors.rds") 
   saveRDS(Last, "Last.rds") 
+  ############################
   
   # share of unlabeled obs
   n_imp = ((nrow(data_frame) - n_test) * share_unlabeled) %>% round()
@@ -20,14 +20,16 @@
   for (iter in 1:N) {
     print(paste("ITERATION:", iter ))
     
-    source("R/Alpha_cut/Banknoten_AC.R")
-    
+    #train/test split
     test_rows = sample(nrow(data_frame), size = n_test)
     test_data = data_frame[test_rows,]
-  
     
     # data frame for SSL
     data = data_frame[-test_rows,]
+    
+    # share of unlabeled obs
+    n_imp = (nrow(data) * share_unlabeled) %>% round()
+    
     
     # create data setup by randomly unlabelling data points
     unlabeled_data_inst <- sample(nrow(data), n_imp)

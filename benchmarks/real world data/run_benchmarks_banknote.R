@@ -46,6 +46,12 @@ formula_alt6 =  target ~1 + Diagonal
 
 cor(data_frame[,-1])
 
+# alpha Cut
+mu_priori_lower <- c(-2, -2, -2, -2)
+mu_priori_upper <-  c(2, 2, 2, 2)
+sigma_priori <- matrix(c(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1),  nrow = 4)
+alpha = 0.8
+
 
 
 formula_list = list(formula, formula_alt1, formula_alt2, formula_alt3)#, formula_alt4, formula_alt5, formula_alt6)
@@ -59,6 +65,8 @@ path_to_experiments = paste(getwd(),"/benchmarks/experiments", sep = "")
 
 
 # parallel sourcing
+source("R/Alpha_cut/run_benchmark_alpha_cut.R")
+
 files_to_source = list.files(path_to_experiments, pattern="*.R",
                              full.names = TRUE)
 
@@ -71,6 +79,7 @@ parallel::clusterExport(cl=comp_clusters, varlist = object_vec, envir = env)
 parallel::parSapply(comp_clusters, files_to_source, source)
 
 parallel::stopCluster(comp_clusters)
+
 
 
 
