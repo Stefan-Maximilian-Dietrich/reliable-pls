@@ -141,6 +141,7 @@ levels_present <- levels(data_frame[c(target)] %>% unlist())
 # check whether labels are suited for replacement by 0,1
 levels_present
 levels(data_frame[, which(names(data_frame) %in% target)]) <- c(0,1)
+data_frame$target_var <- as.numeric(data_frame$target_var) -1
 
 # Alpha cut 
 mu_priori_lower <- c(1, -10, -1, -1, -1, -1, -1)
