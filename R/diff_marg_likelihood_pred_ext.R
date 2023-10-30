@@ -94,7 +94,7 @@ diff_marg_likelihood_pred_ext <- function(labeled_data,
     # update labeled data
     labeled_data<- rbind(labeled_data, new_labeled_obs)
     # store results
-    results[i,] <- c(unlabeled_data[winner,], new_labeled_obs[c(target)], test_acc) %>% unlist()
+    results[i,] <- c(unlabeled_data[winner,]$nr, new_labeled_obs[c(target)], test_acc) %>% unlist()
     unlabeled_data <- unlabeled_data[-winner,]
     
   }
