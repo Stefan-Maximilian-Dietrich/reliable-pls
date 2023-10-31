@@ -3,6 +3,8 @@
 ###############
 library(dplyr)
 library(MixGHD)
+set.seed(2037420)
+
 #N = 40
 #share_unlabeled = 0.8
 p = 3

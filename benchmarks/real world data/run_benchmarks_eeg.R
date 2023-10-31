@@ -1,6 +1,8 @@
 ###############
 ## global setup
 ###############
+set.seed(2037420)
+
 library(dplyr)
 library(MixGHD)
 #N = 100

@@ -1,6 +1,8 @@
 ###############
 ## global setup
 ###############
+set.seed(2037420)
+
 library(dplyr)
 #N = 100
 #share_unlabeled = 0.8

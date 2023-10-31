@@ -1,12 +1,13 @@
 ###############
 ## global setup
 ###############
+set.seed(2037420)
 library(dplyr)
 library(MixGHD)
 N = 100
 share_unlabeled = 0.8
 p = 3
-n = 200
+n = 160
 
 # read in data frame
 data(banknote)
@@ -47,11 +48,10 @@ formula_alt6 =  target ~1 + Diagonal
 cor(data_frame[,-1])
 
 # alpha Cut
-mu_priori_lower <- c(-2, -2, -2, -2)
-mu_priori_upper <-  c(2, 2, 2, 2)
-sigma_priori <- matrix(c(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1),  nrow = 4)
+mu_priori_lower <- c(-50, -2, -2, -2)
+mu_priori_upper <-  c(-20, 2, 2, 2)
+sigma_priori <- matrix(c(7,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1),  nrow = 4)
 alpha = 0.8
-
 
 
 formula_list = list(formula, formula_alt1, formula_alt2, formula_alt3)#, formula_alt4, formula_alt5, formula_alt6)

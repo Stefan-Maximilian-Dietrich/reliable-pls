@@ -24,9 +24,11 @@ library(tidyverse)
 
 
 # global settings
+# simulate data
+
 share_unlabeled = 0.8
 data = "banknote"
- n = 40
+ n = 160
  p = 3
 n_methods = 9
 n_test = n*0.5

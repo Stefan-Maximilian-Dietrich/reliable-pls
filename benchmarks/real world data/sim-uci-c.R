@@ -1,3 +1,4 @@
+set.seed(2037420)
 
 N=40
 share_unlabeled = 0.8
