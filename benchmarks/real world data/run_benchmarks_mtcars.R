@@ -74,6 +74,7 @@ path_to_experiments = paste(getwd(),"/benchmarks/experiments", sep = "")
 
 
 # parallel sourcing
+source(paste(getwd(),"/R/Alpha_cut/benchmark-alpha-cut.R", sep = ""))
 files_to_source = list.files(path_to_experiments, pattern=".R",
                              full.names = TRUE)
 

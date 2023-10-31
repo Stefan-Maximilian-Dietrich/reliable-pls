@@ -24,10 +24,10 @@ library(tidyverse)
 
 
 # global settings
-share_unlabeled = 0.8 
-data = "simulated"
- n = 140
- p = 6
+share_unlabeled = 0.8
+data = "banknote"
+ n = 40
+ p = 3
 n_methods = 9
 n_test = n*0.5
 n_test = round(n_test)

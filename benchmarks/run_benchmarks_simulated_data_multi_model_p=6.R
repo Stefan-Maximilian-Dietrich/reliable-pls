@@ -125,7 +125,7 @@ formula = target_var~ 1 + feature_1 + feature_2 + feature_3 + feature_4 + featur
 formula_alt5 = target_var~ 1 + feature_1 + feature_2 + feature_3 + feature_4 + feature_5 
 formula_alt4 = target_var~ 1 + feature_1 + feature_2 + feature_3 + feature_4# + feature_6 +
 formula_alt3 = target_var~ 1 + feature_1 + feature_2 + feature_3 #+ feature_5 + feature_6 +
-formula_alt2 = target_var~ 1 + feature_1 + feature_2  #+ feature_5 + feature_6 +
+formula_alt2 = target_var~ 1 + feature_3 + feature_4  #+ feature_5 + feature_6 +
 formula_alt1 = target_var~ 1 + feature_1  #+ feature_5 + feature_6 +
 
 
