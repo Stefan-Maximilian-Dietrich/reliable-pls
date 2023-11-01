@@ -56,7 +56,7 @@ alpha_cut <- function(labeled_data,
     saveRDS(data_sets_pred, "Last.rds") 
     
     if(paralell) {
-      core <- min(as.numeric(bigstatsr::nb_cores()), as.numeric(length(data_sets_pred)))
+      core <- as.numeric(20)
       print(paste("Parallel", core))
       cl <- parallel::makeForkCluster(core)
       doParallel::registerDoParallel(cl)
