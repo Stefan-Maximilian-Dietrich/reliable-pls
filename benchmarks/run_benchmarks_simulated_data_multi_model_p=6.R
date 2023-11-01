@@ -2,11 +2,12 @@
 ## global setup
 ###############
 library(dplyr)
-#share_unlabeled = 0.8
+share_unlabeled = 0.8
 set.seed(2138720)
 
 # simulate data
 p = 6 
+n = 60
 
 feature_1 <- rnorm(n, mean = 0.2)
 feature_2 <- rnorm(n, mean = -2)
@@ -125,7 +126,7 @@ formula = target_var~ 1 + feature_1 + feature_2 + feature_3 + feature_4 + featur
 formula_alt5 = target_var~ 1 + feature_1 + feature_2 + feature_3 + feature_4 + feature_5 
 formula_alt4 = target_var~ 1 + feature_1 + feature_2 + feature_3 + feature_4# + feature_6 +
 formula_alt3 = target_var~ 1 + feature_1 + feature_2 + feature_3 #+ feature_5 + feature_6 +
-formula_alt2 = target_var~ 1 + feature_3 + feature_4  #+ feature_5 + feature_6 +
+formula_alt2 = target_var~ 1 + feature_1 + feature_2  #+ feature_5 + feature_6 +
 formula_alt1 = target_var~ 1 + feature_1  #+ feature_5 + feature_6 +
 
 
@@ -144,9 +145,15 @@ levels(data_frame[, which(names(data_frame) %in% target)]) <- c(0,1)
 data_frame$target_var <- as.numeric(data_frame$target_var) -1
 
 # Alpha cut 
-mu_priori_lower <- c(1, -10, -1, -1, -1, -1, -1)
-mu_priori_upper <-  c(5, 0, 3, 1, 1, 1, 1) 
-sigma_priori <- cbind(beta_0 = c(1,0,0,0,0,0,0), rbind(beta_0 = c(0,0,0,0,0,0), cov(data_frame[, -c(1)])))
+mu_priori_lower <- c(-2, -10, -1, -1, -1, -1, -1)
+mu_priori_upper <-  c(5, 0, 1, 1, 1, 1, 1) 
+sigma_priori <- matrix(c(3,0,0,0,0,0,0,
+                         0,4,0,0,0,0,0,
+                         0,0,1,0,0,0,0,
+                         0,0,0,1,0,0,0,
+                         0,0,0,0,1,0,0,
+                         0,0,0,0,0,1,0,
+                         0,0,0,0,0,0,1), nrow = 7, byrow = TRUE)
 alpha = 0.8
 
 ##########################

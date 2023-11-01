@@ -7,7 +7,7 @@ library(MixGHD)
 N = 100
 share_unlabeled = 0.8
 p = 3
-n = 160
+n = 80
 
 # read in data frame
 data(banknote)
