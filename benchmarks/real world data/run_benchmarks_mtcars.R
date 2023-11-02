@@ -1,11 +1,12 @@
 ###############
 ## global setup
 ###############
-set.seed(2037420)
+#set.seed(2037420) # anderer Seed, weil nicht alle reprensentiert 
+set.seed(2037421)
 
 library(dplyr)
-#N = 40
-#share_unlabeled = 0.8
+N = 40
+share_unlabeled = 0.90
 n = nrow(mtcars)
 p = 3
 # read in data frame
@@ -19,6 +20,8 @@ levels_present <- levels(data_frame[c(target)] %>% unlist())
 # check whether labels are suited for replacement by 0,1
 levels_present
 levels(data_frame[, which(names(data_frame) %in% target)]) <- c(0,1)
+data_frame$vs <- as.numeric(data_frame$vs) - 1 # Musste uch hinzufügen 
+
 
 
 
@@ -65,6 +68,10 @@ formula_7 = vs ~1 + disp
 
 formula_list = list(formula_full, formula_1, formula_2, formula_3, formula_4, formula_5, formula_6, formula_7)
 
+mu_priori_lower <- c(0, -2, -2, -2)
+mu_priori_upper <-  c(20, 2, 2, 2)
+sigma_priori <- matrix(c(11,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1),  nrow = 4)
+alpha = 0.9
 
 
 ##########################

@@ -63,6 +63,7 @@
     ind_res_on_the_fly[,iter] <- results[,3] # acc
     ############################################################################
     View(ind_res_on_the_fly)
+    
 
     ############################################################################ 
     sorted_results = results[order(results[,1]),]
@@ -127,5 +128,5 @@
   # save results so that they can be accessed and visualized later
   path = paste(getwd(),"/results/alpaha_cut_",
              as.character(share_unlabeled),"_",as.character(name_df),
-             "_n=", as.character(nrow(data_frame)), "_p=", as.character(p), sep="")
+             "_n=", as.character(nrow(data_frame)), "_p=", as.character(p), "_a=",  as.character(alpha), sep="")
 save(saved_results, file = path)

@@ -15,6 +15,13 @@ install.packages("profvis")
 install.packages("mmeln")
 install.packages("mvnfast")
 install.packages("ggpubr")
+install.packages("tidyr")
+install.packages("BAS")
+install.packages("glmnet")
+install.packages("parallel")
+install.packages("fdm2id")
+install.packages("RCurl")
+
 
 
 

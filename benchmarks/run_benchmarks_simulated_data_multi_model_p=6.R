@@ -154,7 +154,7 @@ sigma_priori <- matrix(c(3,0,0,0,0,0,0,
                          0,0,0,0,1,0,0,
                          0,0,0,0,0,1,0,
                          0,0,0,0,0,0,1), nrow = 7, byrow = TRUE)
-alpha = 0.8
+alpha = a
 
 ##########################
 # source experiments files
