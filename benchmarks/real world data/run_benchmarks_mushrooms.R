@@ -5,8 +5,8 @@ library(dplyr)
 library(MixGHD)
 set.seed(2037420)
 
-#N = 40
-#share_unlabeled = 0.8
+N = 40
+share_unlabeled = 0.8
 p = 3
 #n = 500
 
@@ -63,6 +63,11 @@ levels(data_frame[, which(names(data_frame) %in% target)]) <- c(0,1)
 
 glm(formula = formula, data = data_frame, family = "binomial") %>% summary
 
+# alpha Cut
+mu_priori_lower <- c(-3, -2, -2, -2)
+mu_priori_upper <-  c(5, 2, 2, 2)
+sigma_priori <- matrix(c(2,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1),  nrow = 4)
+alpha = a
 
 ##########################
 # source experiments files
@@ -73,6 +78,8 @@ path_to_experiments = paste(getwd(),"/benchmarks/experiments", sep = "")
 
 
 # parallel sourcing
+source(paste(getwd(),"/R/Alpha_cut/benchmark-alpha-cut.R", sep = ""))
+
 files_to_source = list.files(path_to_experiments, pattern="*.R",
                              full.names = TRUE)
 
