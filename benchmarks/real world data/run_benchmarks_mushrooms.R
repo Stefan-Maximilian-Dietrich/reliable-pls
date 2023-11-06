@@ -8,7 +8,7 @@ set.seed(2037420)
 N = 40
 share_unlabeled = 0.8
 p = 3
-#n = 500
+n = 120
 
 # read in data frame
 
@@ -60,6 +60,7 @@ levels_present <- levels(data_frame[c(target)] %>% unlist())
 # check whether labels are suited for replacement by 0,1
 levels_present
 levels(data_frame[, which(names(data_frame) %in% target)]) <- c(0,1)
+data_frame$target <- as.numeric(data_frame$target ) - 1
 
 glm(formula = formula, data = data_frame, family = "binomial") %>% summary
 
@@ -67,7 +68,7 @@ glm(formula = formula, data = data_frame, family = "binomial") %>% summary
 mu_priori_lower <- c(-3, -2, -2, -2)
 mu_priori_upper <-  c(5, 2, 2, 2)
 sigma_priori <- matrix(c(2,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1),  nrow = 4)
-alpha = a
+alpha = 0.5
 
 ##########################
 # source experiments files

@@ -21,6 +21,7 @@ install.packages("glmnet")
 install.packages("parallel")
 install.packages("fdm2id")
 install.packages("RCurl")
+install.packages("mvtnorm")
 
 
 
@@ -41,3 +42,4 @@ library(profvis)
 library(mmeln)
 library(mvnfast)
 library(ggpubr)
+library(mvtnorm)

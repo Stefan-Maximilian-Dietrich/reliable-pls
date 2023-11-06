@@ -26,11 +26,11 @@ library(tidyverse)
 # global settings
 # simulate data
 
-share_unlabeled = 0.8
-data = "simulated"
- n = 40
+share_unlabeled = 0.9
+data = "banknote"
+ n = 160
  p = 3
- alpha = 0.8
+ alpha = 0.5
 n_methods = 9
 n_test = n*0.5
 n_test = round(n_test)
@@ -159,6 +159,7 @@ onthefly_acc_paths_all <- rbind(onthefly_acc_paths_all, onthefly_acc_paths)
 # onthefly_acc_paths_all <- rbind(onthefly_acc_paths_all, onthefly_acc_paths)
 # 
 
+#load(paste(getwd(),"/results/diff_marg_likelihood_multi_model_random",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
 load(paste(getwd(),"/results/diff_marg_likelihood_multi_model",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
 onthefly_acc_paths[1:n_imp,"iter"] <- 1:n_imp
 onthefly_acc_paths[1:n_imp,"Upper.CB"] <- saved_results$`Inductive on-the-fly CI`[2,]
@@ -169,15 +170,15 @@ saved_results <- saved_results[-c(1,2)]
 df[8,] <- saved_results %>% unlist()
 onthefly_acc_paths_all <- rbind(onthefly_acc_paths_all, onthefly_acc_paths)
 
-load(paste(getwd(),"/results/alpaha_cut_",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
-onthefly_acc_paths[1:n_imp,"iter"] <- 1:n_imp
-onthefly_acc_paths[1:n_imp,"Upper.CB"] <- saved_results$`Inductive on-the-fly CI`[2,]
-onthefly_acc_paths[1:n_imp,"Lower.CB"] <- saved_results$`Inductive on-the-fly CI`[1,]
-onthefly_acc_paths[1:n_imp,"Mean.Accuracy"] <- saved_results$`Inductive on-the-fly mean`
-onthefly_acc_paths[1:n_imp,"Method"] <- "alpaha_cut"
-saved_results <- saved_results[-c(1,2)]
-df[9,] <- saved_results %>% unlist()
-onthefly_acc_paths_all <- rbind(onthefly_acc_paths_all, onthefly_acc_paths)
+#load(paste(getwd(),"/results/alpaha_cut_",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
+#onthefly_acc_paths[1:n_imp,"iter"] <- 1:n_imp
+#onthefly_acc_paths[1:n_imp,"Upper.CB"] <- saved_results$`Inductive on-the-fly CI`[2,]
+#onthefly_acc_paths[1:n_imp,"Lower.CB"] <- saved_results$`Inductive on-the-fly CI`[1,]
+#onthefly_acc_paths[1:n_imp,"Mean.Accuracy"] <- saved_results$`Inductive on-the-fly mean`
+#onthefly_acc_paths[1:n_imp,"Method"] <- "alpaha_cut"
+#saved_results <- saved_results[-c(1,2)]
+#df[9,] <- saved_results %>% unlist()
+#onthefly_acc_paths_all <- rbind(onthefly_acc_paths_all, onthefly_acc_paths)
 
 load(paste(getwd(),"/results/alpaha_cut_",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), "_a=", as.character(alpha), sep=""))
 onthefly_acc_paths[1:n_imp,"iter"] <- 1:n_imp
@@ -272,7 +273,7 @@ plot <- plot + theme(panel.background = element_rect(fill = "grey28")) +
 plot
 
 
-filename = paste("plots/res_plot_data=", data,"_share=",share_unlabeled, "_n=", as.character(n), "_p=", as.character(p),".png", sep = "")
+filename = paste("plots/res_plot_data=", data,"_share=",share_unlabeled, "_n=", as.character(n), "_p=", as.character(p), "_a=", as.character(alpha),".png", sep = "")
 ggsave(filename = filename, plot = plot,  dpi = 300)
 
 

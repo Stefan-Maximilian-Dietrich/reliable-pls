@@ -5,8 +5,8 @@ set.seed(2037420)
 
 library(dplyr)
 library(MixGHD)
-#N = 100
-#share_unlabeled = 0.8
+N = 100
+share_unlabeled = 0.8
 p = 13
 n = 182
 
