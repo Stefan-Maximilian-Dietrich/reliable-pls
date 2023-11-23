@@ -41,16 +41,12 @@
     true_labels = cbind(unlabeled_data$nr, unlabeled_data[c(target)])
     
 
-    results_list <- alpha_cut(labeled_data = labeled_data ,
-                              unlabeled_data = unlabeled_data,
-                              test_data = test_data,
-                              target = target,
-                              glm_formula = formula,
-                              mu_priori_lower = mu_priori_lower,
-                              mu_priori_upper =   mu_priori_upper, 
-                              sigma_priori = sigma_priori,
-                              alpha = alpha,
-                              paralell = TRUE)
+    results_list <- alpha_cut_dynamic(labeled_data = labeled_data ,
+                                      unlabeled_data = unlabeled_data,
+                                      test_data = test_data,
+                                      target = target,
+                                      glm_formula = formula,
+                                      paralell = TRUE)
     
 
     

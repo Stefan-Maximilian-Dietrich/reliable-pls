@@ -132,7 +132,7 @@ formula_alt1 = target_var~ 1 + feature_1  #+ feature_5 + feature_6 +
 
 formula_list = list(formula, formula_alt1, formula_alt2, formula_alt3, formula_alt4, formula_alt5)
 
-summary <- glm(formula = formula, data = data_frame, family = "binomial") %>% summary()
+summary <- glm(formula = formula, data = data_frame[1:50,], family = "binomial") %>% summary()
 summary
 #p <- summary$coefficients %>% nrow() - 1
 
@@ -154,7 +154,7 @@ sigma_priori <- matrix(c(3,0,0,0,0,0,0,
                          0,0,0,0,1,0,0,
                          0,0,0,0,0,1,0,
                          0,0,0,0,0,0,1), nrow = 7, byrow = TRUE)
-alpha = a
+alpha = 0.5
 
 ##########################
 # source experiments files
@@ -168,6 +168,8 @@ path_to_experiments = paste(getwd(),"/benchmarks/experiments", sep = "")
 
 # parallel sourcing
 source(paste(getwd(),"/R/Alpha_cut/benchmark-alpha-cut.R", sep = ""))
+source(paste(getwd(),"/R/Alpha_cut/benchmark-alpha-cut-dynamic.R", sep = ""))
+
 
 files_to_source = list.files(path_to_experiments, pattern=".R",
                              full.names = TRUE)
