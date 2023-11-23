@@ -26,11 +26,11 @@ library(tidyverse)
 # global settings
 # simulate data
 
-share_unlabeled = 0.9
-data = "banknote"
- n = 160
- p = 3
- alpha = 0.5
+share_unlabeled = 0.8
+data = "simulated"
+ n = 140
+ p = 6
+ alpha = 0.8
 n_methods = 9
 n_test = n*0.5
 n_test = round(n_test)
