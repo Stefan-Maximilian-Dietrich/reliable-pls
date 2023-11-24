@@ -1,4 +1,4 @@
-source("R/Alpha_cut/alpha-cut-dynamic.R")
+source("R/Alpha_cut/alpha-cut-a-dynamic.R")
 
 set.seed(3405934)
 method = "alpha_cut_dynamic"
@@ -41,12 +41,15 @@ for (iter in 1:N) {
   true_labels = cbind(unlabeled_data$nr, unlabeled_data[c(target)])
   
   
-  results_list <- alpha_cut_dynamic(labeled_data = labeled_data ,
-                                    unlabeled_data = unlabeled_data,
-                                    test_data = test_data,
-                                    target = target,
-                                    glm_formula = formula,
-                                    paralell = TRUE)
+  results_list <- alpha_cut_a_dynamic(labeled_data = labeled_data ,
+                                      unlabeled_data = unlabeled_data,
+                                      test_data = test_data,
+                                      target = target,
+                                      glm_formula = formula,
+                                      mu_priori_lower = mu_priori_lower, 
+                                      mu_priori_upper = mu_priori_upper,
+                                      sigma_priori = sigma_priori,
+                                      paralell = TRUE)
   
   
   
@@ -122,7 +125,7 @@ saved_results <- list("Inductive on-the-fly mean" = mean_ind_fly,
 
 
 # save results so that they can be accessed and visualized later
-path = paste(getwd(),"/results/alpaha_cut_dynamic",
+path = paste(getwd(),"/results/alpaha_cut_a_dynamic",
              as.character(share_unlabeled),"_",as.character(name_df),
              "_n=", as.character(nrow(data_frame)), "_p=", as.character(p), sep="")
 save(saved_results, file = path)

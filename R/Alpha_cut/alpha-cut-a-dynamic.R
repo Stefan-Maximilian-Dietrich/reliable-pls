@@ -2,12 +2,15 @@ source("R/Alpha_cut/Function.R")
 
 
 
-alpha_cut_dynamic <- function(labeled_data,
-                      unlabeled_data,
-                      test_data,
-                      target,
-                      glm_formula,
-                      paralell = TRUE) {
+alpha_cut_a_dynamic <- function(labeled_data,
+                                unlabeled_data,
+                                test_data,
+                                target,
+                                glm_formula,
+                                mu_priori_lower,
+                                mu_priori_upper, 
+                                sigma_priori,
+                                paralell = TRUE) {
   
   # some input checking
   assert_data_frame(labeled_data)
@@ -18,7 +21,6 @@ alpha_cut_dynamic <- function(labeled_data,
   
   formula = glm_formula
   
-  
   n_imp = nrow(unlabeled_data)
   results = matrix(nrow = n_imp, ncol = 3)
   which_flip = seq(n_imp)
@@ -28,10 +30,16 @@ alpha_cut_dynamic <- function(labeled_data,
     
     Zeit_Start <- Sys.time()
     # fit model to labeled data
-    t_ncols <- ncol(labeled_data)
     logistic_model <- glm(formula = formula, 
-                          data = labeled_data[,-c(t_ncols)], 
+                          data = labeled_data, 
                           family = "binomial")
+    
+    # predict on unlabeled data
+    predicted_target <- predict(logistic_model, 
+                                newdata= unlabeled_data, 
+                                type = "response")
+    # assign predicted (pseudo) labels to unlabeled data
+    unlabeled_data[c(target)] <- ifelse(predicted_target > 0.5, 1,0)  
     
     #Test des Modells
     scores = predict(logistic_model, newdata = test_data, type = "response") 
@@ -42,37 +50,6 @@ alpha_cut_dynamic <- function(labeled_data,
     #dynamischer Alpha cut 
     #print("################################")
     alpha <- test_acc * test_acc
-    #print(paste("Alpha:", alpha))
-    
-    mu_priori_lower <- replace_na(logistic_model$coefficients, 0) - abs(replace_na(logistic_model$coefficients, 1))/2
-    #print("mu_priori_lower")
-    #print(mu_priori_lower)
-    
-    mu_priori_upper <- replace_na(logistic_model$coefficients, 0) - abs(replace_na(logistic_model$coefficients, 1))/2
-    #print("mu_priori_upper")
-    #print(mu_priori_upper)
-    
-    dim_soll <- length(mu_priori_upper)
-    dim_haben <- length(summary(logistic_model)$coefficients[, "Std. Error"])
-    dim_lücke <- dim_soll - dim_haben
-
-    sigma_priori_vector <- c(summary(logistic_model)$coefficients[, "Std. Error"], rep(1, times = dim_lücke))
-    #print(sigma_priori_vector)
-      
-    sigma_priori <- diag(sigma_priori_vector)
-    #print("sigma_priori")
-    #print(sigma_priori)
-    #print("################################")
-  
-    
-    # predict on unlabeled data
-    predicted_target <- predict(logistic_model, 
-                                newdata= unlabeled_data, 
-                                type = "response")
-    # assign predicted (pseudo) labels to unlabeled data
-    unlabeled_data[c(target)] <- ifelse(predicted_target > 0.5, 1,0)  
-    
-    
     # create datasets that contain labeled data and one predicted instance each
     if(i >= 2){
       which_flip <- which_flip[-(winner)]
@@ -83,7 +60,7 @@ alpha_cut_dynamic <- function(labeled_data,
       new_data 
     })
     
-    saveRDS(data_sets_pred, "Error/Last.rds") 
+    saveRDS(data_sets_pred, "Last.rds") 
     
     if(paralell) {
       core <- as.numeric(20)
@@ -94,10 +71,10 @@ alpha_cut_dynamic <- function(labeled_data,
         tryCatch({
           gamma_maximin_alpaC_addapter(data = data_sets_pred[[i]], glm_formula = glm_formula, target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
         }, error = function(e) {
-          Error <- readRDS("Error/Errors.rds") 
+          Error <- readRDS("Errors.rds") 
           lenght <- length(Error)
           Error[[lenght + 1]] <- list(data = data_sets_pred[[i]], glm_formula = glm_formula, target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
-          saveRDS(Error, "Error/Errors.rds") 
+          saveRDS(Error, "Errors.rds") 
           
           return(0)
         })

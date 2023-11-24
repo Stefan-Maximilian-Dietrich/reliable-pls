@@ -154,7 +154,7 @@ sigma_priori <- matrix(c(3,0,0,0,0,0,0,
                          0,0,0,0,1,0,0,
                          0,0,0,0,0,1,0,
                          0,0,0,0,0,0,1), nrow = 7, byrow = TRUE)
-alpha = 0.5
+alpha = 0.8
 
 ##########################
 # source experiments files
@@ -168,6 +168,7 @@ path_to_experiments = paste(getwd(),"/benchmarks/experiments", sep = "")
 
 # parallel sourcing
 source(paste(getwd(),"/R/Alpha_cut/benchmark-alpha-cut.R", sep = ""))
+source(paste(getwd(),"/R/Alpha_cut/benchmark-alpha-cut-a-dynamic.R", sep = ""))
 source(paste(getwd(),"/R/Alpha_cut/benchmark-alpha-cut-dynamic.R", sep = ""))
 
 
