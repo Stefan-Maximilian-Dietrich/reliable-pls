@@ -1,3 +1,4 @@
+#Main
 likelihood_function <- function(X, theta, response) {
   Y <- response
   
@@ -17,11 +18,31 @@ likelihood_function <- function(X, theta, response) {
   return(result)
 }
 
-expected_utility_function <- function(theta, X, fischer_info, response, mu_priori, sigma_priori) {
+utility_approximation_function <- function(X, fischer_info, response, theta, mu_priori, sigma_priori) {
+
   likelihood <- likelihood_function(X = X, theta = theta, response = response)
   para_obs <- 2*pi/(nrow(X) - 1)
   priori <-  mvnfast::dmvn(X = theta, mu = mu_priori, sigma = sigma_priori)
   return(para_obs * likelihood * priori / fischer_info)
+}
+
+expected_utility_function <- function(X, fischer_info, response, mu_priori, sigma_priori) {
+  #print("expected_utility_function")
+  f <- function(x) {
+    expected_utility <- utility_approximation_function(X = X, fischer_info = fischer_info, response = response, theta = x, mu_priori = mu_priori, sigma_priori = sigma_priori)
+    return(expected_utility)
+  }
+  h <- function(x) {
+    return(-log(f(x)))
+  }
+  start <- rep(0, times = ncol(X))
+  arg_max_likelihood <- optim(par = start, fn =  h, method = "BFGS")$par
+  
+  result <- utility_approximation_function(X = X, fischer_info = fischer_info, response = response, theta = arg_max_likelihood, mu_priori = mu_priori, sigma_priori = sigma_priori)
+  
+  #print(paste("mu_priori_b0:", format(round(mu_priori[1], 4), nsmall = 5),"mu_priori_b1:", format(round(mu_priori[2], 4), nsmall = 5), "mu_priori_b2:", format(round(mu_priori[3], 4), nsmall = 5), "mu_priori_b3:", format(round(mu_priori[4], 4), nsmall = 5),"  e_utility:", result))
+  #print(paste("mu_priori_b0:", format(round(mu_priori[1], 5), nsmall = 5),"mu_priori_b1:", format(round(mu_priori[2], 5), nsmall = 5), "  e_utility:", result))
+  return(result)
 } 
 
 m_derivat_function <- function(X,  response, mu_priori, sigma_priori, theta) {
@@ -50,6 +71,13 @@ m_mu_function <- function(X,  response, mu_priori, sigma_priori) {
   return(m_mu)
 } 
 
+m_alpha_function <- function(X,  response , mu_priori , sigma_priori, alpha, m_max) {
+  #print("m_alpha_function")
+  result <-  m_mu_function(X = X,  response = response, mu_priori = mu_priori, sigma_priori = sigma_priori) - m_max * alpha
+  
+  return(result)
+}
+
 m_max_alpha_function <- function(X,  response , sigma_priori, mu_priori_lower, mu_priori_upper) {
   #print("m_alpha_function")
   fn <- function(x) {
@@ -63,19 +91,12 @@ m_max_alpha_function <- function(X,  response , sigma_priori, mu_priori_lower, m
   return(m_max)
 }
 
-m_alpha_function <- function(X,  response , mu_priori , sigma_priori, alpha, m_max) {
-  #print("m_alpha_function")
-  result <-  m_mu_function(X = X,  response = response, mu_priori = mu_priori, sigma_priori = sigma_priori) - m_max * alpha
-  
-  return(result)
-}
-
-gamma_maximin_alpaC_function <- function(theta, X, fischer_info, response, mu_priori_lower, mu_priori_upper, sigma_priori, alpha) {
+gamma_maximin_alpaC_function <- function(X, fischer_info, response, mu_priori_lower, mu_priori_upper, sigma_priori, alpha) {
   #print("gamma_maximin_alpaC_function")
   m_max <- m_max_alpha_function(X = X, response = response , sigma_priori = sigma_priori, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper)
   
   expected_utility <- function(x) {
-    result <- expected_utility_function(theta=theta, X = X, fischer_info = fischer_info, response = response, mu_priori = x, sigma_priori = sigma_priori)
+    result <- expected_utility_function(X = X, fischer_info = fischer_info, response = response, mu_priori = x, sigma_priori = sigma_priori)
     return(result)
   }
   
@@ -104,8 +125,7 @@ gamma_maximin_alpaC_addapter <- function(data, glm_formula, target, mu_priori_lo
   X <- cbind(1, data_matrix)
   fischer_info <- sqrt((det(var(data_matrix))))
   response <- as.matrix(selected_column <- subset(data, select = target))
-  theta <- coef(glm(data = data, formula = glm_formula, family = "binomial"))
   
-  result <- gamma_maximin_alpaC_function(theta = theta, X = X, fischer_info = fischer_info, response = response, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)$objective
+  result <- gamma_maximin_alpaC_function(X = X, fischer_info = fischer_info, response = response, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)$objective
   return(result)
 }

@@ -63,7 +63,7 @@ df <- matrix(nrow = n_methods, ncol = 7)
 # 
 
 
-load(paste(getwd(),"/results/diff_marg_likelihood_pred_A", share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
+load(paste(getwd(),"/results/diff_marg_likelihood_pred_", share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
 onthefly_acc_paths[1:n_imp,"iter"] <- 1:n_imp
 onthefly_acc_paths[1:n_imp,"Upper.CB"] <- saved_results$`Inductive on-the-fly CI`[2,]
 onthefly_acc_paths[1:n_imp,"Lower.CB"] <- saved_results$`Inductive on-the-fly CI`[1,]
@@ -235,7 +235,7 @@ ggplot2::ggplot(df) +
 #   xlab("Self-training method") +
 #   ylim(0,1)
 # selection of color palettes
-safe_colorblind_palette <- c("#88CCEE", "#CC6677", "#DDCC77", "#117733", "#AA4499", "#332288",
+safe_colorblind_palette <- c("#88CCEE",'#E3000F', "#CC6677", "#DDCC77", "#117733", "#AA4499", "#332288",
                              "#44AA99", "#999933", "#882255")
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 optimum_col = "#ff00f7"
