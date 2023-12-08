@@ -19,11 +19,9 @@ likelihood_function <- function(X, theta, response) {
 }
 
 utility_approximation_function <- function(X, fischer_info, response, theta, mu_priori, sigma_priori) {
-
   likelihood <- likelihood_function(X = X, theta = theta, response = response)
-  para_obs <- 2*pi/(nrow(X) - 1)
   priori <-  mvnfast::dmvn(X = theta, mu = mu_priori, sigma = sigma_priori)
-  return(para_obs * likelihood * priori / fischer_info)
+  return( likelihood * priori / fischer_info)
 }
 
 expected_utility_function <- function(X, fischer_info, response, mu_priori, sigma_priori) {
