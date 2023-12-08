@@ -8,6 +8,7 @@ set.seed(2138720)
 # simulate data
 p = 6 
 n = 60
+N = 40
 
 feature_1 <- rnorm(n, mean = 0.2)
 feature_2 <- rnorm(n, mean = -2)
