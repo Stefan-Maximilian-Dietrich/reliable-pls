@@ -60,7 +60,7 @@
     ind_res_on_the_fly[,iter] <- results[,3] # acc
     ############################################################################
     View(ind_res_on_the_fly)
-    
+    print(paste("Aktueller Schnitt", mean(ind_res_on_the_fly[n_imp, ], na.rm = TRUE)))
 
     ############################################################################ 
     sorted_results = results[order(results[,1]),]
@@ -101,6 +101,8 @@
   CI_ind
   
   mean_ind_fly <- apply(ind_res_on_the_fly, 1, mean)
+  #mean_ind_fly <- apply(ind_res_on_the_fly, 1, function(row) mean(row, na.rm = TRUE))
+  
   sd_ind_fly <- apply(ind_res_on_the_fly, 1, sd)
   ind_fly = cbind(mean_ind_fly, sd_ind_fly)
   get_CI_vec <- function(mean_sd_vec, alpha = 0.05, N){

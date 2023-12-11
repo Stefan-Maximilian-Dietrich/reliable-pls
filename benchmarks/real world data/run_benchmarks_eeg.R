@@ -56,6 +56,7 @@ levels_present <- levels(data_frame[c(target)] %>% unlist())
 # check whether labels are suited for replacement by 0,1
 levels_present
 levels(data_frame[, which(names(data_frame) %in% target)]) <- c(0,1)
+data_frame$target <- as.numeric(data_frame$target) - 1 # Musste uch hinzufügen 
 
 
 minority = data_frame[which(data_frame$target == 0),]
@@ -77,9 +78,18 @@ n_test = round(n_test)
 name_df = "eeg_data" # for results 
 data = "eeg_data"
 
+########################## Alpha Cut 
+
+mu_priori_lower <- rep(-1, times = 13)
+mu_priori_upper <- rep(1, times = 13)
+sigma_priori <-  diag(1, nrow = 13)
+alpha = 0.8
+
 ##########################
 # source experiments files
 ##########################
+source(paste(getwd(),"/R/Alpha_cut/benchmark-alpha-cut.R", sep = ""))
+###
 path_to_experiments = paste(getwd(),"/benchmarks/experiments", sep = "")
 # sequential sourcing
 # miceadds::source.all(path_to_experiments) 

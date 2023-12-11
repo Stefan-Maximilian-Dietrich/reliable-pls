@@ -29,14 +29,12 @@ alpha_cut <- function(labeled_data,
   for (i in seq(n_imp)) {
     print(paste("Vortschritt:", i/n_imp*100, "%"))
     
-    print("Vor Modell")
     Zeit_Start <- Sys.time()
     # fit model to labeled data
     logistic_model <- glm(formula = formula, 
                           data = labeled_data, 
                           family = "binomial")
-    print("Nach Modell")
-    
+
     
     # predict on unlabeled data
     predicted_target <- predict(logistic_model, 
