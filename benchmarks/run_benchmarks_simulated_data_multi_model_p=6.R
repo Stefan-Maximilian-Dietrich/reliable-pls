@@ -7,8 +7,8 @@ set.seed(2138720)
 
 # simulate data
 p = 6 
-n = 60
-N = 40
+n = 140
+N = 50
 
 feature_1 <- rnorm(n, mean = 0.2)
 feature_2 <- rnorm(n, mean = -2)
@@ -16,7 +16,60 @@ feature_3 <- rnorm(n, mean = 1.8)
 feature_4 <- rnorm(n, mean = -1)
 feature_5 <- rnorm(n, mean = 1.5, sd = 4)
 feature_6 <- rnorm(n, mean = -1, sd = 8)
-
+feature_7 <- rnorm(n, mean = -2, sd = 1)
+feature_8 <- rnorm(n, mean = 0, sd = 4)
+feature_9 <- rnorm(n, mean = 4, sd = 8)
+feature_10 <- rnorm(n, mean = 2, sd = 4)
+feature_11 <- rnorm(n, mean = 3, sd = 2)
+feature_12 <- rnorm(n, mean = -2, sd = 18)
+feature_13 <- rnorm(n, mean = -1, sd = 30)
+feature_14 <- rnorm(n, mean = -1, sd = 1)
+feature_15 <- rnorm(n, mean = -1, sd = 2)
+feature_16 <- rnorm(n, mean = 20, sd = 4)
+feature_17 <- rnorm(n, mean = 1, sd = 2)
+feature_18 <- rnorm(n, mean = -5, sd = 18)
+feature_19 <- rnorm(n, mean = -9, sd = 30)
+feature_20 <- rnorm(n, mean = -1, sd = 1)
+feature_21 <- rnorm(n, mean = 23, sd = 2)
+feature_22 <- rnorm(n, mean = -21, sd = 18)
+feature_23 <- rnorm(n, mean = -14, sd = 30)
+feature_24 <- rnorm(n, mean = -2, sd = 11)
+feature_25 <- rnorm(n, mean = 0, sd = 24)
+feature_26 <- rnorm(n, mean = 2, sd = 40)
+feature_27 <- rnorm(n, mean = 60, sd = 2)
+feature_28 <- rnorm(n, mean = 41, sd = 18)
+feature_29 <- rnorm(n, mean = 64, sd = 30)
+feature_30 <- rnorm(n, mean = -13, sd = 11)
+feature_31 <- rnorm(n, mean = 0, sd = 2)
+feature_32 <- rnorm(n, mean = -22, sd = 18)
+feature_33 <- rnorm(n, mean = -19, sd = 20)
+feature_34 <- rnorm(n, mean = -21, sd = 1)
+feature_35 <- rnorm(n, mean = 0.22, sd = 24.5)
+feature_36 <- rnorm(n, mean = 2.46, sd = 40)
+feature_37 <- rnorm(n, mean = 0.46, sd = 2)
+feature_38 <- rnorm(n, mean = -42, sd = 18)
+feature_39 <- rnorm(n, mean = -67, sd = 30)
+feature_40 <- rnorm(n, mean = -12, sd = 11)
+feature_41 <- rnorm(n, mean = 24, sd = 0.2)
+feature_42 <- rnorm(n, mean = -47, sd = 18)
+feature_43 <- rnorm(n, mean = -44, sd = 30)
+feature_44 <- rnorm(n, mean = -4.67, sd = 11)
+feature_45 <- rnorm(n, mean = 3.48, sd = 24)
+feature_46 <- rnorm(n, mean = 2.576, sd = 0.1)
+feature_47 <- rnorm(n, mean = 0, sd = 0.2)
+feature_48 <- rnorm(n, mean = 74, sd = 0.18)
+feature_49 <- rnorm(n, mean = -87, sd = 3)
+feature_50 <- rnorm(n, mean = -1, sd = 0.11)
+feature_51 <- rnorm(n, mean = 98, sd = 2)
+feature_52 <- rnorm(n, mean = -41, sd = 18)
+feature_53 <- rnorm(n, mean = -14, sd = 30)
+feature_54 <- rnorm(n, mean = -45, sd = 11)
+feature_55 <- rnorm(n, mean = 0, sd = 24)
+feature_56 <- rnorm(n, mean = 20, sd = 40)
+feature_57 <- rnorm(n, mean = 3, sd = 2)
+feature_58 <- rnorm(n, mean = 4, sd = 18)
+feature_59 <- rnorm(n, mean = 6, sd = 30)
+feature_60 <- rnorm(n, mean = -6, sd = 11)
 
 
 lin_comb <- 2.4- 7.9*feature_1 + 0.5*feature_2
@@ -100,8 +153,8 @@ path_to_experiments = paste(getwd(),"/benchmarks/experiments", sep = "")
 
 # parallel sourcing
 source(paste(getwd(),"/R/Alpha_cut/benchmark-alpha-cut.R", sep = ""))
-source(paste(getwd(),"/R/Alpha_cut/benchmark-alpha-cut-a-dynamic.R", sep = ""))
-source(paste(getwd(),"/R/Alpha_cut/benchmark-alpha-cut-dynamic.R", sep = ""))
+#source(paste(getwd(),"/R/Alpha_cut/benchmark-alpha-cut-a-dynamic.R", sep = ""))
+#source(paste(getwd(),"/R/Alpha_cut/benchmark-alpha-cut-dynamic.R", sep = ""))
 
 
 files_to_source = list.files(path_to_experiments, pattern=".R",
@@ -115,6 +168,5 @@ env <- environment()
 parallel::clusterExport(cl=comp_clusters, varlist = object_vec, envir = env)
 parallel::parSapply(comp_clusters, files_to_source, source)
 parallel::stopCluster(comp_clusters)
-
 
 
