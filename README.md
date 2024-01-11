@@ -1,10 +1,6 @@
 
 # *In all Likelihoods*
 
-## Robust Selection of Pseudo-Labeled Data
-
-
-
 ## Introduction, Table of Contents
 This repository contains implementation, results and experimenal scripts for reliable Pseudo-Label Selection, as introduced in the paper "In all Likelihoods: How to Reliably Select Pseudo-Labeled Data for Self-Training in Semi-Supervised Learning". More specifically,
 
@@ -15,7 +11,6 @@ This repository contains implementation, results and experimenal scripts for rel
 * all results can be found in [plots](plots) 
 * In order to reproduce experiments, please read **setup** further below
 
-## Results
 
 ## Data
 
