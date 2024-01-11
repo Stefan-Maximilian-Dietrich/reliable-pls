@@ -6,9 +6,16 @@ set.seed(2037421)
 
 library(dplyr)
 N = 40
-share_unlabeled = 0.90
+share_unlabeled = 0.70
 n = nrow(mtcars)
 p = 3
+
+#alpha Cut
+mu_priori_lower <- c(0, -2, -2, -2)
+mu_priori_upper <-  c(20, 2, 2, 2)
+sigma_priori <- matrix(c(11,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1),  nrow = 4)
+alpha = 0.9
+
 # read in data frame
 data_frame = mtcars
 name_df = "mtcars" # for results 
@@ -68,10 +75,6 @@ formula_7 = vs ~1 + disp
 
 formula_list = list(formula_full, formula_1, formula_2, formula_3, formula_4, formula_5, formula_6, formula_7)
 
-mu_priori_lower <- c(0, -2, -2, -2)
-mu_priori_upper <-  c(20, 2, 2, 2)
-sigma_priori <- matrix(c(11,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1),  nrow = 4)
-alpha = 0.9
 
 
 ##########################

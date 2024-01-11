@@ -1,8 +1,9 @@
+#Likelihood function of logistic regression depending on theta, the design matrix, and the response vector
 likelihood_function <- function(X, theta, response) {
   Y <- response
   
   logistic_function <- function(X, theta) {
-    odds <- exp(X %*% theta)
+    odds <- exp(X %*% theta) #Odds
     probability <- odds / (1 + odds)
     return(probability)
   }
@@ -12,21 +13,21 @@ likelihood_function <- function(X, theta, response) {
     likelihood <- prod(Y * p + (1 - Y) * (1 - p))
     return(likelihood)
   }
-  
   result <- likelihood(theta = theta)
   return(result)
 }
 
-utility_function <- function(X, fischer_info, response, theta, mu_priori, sigma_priori) {
-  likelihood <- likelihood_function(X = X, theta = theta, response = response)
-  priori <-  mvnfast::dmvn(X = theta, mu = mu_priori, sigma = sigma_priori)
+#Calculates the product of the likelihood and prior functions at the point theta, depending on the design matrix, response vector, and parameters of the prior density
+utility_function <- function(X,  response, theta, mu_priori, sigma_priori) {
+  likelihood <- likelihood_function(X = X, theta = theta, response = response) #Likelihood at the point theta depending on the design matrix and the response vector 
+  priori <-  mvnfast::dmvn(X = theta, mu = mu_priori, sigma = sigma_priori) #Density of the normally distributed prior at the point theta, depending on mu and sigma
   return( likelihood * priori)
 }
 
-expected_utility_function <- function(X, fischer_info, response, mu_priori, sigma_priori) {
-  #print("expected_utility_function")
+#Expected Utility function depending on the design matrix, the response vector, and the prior defined by mu and sigma.
+expected_utility_function <- function(X, response, mu_priori, sigma_priori) {
   f <- function(x) {
-    expected_utility <- utility_function(X = X, fischer_info = fischer_info, response = response, theta = x, mu_priori = mu_priori, sigma_priori = sigma_priori)
+    expected_utility <- utility_function(X = X, response = response, theta = x, mu_priori = mu_priori, sigma_priori = sigma_priori)
     return(expected_utility)
   }
   h <- function(x) {
@@ -35,23 +36,23 @@ expected_utility_function <- function(X, fischer_info, response, mu_priori, sigm
   h_neg <- function(x) {
     return(-h(x))
   }
-  start <- rep(0, times = ncol(X))
-  x0 <- optim(par = start, fn =  h_neg, method = "BFGS")$par
-  hII_x0 <- hessian(h, x0)
+  start <- rep(0, times = ncol(X)) #Startpunkt
+  x0 <- optim(par = start, fn =  h_neg, method = "BFGS")$par #Maximum of the Expected Utility
+  hII_x0 <- hessian(h, x0) #Calculation of the Hessian matrix (i.e., the second derivative with respect to the point x0).
   
-  exp_util <- exp( h(x0) ) * sqrt( (2*pi)^2 / abs(det(hII_x0))) 
+  exp_util <- exp( h(x0) ) * sqrt( (2*pi)^2 / abs(det(hII_x0))) #Laplace Approximation 
   
   return(exp_util)
 } 
 
+#Derivative of m consisting of likelihood and prior 
 m_derivat_function <- function(X,  response, mu_priori, sigma_priori, theta) {
-  #print("m_derivat_function")
   m_derivat <- likelihood_function(X = X, theta = theta,  response = response) * mvnfast::dmvn(X = theta, mu = mu_priori, sigma = sigma_priori) 
   return(m_derivat)
 }
 
+#Calculation of m depending on the design matrix, the response vector, and a prior defined by its mu and sigma.
 m_mu_function <- function(X,  response, mu_priori, sigma_priori) {
-  #print("m_mu_function")
   g <- function(x) {
     return(m_derivat_function(X = X, response = response, mu_priori = mu_priori, sigma_priori = sigma_priori, theta = x))
   }
@@ -61,70 +62,62 @@ m_mu_function <- function(X,  response, mu_priori, sigma_priori) {
   h_neg <- function(x) {
     return(-h(x))
   }
+  start <- rep(0, times = ncol(X)) #Starting point 
+  x0 <- optim(par = start, fn = h_neg, method = "BFGS")$par  #Similar to the Newton method.
+  hII_x0 <- hessian(h, x0) #Calculation of the Hessian matrix (i.e., the second derivative with respect to the point x0).
   
-  start <- rep(0, times = ncol(X))
-  x0 <- optim(par = start, fn = h_neg, method = "BFGS")$par  #Ähnich wie Newtonverfahren
-  hII_x0 <- hessian(h, x0)
-  
-  m_mu <- exp( h(x0) ) * sqrt( (2*pi)^2 / abs(det(hII_x0))) # * (pnorm(b, mean = x0, sd = sqrt(-1 / hII_x0)) - pnorm(a, mean = x0, sd = sqrt(-1 / hII_x0))) falls Parameter eingeschränkt 
+  m_mu <- exp( h(x0) ) * sqrt( (2*pi)^2 / abs(det(hII_x0))) #Laplace Approximation
   return(m_mu)
 } 
 
+#The function represents the constraint of the optimization; if it becomes less than 0, the respective prior is disqualified.
 m_alpha_function <- function(X,  response , mu_priori , sigma_priori, alpha, m_max) {
-  #print("m_alpha_function")
   result <-  m_mu_function(X = X,  response = response, mu_priori = mu_priori, sigma_priori = sigma_priori) - m_max * alpha
-  
   return(result)
 }
 
+#The function calculates the maximum of M
 m_max_alpha_function <- function(X,  response , sigma_priori, mu_priori_lower, mu_priori_upper) {
-  #print("m_alpha_function")
   fn <- function(x) {
-    result <- - m_mu_function(X = X, response = response, mu_priori = x, sigma_priori = sigma_priori) 
+    result <- - m_mu_function(X = X, response = response, mu_priori = x, sigma_priori = sigma_priori) #The negation of the function (for minimization) corresponds to maximization.
     return(result)
   }
   
-  x0 <- (mu_priori_lower + mu_priori_upper)/2
-  m_max <- - nloptr(x0 = x0, eval_f = fn, lb = mu_priori_lower, ub = mu_priori_upper, opts = list("algorithm"="NLOPT_LN_COBYLA", "xtol_rel" = 0.001))$objective
-  
+  x0 <- (mu_priori_lower + mu_priori_upper)/2 #Starting point of the maximization 
+  m_max <- - nloptr(x0 = x0, eval_f = fn, lb = mu_priori_lower, ub = mu_priori_upper, opts = list("algorithm"="NLOPT_LN_COBYLA", "xtol_rel" = 0.001))$objective #Maximization 
   return(m_max)
 }
 
-gamma_maximin_alpaC_function <- function(X, fischer_info, response, mu_priori_lower, mu_priori_upper, sigma_priori, alpha) {
-  #print("gamma_maximin_alpaC_function")
-  m_max <- m_max_alpha_function(X = X, response = response , sigma_priori = sigma_priori, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper)
+#This function seeks the minimum of the expected utility under the constraint that m is not less than alpha times the maximum of m
+gamma_maximin_alpaC_function <- function(X,  response, mu_priori_lower, mu_priori_upper, sigma_priori, alpha) {
+  m_max <- m_max_alpha_function(X = X, response = response , sigma_priori = sigma_priori, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper) #Calculation of the maximum m
   
-  expected_utility <- function(x) {
-    result <- expected_utility_function(X = X, fischer_info = fischer_info, response = response, mu_priori = x, sigma_priori = sigma_priori)
+  expected_utility <- function(x) { #Function to be optimized
+    result <- expected_utility_function(X = X,  response = response, mu_priori = x, sigma_priori = sigma_priori)
     return(result)
   }
   
-  m_alpha <- function(y) {
-    result <- - m_alpha_function(X = X, response = response, mu_priori = y, sigma_priori = sigma_priori, alpha = alpha, m_max = m_max)
+  m_alpha <- function(y) { #Constraint of the optimization 
+    result <- - m_alpha_function(X = X, response = response, mu_priori = y, sigma_priori = sigma_priori, alpha = alpha, m_max = m_max) 
     return(result)
   }
-  
-  x0 <- (mu_priori_upper + mu_priori_lower)/2
-  #print("Approximation der nidrigsten Expected Utility unter Nebenbedingung")
-  
+  x0 <- (mu_priori_upper + mu_priori_lower)/2 #Starting point of the optimization
   result <- tryCatch({
-    nloptr(x0=x0, eval_f = expected_utility, lb = mu_priori_lower, ub = mu_priori_upper, eval_g_ineq = m_alpha, opts = list("algorithm"="NLOPT_LN_COBYLA", "xtol_rel" = 0.001))  }, 
-    error = function(e) {
+    nloptr(x0=x0, eval_f = expected_utility, lb = mu_priori_lower, ub = mu_priori_upper, eval_g_ineq = m_alpha, opts = list("algorithm"="NLOPT_LN_COBYLA", "xtol_rel" = 0.001))  }, #Optimization function
+    error = function(e) { #Fail-safe in case the optimization fails
       0  
     })
   return(result)
 }
 
+#The function serves to enable input similar to the inputs in other methods.
 gamma_maximin_alpaC_addapter <- function(data, glm_formula, target, mu_priori_lower, mu_priori_upper, sigma_priori, alpha) {
-  #browser()
-  #print("gamma_maximin_alpaC_addapter")
-  variables <- all.vars(glm_formula)
-  pred_variables <- variables[variables != target]
-  data_matrix <- as.matrix(selected_column <- subset(data, select = pred_variables))
-  X <- cbind(1, data_matrix)
-  fischer_info <- sqrt((det(var(data_matrix))))
-  response <- as.matrix(selected_column <- subset(data, select = target))
+  variables <- all.vars(glm_formula) #All variables involved in the regression.
+  pred_variables <- variables[variables != target] #All variables involved in the regression except for the target variable.
+  data_matrix <- as.matrix(selected_column <- subset(data, select = pred_variables)) #Design matrix without intercept
+  X <- cbind(1, data_matrix) #Design matrix (with intercept)
+  response <- as.matrix(selected_column <- subset(data, select = target)) #Response vector
   
-  result <- gamma_maximin_alpaC_function(X = X, fischer_info = fischer_info, response = response, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)$objective
+  result <- gamma_maximin_alpaC_function(X = X,  response = response, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)$objective
   return(result)
 }

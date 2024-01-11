@@ -21,20 +21,31 @@ library(tidyverse)
 # p = 60
 # 
 # n_test = 0.5*n
-
+width = 300
+height = 200
+units = "mm"
 
 # global settings
 # simulate data
-
-share_unlabeled = 0.8
-data = "simulated"
- n = 140
- p = 6
+#160
+#120
+#80
+#40
+#80
+#40
+share_unlabeled = 0.60
+data = "banknote"
+ n = 20
+ p = 3
  alpha = 0.8
-n_methods = 10
+n_methods = 9
 n_test = n*0.5
 n_test = round(n_test)
 #number of unlabeled obs
+file <- paste(share_unlabeled, "_", data, "_n=", n, "_p=", p, "_a=", alpha, sep = "")
+#file <- paste(share_unlabeled, "_", "simulatedNG", "_n=", n, "_p=", p, "_a=", alpha, sep = "")
+
+
 n_imp = ((n - n_test) * share_unlabeled) %>% round()
 
 
@@ -63,7 +74,7 @@ df <- matrix(nrow = n_methods, ncol = 7)
 # 
 
 
-load(paste(getwd(),"/results/diff_marg_likelihood_pred_", share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
+load(paste(getwd(),"/results/Resultate/", file, "/diff_marg_likelihood_pred_", share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
 onthefly_acc_paths[1:n_imp,"iter"] <- 1:n_imp
 onthefly_acc_paths[1:n_imp,"Upper.CB"] <- saved_results$`Inductive on-the-fly CI`[2,]
 onthefly_acc_paths[1:n_imp,"Lower.CB"] <- saved_results$`Inductive on-the-fly CI`[1,]
@@ -74,7 +85,7 @@ df[1,] <- saved_results %>% unlist()
 onthefly_acc_paths_all <- rbind(onthefly_acc_paths_all, onthefly_acc_paths)
 
 
-load(paste(getwd(),"/results/diff_marg_likelihood_pred_ext_",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
+load(paste(getwd(),"/results/Resultate/", file, "/diff_marg_likelihood_pred_ext_",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
 onthefly_acc_paths[1:n_imp,"iter"] <- 1:n_imp
 onthefly_acc_paths[1:n_imp,"Upper.CB"] <- saved_results$`Inductive on-the-fly CI`[2,]
 onthefly_acc_paths[1:n_imp,"Lower.CB"] <- saved_results$`Inductive on-the-fly CI`[1,]
@@ -84,7 +95,7 @@ saved_results <- saved_results[-c(1,2)]
 df[2,] <- saved_results %>% unlist()
 onthefly_acc_paths_all <- rbind(onthefly_acc_paths_all, onthefly_acc_paths)
 
-load(paste(getwd(),"/results/diff_marg_likelihood_all_ext_no_weights",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
+load(paste(getwd(),"/results/Resultate/", file, "/diff_marg_likelihood_all_ext_no_weights",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
 onthefly_acc_paths[1:n_imp,"iter"] <- 1:n_imp
 onthefly_acc_paths[1:n_imp,"Upper.CB"] <- saved_results$`Inductive on-the-fly CI`[2,]
 onthefly_acc_paths[1:n_imp,"Lower.CB"] <- saved_results$`Inductive on-the-fly CI`[1,]
@@ -94,7 +105,7 @@ saved_results <- saved_results[-c(1,2)]
 df[3,] <- saved_results %>% unlist()
 onthefly_acc_paths_all <- rbind(onthefly_acc_paths_all, onthefly_acc_paths)
 
-load(paste(getwd(),"/results/diff_marg_likelihood_all_ext_nat_weights",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
+load(paste(getwd(),"/results/Resultate/", file, "/diff_marg_likelihood_all_ext_nat_weights",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
 onthefly_acc_paths[1:n_imp,"iter"] <- 1:n_imp
 onthefly_acc_paths[1:n_imp,"Upper.CB"] <- saved_results$`Inductive on-the-fly CI`[2,]
 onthefly_acc_paths[1:n_imp,"Lower.CB"] <- saved_results$`Inductive on-the-fly CI`[1,]
@@ -117,7 +128,7 @@ onthefly_acc_paths_all <- rbind(onthefly_acc_paths_all, onthefly_acc_paths)
 # saved_results
 # df[6,] <- saved_results %>% unlist()
 
-load(paste(getwd(),"/results/standard_self_",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
+load(paste(getwd(),"/results/Resultate/", file, "/standard_self_",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
 onthefly_acc_paths[1:n_imp,"iter"] <- 1:n_imp
 onthefly_acc_paths[1:n_imp,"Upper.CB"] <- saved_results$`Inductive on-the-fly CI`[2,]
 onthefly_acc_paths[1:n_imp,"Lower.CB"] <- saved_results$`Inductive on-the-fly CI`[1,]
@@ -127,7 +138,7 @@ saved_results <- saved_results[-c(1,2)]
 df[5,] <- saved_results %>% unlist()
 onthefly_acc_paths_all <- rbind(onthefly_acc_paths_all, onthefly_acc_paths)
 
-load(paste(getwd(),"/results/standard_self_conf_",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
+load(paste(getwd(),"/results/Resultate/", file, "/standard_self_conf_",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
 onthefly_acc_paths[1:n_imp,"iter"] <- 1:n_imp
 onthefly_acc_paths[1:n_imp,"Upper.CB"] <- saved_results$`Inductive on-the-fly CI`[2,]
 onthefly_acc_paths[1:n_imp,"Lower.CB"] <- saved_results$`Inductive on-the-fly CI`[1,]
@@ -138,7 +149,7 @@ df[6,] <- saved_results %>% unlist()
 onthefly_acc_paths_all <- rbind(onthefly_acc_paths_all, onthefly_acc_paths)
 
 
-load(paste(getwd(),"/results/standard_supervised_",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
+load(paste(getwd(),"/results/Resultate/", file, "/standard_supervised_",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
 df[7,] <- saved_results %>% unlist()
 onthefly_acc_paths[1:n_imp,"iter"] <- 1:n_imp
 onthefly_acc_paths[1:n_imp,"Upper.CB"] <- saved_results$`Inductive CI`[2]/saved_results$`Inductive n_test`
@@ -160,7 +171,7 @@ onthefly_acc_paths_all <- rbind(onthefly_acc_paths_all, onthefly_acc_paths)
 # 
 
 #load(paste(getwd(),"/results/diff_marg_likelihood_multi_model_random",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
-load(paste(getwd(),"/results/diff_marg_likelihood_multi_model",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
+load(paste(getwd(),"/results/Resultate/", file, "/diff_marg_likelihood_multi_model",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
 onthefly_acc_paths[1:n_imp,"iter"] <- 1:n_imp
 onthefly_acc_paths[1:n_imp,"Upper.CB"] <- saved_results$`Inductive on-the-fly CI`[2,]
 onthefly_acc_paths[1:n_imp,"Lower.CB"] <- saved_results$`Inductive on-the-fly CI`[1,]
@@ -180,7 +191,7 @@ onthefly_acc_paths_all <- rbind(onthefly_acc_paths_all, onthefly_acc_paths)
 #df[9,] <- saved_results %>% unlist()
 #onthefly_acc_paths_all <- rbind(onthefly_acc_paths_all, onthefly_acc_paths)
 
-load(paste(getwd(),"/results/alpaha_cut_",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), "_a=", as.character(alpha), sep=""))
+load(paste(getwd(),"/results/Resultate/", file, "/alpaha_cut_",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), "_a=", as.character(alpha), sep=""))
 onthefly_acc_paths[1:n_imp,"iter"] <- 1:n_imp
 onthefly_acc_paths[1:n_imp,"Upper.CB"] <- saved_results$`Inductive on-the-fly CI`[2,]
 onthefly_acc_paths[1:n_imp,"Lower.CB"] <- saved_results$`Inductive on-the-fly CI`[1,]
@@ -191,15 +202,15 @@ df[9,] <- saved_results %>% unlist()
 onthefly_acc_paths_all <- rbind(onthefly_acc_paths_all, onthefly_acc_paths)
 
 
-load(paste(getwd(),"/results/alpaha_cut_a_dynamic",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
-onthefly_acc_paths[1:n_imp,"iter"] <- 1:n_imp
-onthefly_acc_paths[1:n_imp,"Upper.CB"] <- saved_results$`Inductive on-the-fly CI`[2,]
-onthefly_acc_paths[1:n_imp,"Lower.CB"] <- saved_results$`Inductive on-the-fly CI`[1,]
-onthefly_acc_paths[1:n_imp,"Mean.Accuracy"] <- saved_results$`Inductive on-the-fly mean`
-onthefly_acc_paths[1:n_imp,"Method"] <- "alpaha_cut_a_dynamic"
-saved_results <- saved_results[-c(1,2)]
-df[10,] <- saved_results %>% unlist()
-onthefly_acc_paths_all <- rbind(onthefly_acc_paths_all, onthefly_acc_paths)
+#load(paste(getwd(),"/results/Resultate/", file, "/omniscient_supervised_",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
+#onthefly_acc_paths[1:n_imp,"iter"] <- 1:n_imp
+#onthefly_acc_paths[1:n_imp,"Upper.CB"] <- saved_results$`Inductive on-the-fly CI`[2,]
+#onthefly_acc_paths[1:n_imp,"Lower.CB"] <- saved_results$`Inductive on-the-fly CI`[1,]
+#onthefly_acc_paths[1:n_imp,"Mean.Accuracy"] <- saved_results$`Inductive on-the-fly mean`
+#onthefly_acc_paths[1:n_imp,"Method"] <- "omniscient_supervised"
+#saved_results <- saved_results[-c(1,2)]
+#df[10,] <- saved_results %>% unlist()
+#onthefly_acc_paths_all <- rbind(onthefly_acc_paths_all, onthefly_acc_paths)
 
 
 
@@ -235,8 +246,8 @@ ggplot2::ggplot(df) +
 #   xlab("Self-training method") +
 #   ylim(0,1)
 # selection of color palettes
-safe_colorblind_palette <- c("#88CCEE",'#E3000F', "#CC6677", "#DDCC77", "#117733", "#AA4499", "#332288",
-                             "#44AA99", "#999933", "#882255")
+safe_colorblind_palette <- c('#E3000F', "#88CCEE", "#CC6677", "#DDCC77", "#117733", "#AA4499", "#332288",
+                             "#44AA99", "#999933")
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 optimum_col = "#ff00f7"
 
@@ -284,7 +295,7 @@ plot
 
 
 filename = paste("plots/res_plot_data=", data,"_share=",share_unlabeled, "_n=", as.character(n), "_p=", as.character(p), "_a=", as.character(alpha),".png", sep = "")
-ggsave(filename = filename, plot = plot,  dpi = 300)
+ggsave(filename = filename, plot = plot,  dpi = 300,   width = width, height = height, units = units)
 
 
 
@@ -301,8 +312,93 @@ ggsave(filename = filename, plot = plot,  dpi = 300)
 # ggsave(filename=filename, plot = plot_CIs, dpi = 300)
 # 
 # 
-# 
+
+# Funktion zur Extraktion der Zeile mit dem maximalen Wert
+get_max_row <- function(df) {
+  index_max <- which.max(df$Mean.Accuracy)
+  return(df[index_max, , drop = FALSE])
+}
+
+get_last_row <- function(df) {
+  index_max <- which.max(df$iter)
+  return(df[index_max, , drop = FALSE])
+}
+
+get_5_row <- function(df) {
+  index_5 <- 5
+  return(df[index_5, , drop = FALSE])
+}
+
+# Anwendung der Funktion auf jede Gruppe
+Maximum <- as.data.frame(onthefly_acc_paths_all %>%
+                          group_by(Method) %>%
+                          do(get_max_row(.)))
+Maximum$breite <- Maximum$Upper.CB - Maximum$Lower.CB 
+ 
+Maximum[order(Maximum$Mean.Accuracy, decreasing = TRUE),]
+Maximum$experiment <- paste(data,n,share_unlabeled,alpha, sep="_")
+file_max <- paste0("Maximum/",paste(data,n,share_unlabeled,alpha, sep="_"), ".xlsx")
+write.xlsx(Maximum, file=file_max, overwrite = TRUE, asTable = TRUE)
+
+
+Final <- as.data.frame(onthefly_acc_paths_all %>%
+                          group_by(Method) %>%
+                          do(get_last_row(.)))
+
+Final$breite <- Final$Upper.CB - Final$Lower.CB 
+
+Final[order(Final$Mean.Accuracy, decreasing = TRUE),]
+Final$experiment <- paste(data,n,share_unlabeled,alpha, sep="_")
+file_max <- paste0("Final/",paste(data,n,share_unlabeled,alpha, sep="_"), ".xlsx")
+write.xlsx(Final, file=file_max, overwrite = TRUE, asTable = TRUE)
+
+Final_5 <- as.data.frame(onthefly_acc_paths_all %>%
+                         group_by(Method) %>%
+                         do(get_5_row(.)))
+
+Final_5$breite <- Final_5$Upper.CB - Final_5$Lower.CB 
+
+Final_5[order(Final_5$Mean.Accuracy, decreasing = TRUE),]
+Final_5$experiment <- paste(data,n,share_unlabeled,alpha, sep="_")
+Final_5_max <- paste0("Final_5/",paste(data,n,share_unlabeled,alpha, sep="_"), ".xlsx")
+write.xlsx(Final_5, Final_5_max, overwrite = TRUE, asTable = TRUE)
 
 
 
 
+plot_maximum <- ggplot2::ggplot(Maximum) +
+  geom_bar( aes(x=Method, y=Mean.Accuracy, fill = Method), stat="identity", alpha=0.8) +
+  geom_errorbar( aes(x=Method, ymin=Lower.CB, ymax=Upper.CB), width=0.4, colour="orange", alpha=0.9, size=1.3) +
+  scale_fill_manual(values = safe_colorblind_palette) +
+  theme(legend.position = "none") +
+  ylab("Inductive maximal accuracy") +
+  xlab("Self-training method") +
+  ylim(0,1)
+
+
+plot_maximum <- ggplot2::ggplot(Maximum) +
+  geom_bar( aes(x=Method, y=Mean.Accuracy, fill = Method), stat="identity", alpha=0.8) +
+  geom_errorbar( aes(x=Method, ymin=Lower.CB, ymax=Upper.CB), width=0.4, colour="orange", alpha=0.9, size=1.3) +
+  scale_fill_manual(values = safe_colorblind_palette) +
+  theme(legend.position = "none") +
+  ylab("Inductive maximal accuracy") +
+  xlab("Self-training method") +
+  ylim(0,1)
+
+
+plot_final <-ggplot2::ggplot(Final) +
+  geom_bar( aes(x=Method, y=Mean.Accuracy, fill = Method), stat="identity", alpha=0.8) +
+  geom_errorbar( aes(x=Method, ymin=Lower.CB, ymax=Upper.CB), width=0.4, colour="orange", alpha=0.9, size=1.3) +
+  scale_fill_manual(values = safe_colorblind_palette) +
+  theme(legend.position = "none") +
+  ylab("Inductive final accuracy") +
+  xlab("Self-training method") +
+  ylim(0,1)
+
+filename_maximum = paste("plots/res_plot_data=", data,"_share=",share_unlabeled, "_n=", as.character(n), "_p=", as.character(p), "_a=", as.character(alpha),"_maximum.png", sep = "")
+ggsave(filename = filename_maximum , plot = plot_maximum,  dpi = 300,   width = width, height = height, units = units)
+filename_final = paste("plots/res_plot_data=", data,"_share=",share_unlabeled, "_n=", as.character(n), "_p=", as.character(p), "_a=", as.character(alpha),"_final.png", sep = "")
+ggsave(filename = filename_final , plot = plot_final,  dpi = 300,   width = width, height = height, units = units)
+
+plot_maximum
+plot_final

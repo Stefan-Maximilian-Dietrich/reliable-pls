@@ -2,14 +2,27 @@
 ## global setup
 ###############
 library(dplyr)
-share_unlabeled = 0.8
 set.seed(2138720)
 
 # simulate data
+share_unlabeled = 0.8
 p = 6 
-n = 140
+n = 200
 N = 50
 
+# Alpha cut 
+mu_priori_lower <- c(-2, -10, -1, -1, -1, -1, -1)
+mu_priori_upper <-  c(5, 0, 1, 1, 1, 1, 1) 
+sigma_priori <- matrix(c(3,0,0,0,0,0,0,
+                         0,4,0,0,0,0,0,
+                         0,0,1,0,0,0,0,
+                         0,0,0,1,0,0,0,
+                         0,0,0,0,1,0,0,
+                         0,0,0,0,0,1,0,
+                         0,0,0,0,0,0,1), nrow = 7, byrow = TRUE)
+alpha = 0.8
+
+#simulate Data
 feature_1 <- rnorm(n, mean = 0.2)
 feature_2 <- rnorm(n, mean = -2)
 feature_3 <- rnorm(n, mean = 1.8)
@@ -114,6 +127,7 @@ formula_alt1 = target_var~ 1 + feature_1  #+ feature_5 + feature_6 +
 
 
 formula_list = list(formula, formula_alt1, formula_alt2, formula_alt3, formula_alt4, formula_alt5)
+formula_list = list(formula, formula_alt1, formula_alt3, formula_alt4, formula_alt5)
 
 summary <- glm(formula = formula, data = data_frame[1:50,], family = "binomial") %>% summary()
 summary
@@ -127,17 +141,6 @@ levels_present
 levels(data_frame[, which(names(data_frame) %in% target)]) <- c(0,1)
 data_frame$target_var <- as.numeric(data_frame$target_var) -1
 
-# Alpha cut 
-mu_priori_lower <- c(-2, -10, -1, -1, -1, -1, -1)
-mu_priori_upper <-  c(5, 0, 1, 1, 1, 1, 1) 
-sigma_priori <- matrix(c(3,0,0,0,0,0,0,
-                         0,4,0,0,0,0,0,
-                         0,0,1,0,0,0,0,
-                         0,0,0,1,0,0,0,
-                         0,0,0,0,1,0,0,
-                         0,0,0,0,0,1,0,
-                         0,0,0,0,0,0,1), nrow = 7, byrow = TRUE)
-alpha = 0.8
 
 ##########################
 # source experiments files

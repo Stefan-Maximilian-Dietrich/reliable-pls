@@ -30,9 +30,6 @@ get_log_marg_l <- function(logistic_model) {
 
 ################################### mit Priori #################################
 
-install.packages("mvtnorm")
-library(mvtnorm)
-
 
 priori <- function(Modell) {
   coefficients <- logistic_model$coefficients

@@ -16,10 +16,9 @@ install.packages("glmnet")
 install.packages("parallel")
 install.packages("fdm2id")
 install.packages("RCurl")
+install.packages("openxlsx")
 
-
-
-
+library(openxlsx)
 library(dplyr)
 library(checkmate,asserthat)
 library(foreach)

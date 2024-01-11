@@ -8,7 +8,14 @@ set.seed(2037420)
 N = 40
 share_unlabeled = 0.8
 p = 3
-n = 120
+n = 160
+
+# alpha Cut
+mu_priori_lower <- c(-3, -2, -2, -2)
+mu_priori_upper <-  c(5, 2, 2, 2)
+sigma_priori <- matrix(c(2,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1),  nrow = 4)
+alpha = 0.8
+
 
 # read in data frame
 
@@ -64,11 +71,6 @@ data_frame$target <- as.numeric(data_frame$target ) - 1
 
 glm(formula = formula, data = data_frame, family = "binomial") %>% summary
 
-# alpha Cut
-mu_priori_lower <- c(-3, -2, -2, -2)
-mu_priori_upper <-  c(5, 2, 2, 2)
-sigma_priori <- matrix(c(2,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1),  nrow = 4)
-alpha = 0.5
 
 ##########################
 # source experiments files
