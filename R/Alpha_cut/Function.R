@@ -18,17 +18,17 @@ likelihood_function <- function(X, theta, response) {
 }
 
 #Calculates the product of the likelihood and prior functions at the point theta, depending on the design matrix, response vector, and parameters of the prior density
-utility_function <- function(X,  response, theta, mu_priori, sigma_priori) {
+ppp_derivate <- function(X,  response, theta, mu_priori, sigma_priori) {
   likelihood <- likelihood_function(X = X, theta = theta, response = response) #Likelihood at the point theta depending on the design matrix and the response vector 
   priori <-  mvnfast::dmvn(X = theta, mu = mu_priori, sigma = sigma_priori) #Density of the normally distributed prior at the point theta, depending on mu and sigma
   return( likelihood * priori)
 }
 
-#Expected Utility function depending on the design matrix, the response vector, and the prior defined by mu and sigma.
-expected_utility_function <- function(X, response, mu_priori, sigma_priori) {
+#PPP function depending on the design matrix, the response vector, and the prior defined by mu and sigma.
+pseudo_posterior_predictive_function <- function(X, response, mu_priori, sigma_priori) {
   f <- function(x) {
-    expected_utility <- utility_function(X = X, response = response, theta = x, mu_priori = mu_priori, sigma_priori = sigma_priori)
-    return(expected_utility)
+    ppp_derivate <- ppp_derivate(X = X, response = response, theta = x, mu_priori = mu_priori, sigma_priori = sigma_priori)
+    return(ppp_derivate)
   }
   h <- function(x) {
     return(log(f(x)))
@@ -40,9 +40,9 @@ expected_utility_function <- function(X, response, mu_priori, sigma_priori) {
   x0 <- optim(par = start, fn =  h_neg, method = "BFGS")$par #Maximum of the Expected Utility
   hII_x0 <- hessian(h, x0) #Calculation of the Hessian matrix (i.e., the second derivative with respect to the point x0).
   
-  exp_util <- exp( h(x0) ) * sqrt( (2*pi)^2 / abs(det(hII_x0))) #Laplace Approximation 
+  ppp <- exp( h(x0) ) * sqrt( (2*pi)^2 / abs(det(hII_x0))) #Laplace Approximation 
   
-  return(exp_util)
+  return(ppp)
 } 
 
 #Derivative of m consisting of likelihood and prior 
@@ -88,12 +88,12 @@ m_max_alpha_function <- function(X,  response , sigma_priori, mu_priori_lower, m
   return(m_max)
 }
 
-#This function seeks the minimum of the expected utility under the constraint that m is not less than alpha times the maximum of m
+#This function seeks the minimum of the ppp under the constraint that m is not less than alpha times the maximum of m
 gamma_maximin_alpaC_function <- function(X,  response, mu_priori_lower, mu_priori_upper, sigma_priori, alpha) {
   m_max <- m_max_alpha_function(X = X, response = response , sigma_priori = sigma_priori, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper) #Calculation of the maximum m
   
-  expected_utility <- function(x) { #Function to be optimized
-    result <- expected_utility_function(X = X,  response = response, mu_priori = x, sigma_priori = sigma_priori)
+  ppp <- function(x) { #Function to be optimized
+    result <- pseudo_posterior_predictive_function(X = X,  response = response, mu_priori = x, sigma_priori = sigma_priori)
     return(result)
   }
   
@@ -103,7 +103,7 @@ gamma_maximin_alpaC_function <- function(X,  response, mu_priori_lower, mu_prior
   }
   x0 <- (mu_priori_upper + mu_priori_lower)/2 #Starting point of the optimization
   result <- tryCatch({
-    nloptr(x0=x0, eval_f = expected_utility, lb = mu_priori_lower, ub = mu_priori_upper, eval_g_ineq = m_alpha, opts = list("algorithm"="NLOPT_LN_COBYLA", "xtol_rel" = 0.001))  }, #Optimization function
+    nloptr(x0=x0, eval_f = ppp, lb = mu_priori_lower, ub = mu_priori_upper, eval_g_ineq = m_alpha, opts = list("algorithm"="NLOPT_LN_COBYLA", "xtol_rel" = 0.001))  }, #Optimization function
     error = function(e) { #Fail-safe in case the optimization fails
       0  
     })
