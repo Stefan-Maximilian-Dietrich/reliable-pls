@@ -37,7 +37,7 @@ pseudo_posterior_predictive_function <- function(X, response, mu_priori, sigma_p
     return(-h(x))
   }
   start <- rep(0, times = ncol(X)) #Startpunkt
-  x0 <- optim(par = start, fn =  h_neg, method = "BFGS")$par #Maximum of the Expected Utility
+  x0 <- optim(par = start, fn =  h_neg, method = "BFGS")$par #Maximum of the PPP
   hII_x0 <- hessian(h, x0) #Calculation of the Hessian matrix (i.e., the second derivative with respect to the point x0).
   
   ppp <- exp( h(x0) ) * sqrt( (2*pi)^2 / abs(det(hII_x0))) #Laplace Approximation 
