@@ -2,6 +2,7 @@ library(ggplot2)
 library(ggpubr)
 library(dplyr)
 library(tidyverse)
+library(gridExtra)
 #library(wesanderson)
 # library(RColorBrewer)
 # library(ggsci)
@@ -21,7 +22,7 @@ library(tidyverse)
 # p = 60
 # 
 # n_test = 0.5*n
-width = 300
+width = 200
 height = 200
 units = "mm"
 
@@ -33,9 +34,9 @@ units = "mm"
 #40
 #80
 #40
-share_unlabeled = 0.60
+share_unlabeled = 0.90
 data = "banknote"
- n = 20
+ n = 40
  p = 3
  alpha = 0.8
 n_methods = 9
@@ -248,6 +249,11 @@ ggplot2::ggplot(df) +
 # selection of color palettes
 safe_colorblind_palette <- c('#E3000F', "#88CCEE", "#CC6677", "#DDCC77", "#117733", "#AA4499", "#332288",
                              "#44AA99", "#999933")
+
+#safe_colorblind_palette <- c('#E3000F', "#88CCEE", "#CC6677", "#DDCC77", "#117733",  "#332288",
+#                             "#44AA99", "#999933")
+
+
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 optimum_col = "#ff00f7"
 
@@ -281,7 +287,9 @@ plot <- plot + theme(panel.background = element_rect(fill = "grey28")) +
   theme(legend.position="right") +
   scale_color_manual(values=pal) +
   xlab("Number of added pseudo-labeled data points") +
-  theme_bw()
+  theme_bw() +
+  guides(color = FALSE) +
+  labs(title = "n=40,share=0.9,a=0.8")
 
 #+
   #facet_wrap(vars(Method))
@@ -292,11 +300,10 @@ plot <- plot + theme(panel.background = element_rect(fill = "grey28")) +
 # plot_no_CIs
 
 plot
+c <- plot
 
-
-filename = paste("plots/res_plot_data=", data,"_share=",share_unlabeled, "_n=", as.character(n), "_p=", as.character(p), "_a=", as.character(alpha),".png", sep = "")
-ggsave(filename = filename, plot = plot,  dpi = 300,   width = width, height = height, units = units)
-
+filename = paste("plots/res_plot_data=", data,".png", sep = "")
+ggsave(filename = filename, plot = plot,  dpi = 600,   width = 3* height, height = height, units = units)
 
 
 

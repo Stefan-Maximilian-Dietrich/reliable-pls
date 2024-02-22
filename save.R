@@ -17,32 +17,44 @@ likelihood_function <- function(X, theta, response) {
   return(result)
 }
 
-ppp_integral_derivat <- function(X,  response, theta, mu_priori, sigma_priori) {
-  nrow <- nrow(X)
-  likelihood_train <- likelihood_function(X = X[-nrow,], theta = theta, response = response[-nrow]) #Likelihood at the point theta depending on the design matrix and the response vector
-  likelihood_new <- likelihood_function(X = X, theta = theta, response = response)
+#Calculates the product of the likelihood and prior functions at the point theta, depending on the design matrix, response vector, and parameters of the prior density
+ppp_derivate_old <- function(X,  response, theta, mu_priori, sigma_priori) {
+  likelihood <- likelihood_function(X = X, theta = theta, response = response) #Likelihood at the point theta depending on the design matrix and the response vector 
   priori <-  mvnfast::dmvn(X = theta, mu = mu_priori, sigma = sigma_priori) #Density of the normally distributed prior at the point theta, depending on mu and sigma
-  return( likelihood_new * likelihood_train * priori)
+  return( likelihood * priori)
 }
 
-ppp_integral <- function(X,  response, mu_priori, sigma_priori) {
-  nrow <- nrow(X)
-  g <- function(x) {
-    return(ppp_integral_derivat(X = X,  response = response, theta = x, mu_priori = mu_priori, sigma_priori = sigma_priori))
+
+ppp_derivat_int
+ppp_derivate_new <- function(X,  response, theta, mu_priori, sigma_priori) {
+  m <- m_mu_function(X,  response, mu_priori, sigma_priori)
+  likelihood_train <- likelihood_function(X = X, theta = theta, response = response) #Likelihood at the point theta depending on the design matrix and the response vector
+  likelihood_new <- likelihood_function(X = X, theta = theta, response = response)
+  priori <-  mvnfast::dmvn(X = theta, mu = mu_priori, sigma = sigma_priori) #Density of the normally distributed prior at the point theta, depending on mu and sigma
+  return( likelihood * priori)
+}
+
+#PPP function depending on the design matrix, the response vector, and the prior defined by mu and sigma.
+pseudo_posterior_predictive_function <- function(X, response, mu_priori, sigma_priori) {
+  f <- function(x) {
+    ppp_derivate <- ppp_derivate(X = X, response = response, theta = x, mu_priori = mu_priori, sigma_priori = sigma_priori)
+    return(ppp_derivate)
   }
   h <- function(x) {
-    return(log(g(x)))
+    return(log(f(x)))
   }
   h_neg <- function(x) {
     return(-h(x))
   }
-  start <- rep(0, times = ncol(X)) #Starting point 
-  x0 <- optim(par = start, fn = h_neg, method = "BFGS")$par  #Similar to the Newton method.
+  start <- rep(0, times = ncol(X)) #Startpunkt
+  x0 <- optim(par = start, fn =  h_neg, method = "BFGS")$par #Maximum of the PPP
   hII_x0 <- hessian(h, x0) #Calculation of the Hessian matrix (i.e., the second derivative with respect to the point x0).
   
-  m_mu <- exp( h(x0) ) * sqrt( (2*pi)^2 / abs(det(hII_x0))) #Laplace Approximation
-  return(m_mu)
+  ppp <- exp( h(x0) ) * sqrt( (2*pi)^2 / abs(det(hII_x0))) #Laplace Approximation 
+  
+  return(ppp)
 } 
+
 
 #Derivative of m consisting of likelihood and prior 
 m_derivat_function <- function(X,  response, mu_priori, sigma_priori, theta) {
@@ -67,14 +79,6 @@ m_mu_function <- function(X,  response, mu_priori, sigma_priori) {
   
   m_mu <- exp( h(x0) ) * sqrt( (2*pi)^2 / abs(det(hII_x0))) #Laplace Approximation
   return(m_mu)
-} 
-
-#PPP function depending on the design matrix, the response vector, and the prior defined by mu and sigma.
-pseudo_posterior_predictive_function <- function(X, response, mu_priori, sigma_priori) {
-  m <- m_mu_function(X =X ,  response = response, mu_priori = mu_priori, sigma_priori = sigma_priori)
-  int <- ppp_integral(X =X ,  response = response, mu_priori = mu_priori, sigma_priori = sigma_priori)
-  
-  return(int*m)
 } 
 
 #The function represents the constraint of the optimization; if it becomes less than 0, the respective prior is disqualified.

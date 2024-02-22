@@ -1,3 +1,4 @@
+#Likelihood (max-max)
 library(dplyr)
 source("R/diff_marg_likelihood_pred.R")
 

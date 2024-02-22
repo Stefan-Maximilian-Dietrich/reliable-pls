@@ -5,9 +5,9 @@ library(dplyr)
 set.seed(2138720)
 
 # simulate data
-share_unlabeled = 0.8
+share_unlabeled = 0.5
 p = 6 
-n = 200
+n = 20
 N = 50
 
 # Alpha cut 
