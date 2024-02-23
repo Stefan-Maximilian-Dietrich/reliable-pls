@@ -33,9 +33,10 @@ units = "mm"
 #40
 #80
 #40
-share_unlabeled = 0.8
+a = 0.8
+share_unlabeled = 0.9
 data = "simulated"
-n = 160
+n = 180
 p = 6
 n_methods = 3
 n_test = n*0.5

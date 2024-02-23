@@ -46,7 +46,8 @@ ppp_integral <- function(X,  response, mu_priori, sigma_priori) {
 
 #Derivative of m consisting of likelihood and prior 
 m_derivat_function <- function(X,  response, mu_priori, sigma_priori, theta) {
-  m_derivat <- likelihood_function(X = X, theta = theta,  response = response) * mvnfast::dmvn(X = theta, mu = mu_priori, sigma = sigma_priori) 
+  nrow <- nrow(X)
+  m_derivat <- likelihood_function(X = X[-nrow,], theta = theta, response = response[-nrow]) * mvnfast::dmvn(X = theta, mu = mu_priori, sigma = sigma_priori) 
   return(m_derivat)
 }
 
@@ -74,7 +75,7 @@ pseudo_posterior_predictive_function <- function(X, response, mu_priori, sigma_p
   m <- m_mu_function(X =X ,  response = response, mu_priori = mu_priori, sigma_priori = sigma_priori)
   int <- ppp_integral(X =X ,  response = response, mu_priori = mu_priori, sigma_priori = sigma_priori)
   
-  return(int*m)
+  return((1/m)*int)
 } 
 
 #The function represents the constraint of the optimization; if it becomes less than 0, the respective prior is disqualified.
