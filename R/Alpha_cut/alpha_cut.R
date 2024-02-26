@@ -1,4 +1,4 @@
-source("R/Alpha_cut/Function.R")
+source("R/Alpha_cut/Function_MCMC.R")
 
 
 
@@ -11,7 +11,7 @@ alpha_cut <- function(labeled_data,
                       mu_priori_upper, 
                       sigma_priori,
                       alpha,
-                      paralell = TRUE) {
+                      paralell = FALSE) {
   
   # some input checking
   assert_data_frame(labeled_data)

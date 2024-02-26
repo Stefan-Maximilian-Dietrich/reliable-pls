@@ -34,9 +34,9 @@ units = "mm"
 #40
 #80
 #40
-share_unlabeled = 0.90
+share_unlabeled = 0.80
 data = "banknote"
- n = 40
+ n = 120
  p = 3
  alpha = 0.8
 n_methods = 9
@@ -287,9 +287,7 @@ plot <- plot + theme(panel.background = element_rect(fill = "grey28")) +
   theme(legend.position="right") +
   scale_color_manual(values=pal) +
   xlab("Number of added pseudo-labeled data points") +
-  theme_bw() +
-  guides(color = FALSE) +
-  labs(title = "n=40,share=0.9,a=0.8")
+  theme_bw() 
 
 #+
   #facet_wrap(vars(Method))
