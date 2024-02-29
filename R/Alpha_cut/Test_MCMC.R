@@ -1,4 +1,4 @@
-
+n = 100
 # Alpha cut 
 mu_priori_lower <- c(-2, -10, -1, -1, -1, -1, -1)
 mu_priori_upper <-  c(5, 0, 1, 1, 1, 1, 1) 
@@ -60,13 +60,12 @@ levels_present
 levels(data_frame[, which(names(data_frame) %in% target)]) <- c(0,1)
 data_frame$target_var <- as.numeric(data_frame$target_var) -1
 
-variables <- all.vars(formula) #All variables involved in the regression.
-pred_variables <- variables[variables != target] #All variables involved in the regression except for the target variable.
-data_matrix <- as.matrix(selected_column <- subset(data_frame, select = pred_variables)) #Design matrix without intercept
-X <- cbind(1, data_matrix) #Design matrix (with intercept)
-response <- as.matrix(selected_column <- subset(data_frame, select = target)) #Response vector
+A <- c()
+profvis({
+  for(i in 1:10) {
+  A <- c(A,gamma_maximin_alpaC_addapter(data = data_frame, glm_formula = formula, target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = 0.8))
+  }
+})
 
 
-
-m_mu_function(X =X,  response = response, mu_priori = c(-5, 0, 6, 0, 0, 0, 0) , sigma_priori = sigma_priori)
 

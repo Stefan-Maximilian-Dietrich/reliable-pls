@@ -34,11 +34,11 @@ units = "mm"
 #40
 #80
 #40
-share_unlabeled = 0.80
+share_unlabeled = 0.8
 data = "banknote"
- n = 120
+ n = 140
  p = 3
- alpha = 0.8
+ alpha = 0.95
 n_methods = 9
 n_test = n*0.5
 n_test = round(n_test)

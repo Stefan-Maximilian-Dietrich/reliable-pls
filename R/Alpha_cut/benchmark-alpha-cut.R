@@ -49,7 +49,7 @@
                               mu_priori_upper = mu_priori_upper,
                               sigma_priori = sigma_priori,
                               alpha = alpha,
-                              paralell = TRUE)
+                              paralell = FALSE)
     
     # get transductive and inductive results
     results <- results_list[[1]]
