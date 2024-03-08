@@ -58,19 +58,19 @@ multi_model_soft_revision <- function(labeled_data,
     
     saveRDS(data_sets_pred, "Last.rds") 
     
-    print(paralell)
     if(paralell) {
       core <- as.numeric(min(parallel::detectCores() - 1, length(data_sets_pred) * length(formulas)))
+      core <- 20
       print(paste("Parallel", core))
       cl <- parallel::makeForkCluster(core)
       doParallel::registerDoParallel(cl)
       
       
-      gamma <- foreach(i = 1:length(data_sets_pred), .combine = 'rbind') %dopar% {
+      gamma <- foreach(i = 1:length(data_sets_pred), .combine = 'c') %dopar% {
+        g <- 0
         for(j in 1:length(formulas)) {
-          g <- NULL
           tryCatch({
-            g <- c(g,gamma_maximin_alpaC_addapter(data = data_sets_pred[[i]], glm_formula = formulas[[j]], target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha))
+            g <- g + gamma_maximin_alpaC_addapter(data = data_sets_pred[[i]], glm_formula = formulas[[j]], target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
           }, error = function(e) {
             Error <- readRDS("Errors.rds") 
             lenght <- length(Error)
@@ -80,13 +80,12 @@ multi_model_soft_revision <- function(labeled_data,
             return(0)
           })
         }
-        g
+        return(g)
       }
       parallel::stopCluster(cl)
     }
-      
+    
     if(!paralell) {
-      print("Marke 1")
       gamma <- NULL
       for(i in 1:length(data_sets_pred)) {
         gamma_r <- NULL
@@ -95,13 +94,13 @@ multi_model_soft_revision <- function(labeled_data,
           gamma_r <- c(gamma_r, g)
           View(gamma_r)
         }
-        gamma <- rbind(gamma, unlist(gamma_r)) 
+        gamma <- as.matrix(rbind(gamma, unlist(gamma_r)))
         View(gamma)
         
       }
     }
-  
-    winner <- which.max(unlist(rowSums(gamma, na.rm=TRUE))) #
+    
+    winner <- which.max(unlist(gamma)) #
     
     
     # predict on it again and add to labeled data
