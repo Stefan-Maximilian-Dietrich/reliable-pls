@@ -34,11 +34,11 @@ units = "mm"
 #40
 #80
 #40
-share_unlabeled = 0.8
-data = "banknote"
- n = 140
+share_unlabeled = 0.7
+data = "mtcars"
+ n = 32
  p = 3
- alpha = 0.95
+ alpha = 0.8
 n_methods = 9
 n_test = n*0.5
 n_test = round(n_test)
@@ -277,7 +277,7 @@ plot <- ggplot(data = onthefly_acc_paths_all, aes(x = iter, group = Method)) +
   geom_point(data = onthefly_acc_paths_all,aes(x = iter, y = Mean.Accuracy, colour = Method))  +
   geom_line(data = onthefly_acc_paths_all, aes(x = iter, y = Mean.Accuracy, colour = Method)) +
   labs(color = "PLS Method") +
-  theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
+  theme(axis.text=element_text(size=15), axis.title=element_text(size=15)) +
   xlab(data)
 
 pal <- safe_colorblind_palette
@@ -287,7 +287,9 @@ plot <- plot + theme(panel.background = element_rect(fill = "grey28")) +
   theme(legend.position="right") +
   scale_color_manual(values=pal) +
   xlab("Number of added pseudo-labeled data points") +
-  theme_bw() 
+  theme_bw() +
+  theme(legend.position="none", axis.text=element_text(size=15),
+        axis.title=element_text(size=15))
 
 #+
   #facet_wrap(vars(Method))
@@ -298,10 +300,9 @@ plot <- plot + theme(panel.background = element_rect(fill = "grey28")) +
 # plot_no_CIs
 
 plot
-c <- plot
 
-filename = paste("plots/res_plot_data=", data,".png", sep = "")
-ggsave(filename = filename, plot = plot,  dpi = 600,   width = 3* height, height = height, units = units)
+filename = paste("plots/res_plot_data=", data,".pdf", sep = "")
+ggsave(filename = filename, plot = plot,  dpi = 300,   width = height, height = height, units = units)
 
 
 

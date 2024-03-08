@@ -7,7 +7,7 @@ set.seed(2138720)
 # simulate data
 share_unlabeled = 0.8
 p = 6 
-n = 40
+n = 50
 N = 50
 
 # Alpha cut 
@@ -127,7 +127,6 @@ formula_alt1 = target_var~ 1 + feature_1  #+ feature_5 + feature_6 +
 
 
 formula_list = list(formula, formula_alt1, formula_alt2, formula_alt3, formula_alt4, formula_alt5)
-formula_list = list(formula, formula_alt1, formula_alt3, formula_alt4, formula_alt5)
 
 summary <- glm(formula = formula, data = data_frame[1:50,], family = "binomial") %>% summary()
 summary
@@ -155,6 +154,7 @@ path_to_experiments = paste(getwd(),"/benchmarks/experiments", sep = "")
 
 
 # parallel sourcing
+source(paste(getwd(),"/R/Alpha_cut/benchmark-multi_model_soft_revision.R", sep = ""))
 source(paste(getwd(),"/R/Alpha_cut/benchmark-alpha-cut.R", sep = ""))
 #source(paste(getwd(),"/R/Alpha_cut/benchmark-alpha-cut-a-dynamic.R", sep = ""))
 #source(paste(getwd(),"/R/Alpha_cut/benchmark-alpha-cut-dynamic.R", sep = ""))

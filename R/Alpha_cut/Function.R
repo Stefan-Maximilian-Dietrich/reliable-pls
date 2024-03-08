@@ -125,7 +125,10 @@ gamma_maximin_alpaC_addapter <- function(data, glm_formula, target, mu_priori_lo
   data_matrix <- as.matrix(selected_column <- subset(data, select = pred_variables)) #Design matrix without intercept
   X <- cbind(1, data_matrix) #Design matrix (with intercept)
   response <- as.matrix(selected_column <- subset(data, select = target)) #Response vector
-  
+  m <- length(pred_variables) +1
+  mu_priori_lower <- mu_priori_lower[1:m]
+  mu_priori_upper <- mu_priori_upper[1:m]
+  sigma_priori <- sigma_priori[1:m,1:m]
   result <- gamma_maximin_alpaC_function(X = X,  response = response, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)$objective
   return(result)
 }

@@ -3,16 +3,17 @@ source("R/Alpha_cut/Function.R")
 
 
 
-alpha_cut <- function(labeled_data,
-                      unlabeled_data,
-                      test_data,
-                      target,
-                      glm_formula,
-                      mu_priori_lower,
-                      mu_priori_upper, 
-                      sigma_priori,
-                      alpha,
-                      paralell = FALSE) {
+multi_model_soft_revision <- function(labeled_data,
+                                      unlabeled_data,
+                                      test_data,
+                                      target,
+                                      glm_formula,
+                                      formulas,
+                                      mu_priori_lower,
+                                      mu_priori_upper, 
+                                      sigma_priori,
+                                      alpha,
+                                      paralell = FALSE) {
   
   # some input checking
   assert_data_frame(labeled_data)
@@ -35,7 +36,7 @@ alpha_cut <- function(labeled_data,
     logistic_model <- glm(formula = formula, 
                           data = labeled_data, 
                           family = "binomial")
-
+    
     
     # predict on unlabeled data
     predicted_target <- predict(logistic_model, 
@@ -57,35 +58,50 @@ alpha_cut <- function(labeled_data,
     
     saveRDS(data_sets_pred, "Last.rds") 
     
+    print(paralell)
     if(paralell) {
-      core <- as.numeric(parallel::detectCores() - 1)
+      core <- as.numeric(min(parallel::detectCores() - 1, length(data_sets_pred) * length(formulas)))
       print(paste("Parallel", core))
       cl <- parallel::makeForkCluster(core)
       doParallel::registerDoParallel(cl)
-      gamma <- foreach(i = 1:length(data_sets_pred), .combine = 'c') %dopar% {
-      tryCatch({
-        gamma_maximin_alpaC_addapter(data = data_sets_pred[[i]], glm_formula = glm_formula, target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
-        }, error = function(e) {
-          Error <- readRDS("Errors.rds") 
-          lenght <- length(Error)
-          Error[[lenght + 1]] <- list(data = data_sets_pred[[i]], glm_formula = glm_formula, target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
-          saveRDS(Error, "Errors.rds") 
-          
-          return(0)
-        })
+      
+      
+      gamma <- foreach(i = 1:length(data_sets_pred), .combine = 'rbind') %dopar% {
+        for(j in 1:length(formulas)) {
+          g <- NULL
+          tryCatch({
+            g <- c(g,gamma_maximin_alpaC_addapter(data = data_sets_pred[[i]], glm_formula = formulas[[j]], target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha))
+          }, error = function(e) {
+            Error <- readRDS("Errors.rds") 
+            lenght <- length(Error)
+            Error[[lenght + 1]] <- list(data = data_sets_pred[[i]], glm_formula = formulas[[j]], target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
+            saveRDS(Error, "Errors.rds") 
+            
+            return(0)
+          })
+        }
+        g
       }
       parallel::stopCluster(cl)
     }
-    
+      
     if(!paralell) {
-      gamma <- c()
+      print("Marke 1")
+      gamma <- NULL
       for(i in 1:length(data_sets_pred)) {
-        g <- gamma_maximin_alpaC_addapter(data = data_sets_pred[[i]], glm_formula = glm_formula, target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
-        gamma <- c(gamma, g)
+        gamma_r <- NULL
+        for(j in 1:length(formulas)) {
+          g <- gamma_maximin_alpaC_addapter(data = data_sets_pred[[i]], glm_formula = formulas[[j]], target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
+          gamma_r <- c(gamma_r, g)
+          View(gamma_r)
+        }
+        gamma <- rbind(gamma, unlist(gamma_r)) 
+        View(gamma)
+        
       }
     }
-    
-    winner <- which.max(unlist(gamma)) #
+  
+    winner <- which.max(unlist(rowSums(gamma, na.rm=TRUE))) #
     
     
     # predict on it again and add to labeled data
