@@ -7,7 +7,7 @@ set.seed(2138720)
 # simulate data
 share_unlabeled = 0.8
 p = 6 
-n = 50
+n = 30
 N = 50
 
 # Alpha cut 

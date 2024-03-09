@@ -64,25 +64,19 @@ multi_model_soft_revision <- function(labeled_data,
       cl <- parallel::makeForkCluster(core)
       doParallel::registerDoParallel(cl)
       
-      
-      gamma <- foreach(i = 1:length(data_sets_pred), .combine = 'c') %dopar% {
-        g <- 0
-        for(j in 1:length(formulas)) {
-          tryCatch({
-            g <- g + gamma_maximin_alpaC_addapter(data = data_sets_pred[[i]], glm_formula = formulas[[j]], target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
-          }, error = function(e) {
-            Error <- readRDS("Errors.rds") 
-            lenght <- length(Error)
-            Error[[lenght + 1]] <- list(data = data_sets_pred[[i]], glm_formula = formulas[[j]], target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
-            saveRDS(Error, "Errors.rds") 
-            
-            return(0)
-          })
+      gamma <- foreach(i = 1:length(data_sets_pred), .combine = rbind) %:% 
+        foreach(j = 1:length(formulas), .combine = rbind) %dopar% {
+          g <- gamma_maximin_alpaC_addapter(data = data_sets_pred[[i]], glm_formula = formulas[[j]], target = target, mu_priori_lower = mu_priori_lower, mu_priori_upper = mu_priori_upper, sigma_priori = sigma_priori, alpha = alpha)
+          c(data= i,formula=j,g = g)
         }
-        return(g)
-      }
-      parallel::stopCluster(cl)
+      
+      sum_values <- aggregate(g ~ data, data = gamma, FUN = max)
+      winner <- sum_values$data[which.max(sum_values$g)]
+      
+
     }
+    View(gamma)
+    
     
     if(!paralell) {
       gamma <- NULL
@@ -97,9 +91,10 @@ multi_model_soft_revision <- function(labeled_data,
         View(gamma)
         
       }
+      winner <- which.max(unlist(gamma)) #
+      
     }
     
-    winner <- which.max(unlist(gamma)) #
     
     
     # predict on it again and add to labeled data
