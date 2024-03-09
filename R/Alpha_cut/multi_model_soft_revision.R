@@ -72,11 +72,10 @@ multi_model_soft_revision <- function(labeled_data,
       
       sum_values <- aggregate(g ~ data, data = gamma, FUN = max)
       winner <- sum_values$data[which.max(sum_values$g)]
-      
+      parallel::stopCluster(cl)
 
     }
-    View(gamma)
-    
+
     
     if(!paralell) {
       gamma <- NULL
