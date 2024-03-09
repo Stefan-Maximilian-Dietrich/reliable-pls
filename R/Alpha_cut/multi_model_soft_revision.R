@@ -59,7 +59,7 @@ multi_model_soft_revision <- function(labeled_data,
     saveRDS(data_sets_pred, "Last.rds") 
     
     if(paralell) {
-      core <- as.numeric(min(parallel::detectCores() , length(data_sets_pred)))
+      core <- as.numeric(min(20, parallel::detectCores() , length(data_sets_pred)*length(formulas)))
       print(paste("Parallel", core))
       cl <- parallel::makeForkCluster(core)
       doParallel::registerDoParallel(cl)
