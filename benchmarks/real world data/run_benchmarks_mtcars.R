@@ -16,6 +16,11 @@ mu_priori_upper <-  c(20, 2, 2, 2)
 sigma_priori <- matrix(c(11,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1),  nrow = 4)
 alpha = 0.9
 
+#e_admissible 
+prioris = normal_radnom_spaced(2000, c(-4,-4,-4,-4), c(4,4,4,4))
+likelihood = likelihood_logistic
+alpha = 0.3
+
 # read in data frame
 data_frame = mtcars
 name_df = "mtcars" # for results 
@@ -86,6 +91,7 @@ path_to_experiments = paste(getwd(),"/benchmarks/experiments", sep = "")
 
 
 # parallel sourcing
+source("benchmark_e_admissible.R")
 source(paste(getwd(),"/R/Alpha_cut/benchmark-alpha-cut.R", sep = ""))
 files_to_source = list.files(path_to_experiments, pattern=".R",
                              full.names = TRUE)

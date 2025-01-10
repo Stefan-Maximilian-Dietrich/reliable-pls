@@ -20,15 +20,19 @@ normal_radnom_spaced <- function(n, a,b){
 }
 
 likelihood_logistic <- function(X, response) {
+
   Y <- response
   
   logistic_function <- function(X, theta) {
+
     odds <- exp(X %*% theta) #Odds
     probability <- odds / (1 + odds)
     return(probability)
   }
   
   likelihood <- function(theta) {
+
+    
     p <- logistic_function(X, theta)
     likelihood <- prod(Y * p + (1 - Y) * (1 - p))
     return(likelihood)
@@ -37,9 +41,24 @@ likelihood_logistic <- function(X, response) {
   return(likelihood)
 }
 
+get_likelihood <- function(labeled_data, glm_formula, target) {
+
+  variables <- all.vars(glm_formula) #All variables involved in the regression.
+
+  pred_variables <- variables[variables != target] #All variables involved in the regression except for the target variable.
+
+  data_matrix <- as.matrix(selected_column <- subset(labeled_data, select = pred_variables)) #Design matrix without intercept
+
+  X <- cbind(1, data_matrix) #Design matrix (with intercept)
+  
+  response <- as.matrix(selected_column <- subset(labeled_data, select = target)) #Response vector
+
+  
+  return(likelihood_logistic(X,response ))
+}
+
 logistic_modell_function <- function(labeld_data, pseudo_data, formula) {
   data <- apply(pseudo_data,1, function(x) {rbind(labeld_data, x)})
-  print(data)
   logistic_modells <- lapply(data, function(x) {glm(formula = formula, data = x, family = "binomial")})
   return(logistic_modells)
 }
@@ -63,7 +82,7 @@ get_log_marg_l <- function(logistic_model) {
   })
 }
 
-marginal_likelihood_function <- function(likelihood, priori) {
+marginal_likelihood_function <- function(likelihood, priori, dim) {
   g <- function(x) {
     return(likelihood(x)*priori(x))
   }
@@ -73,7 +92,7 @@ marginal_likelihood_function <- function(likelihood, priori) {
   h_neg <- function(x) {
     return(-h(x))
   }
-  start <- rep(0, times = ncol(X)) #Starting point 
+  start <- rep(0, times = dim) #Starting point 
   x0 <- optim(par = start, fn = h_neg, method = "BFGS")$par  #Similar to the Newton method.
   hII_x0 <- hessian(h, x0) #Calculation of the Hessian matrix (i.e., the second derivative with respect to the point x0).
   
@@ -81,17 +100,17 @@ marginal_likelihood_function <- function(likelihood, priori) {
   return(marginal_likelyhood)
 }
 
-marginal_likelihood <- function(prioris, likelihood) {
+marginal_likelihood <- function(prioris, likelihood, dim) {
   Marginal_list <- c()
   for(i in 1:length(prioris)) {
-    new <- marginal_likelihood_function(likelihood, prioris[[i]])
+    new <- marginal_likelihood_function(likelihood, prioris[[i]], dim)
     Marginal_list <- c(Marginal_list, new)
   }
   return(Marginal_list)
 }
 
-alpha_cut <- function(prioris, likelihood, alpha) {
-  marginal <- marginal_likelihood(prioris, likelihood)
+alpha_cut <- function(prioris, likelihood, alpha, dim) {
+  marginal <- marginal_likelihood(prioris, likelihood, dim)
   max <- max(marginal)
   decision <- marginal >= alpha * max
   updated_prioris <- prioris[decision]
@@ -100,35 +119,31 @@ alpha_cut <- function(prioris, likelihood, alpha) {
 
 ppp <- function(logistic_model, priori) {
   argmax <- summary(logistic_model)$coefficients[,1]
-  print(argmax)
-  result <- get_log_marg_l(logistic_model) + log(priori(argmax))
+  result <- get_log_marg_l(logistic_model) + (priori(argmax)) #
   return(result)
 }
 
 decision_matrix <- function(logistic_models, cut_prioris) {
   k <- length(logistic_models)
   l <- length(cut_prioris)
-  print(k)
-  print(l)
   matrix <- matrix(NA, nrow = k, ncol = l)
   for(i in 1:k) {
     for(j in 1:l) {
-      print(paste(c(i,j)))
       matrix[i,j] <- ppp(logistic_models[[i]], cut_prioris[[j]])
     }
   }
   return(matrix)
 }
 
-check_matrix_condition <- function(mat, ref_col) {
+check_matrix_condition <- function(mat, ref_rowl) {
   # Bestimme die Anzahl der Reihen und Spalten
   n_rows <- nrow(mat)
   n_cols <- ncol(mat)
   
   # Überprüfe für jede Spalte, ob die Bedingung erfüllt ist
-  for (j in 1:n_cols) {
+  for (j in 1:n_rows) {
     # Gehe jede Zeile durch und vergleiche den Wert in der Referenzspalte mit dem Wert in der j-ten Spalte
-    if (!any(mat[, ref_col] > mat[, j])) {
+    if (all(mat[ref_rowl, ] < mat[j, ])) {
       return(FALSE)  # Wenn in der j-ten Spalte keine Zeile gefunden wird, bei der Referenzwert > Wert der Spalte, gibt die Funktion FALSE zurück
     }
   }
@@ -138,18 +153,21 @@ check_matrix_condition <- function(mat, ref_col) {
 
 check_vector_condition <- function(mat) {
   check <- c()
-  for(i in length(mat)) {
+  for(i in nrow(mat)) {
     check <- c(check, check_matrix_condition(mat, i))
   }
   return(check)
 }
+
 maximal_creterion <- function(matrix){
-  result <- c()
+  result_vec <- c()
   for(i in 1:nrow(matrix)) {
-    result <- c(result, check_matrix_condition(matrix, i))
+    result_vec <- c(result_vec, check_matrix_condition(matrix, i))
     
   }
+  result <- which(result_vec)
   return(result)
+  
 }
 
 generate_indicator_matrix <- function(mat) {
@@ -175,6 +193,7 @@ generate_indicator_matrix <- function(mat) {
   
   return(result)
 } #GPT
+
 row_has_one <- function(mat) {
   # Überprüfe für jede Zeile, ob mindestens eine 1 vorhanden ist
   result <- apply(mat, 1, function(x) any(x == 1))
@@ -184,37 +203,10 @@ row_has_one <- function(mat) {
 
 e_admissible_creterion <- function(matrix) {
   indicator <- generate_indicator_matrix(matrix)
-  result <- row_has_one(indicator)
+  bool_vec <- row_has_one(indicator)
+  result <- which(bool_vec)
   return(result)
   
 }
 
 ####################### TEST ##################################################
-
-response <- data_frame[,1]
-X <- as.matrix(data_frame[,-1])
-X <- cbind(1,X)
-
-prioris <- normal_radnom_spaced(10000, c(-3,-3,-3,-3,-3), c(3,3,3,3,3))
-likelihood <- likelihood_logistic( X= X, response= response)
-
-x <- c(0,0,0,0,0)
-likelihood(x)*prioris[[1]](x)
-
-marginal_likelihood_function(likelihood, prioris[[1]])
-marginal_likelihood(prioris, likelihood)
-prioris <- alpha_cut(prioris, likelihood, alpha = 0.1)
-
-ppp(modell,  prioris[[]])
-
-L <- list()
-L[[1]] <- modell
-
-mat <-(decision_matrix(modells, prioris ))
-
-modells <- logistic_modell_function(data_frame, data_frame2, formula)
-
-(e_admissible_creterion(mat))
-maximal_creterion(mat)
-check_vector_condition(mat)
-####################### Expermiente #########################################

@@ -7,7 +7,7 @@ set.seed(2138720)
 # simulate data
 share_unlabeled = 0.8
 p = 6 
-n = 30
+n = 60
 N = 50
 
 # Alpha cut 
@@ -21,6 +21,12 @@ sigma_priori <- matrix(c(3,0,0,0,0,0,0,
                          0,0,0,0,0,1,0,
                          0,0,0,0,0,0,1), nrow = 7, byrow = TRUE)
 alpha = 0.8
+
+# e admissible 
+prioris = normal_radnom_spaced(500, c(-4,-4,-4,-4,-4,-4,-4), c(4,4,4,4,4,4,4))
+likelihood = likelihood_logistic
+alpha = 0.5
+
 
 #simulate Data
 feature_1 <- rnorm(n, mean = 0.2)
@@ -143,6 +149,8 @@ data_frame$target_var <- as.numeric(data_frame$target_var) -1
 
 ##########################
 # source experiments files
+source("benchmark_e_admissible.R")
+
 ##########################
 path_to_experiments = paste(getwd(),"/benchmarks/experiments", sep = "")
 
