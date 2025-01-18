@@ -34,12 +34,12 @@ units = "mm"
 #40
 #80
 #40
-share_unlabeled = 0.7
-data = "mtcars"
- n = 32
+share_unlabeled = 0.8
+data = "banknote"
+ n = 80
  p = 3
  alpha = 0.8
-n_methods = 9
+n_methods = 10
 n_test = n*0.5
 n_test = round(n_test)
 #number of unlabeled obs
@@ -203,15 +203,15 @@ df[9,] <- saved_results %>% unlist()
 onthefly_acc_paths_all <- rbind(onthefly_acc_paths_all, onthefly_acc_paths)
 
 
-#load(paste(getwd(),"/results/Resultate/", file, "/omniscient_supervised_",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), sep=""))
-#onthefly_acc_paths[1:n_imp,"iter"] <- 1:n_imp
-#onthefly_acc_paths[1:n_imp,"Upper.CB"] <- saved_results$`Inductive on-the-fly CI`[2,]
-#onthefly_acc_paths[1:n_imp,"Lower.CB"] <- saved_results$`Inductive on-the-fly CI`[1,]
-#onthefly_acc_paths[1:n_imp,"Mean.Accuracy"] <- saved_results$`Inductive on-the-fly mean`
-#onthefly_acc_paths[1:n_imp,"Method"] <- "omniscient_supervised"
-#saved_results <- saved_results[-c(1,2)]
-#df[10,] <- saved_results %>% unlist()
-#onthefly_acc_paths_all <- rbind(onthefly_acc_paths_all, onthefly_acc_paths)
+load(paste(getwd(),"/results/Resultate/", file, "/e_admissible_",share_unlabeled,"_",data, "_n=", as.character(n), "_p=", as.character(p), "_a=", as.character(0.5), sep=""))
+onthefly_acc_paths[1:n_imp,"iter"] <- 1:n_imp
+onthefly_acc_paths[1:n_imp,"Upper.CB"] <- saved_results$`Inductive on-the-fly CI`[2,]
+onthefly_acc_paths[1:n_imp,"Lower.CB"] <- saved_results$`Inductive on-the-fly CI`[1,]
+onthefly_acc_paths[1:n_imp,"Mean.Accuracy"] <- saved_results$`Inductive on-the-fly mean`
+onthefly_acc_paths[1:n_imp,"Method"] <- "e_admissible"
+saved_results <- saved_results[-c(1,2)]
+df[10,] <- saved_results %>% unlist()
+onthefly_acc_paths_all <- rbind(onthefly_acc_paths_all, onthefly_acc_paths)
 
 
 

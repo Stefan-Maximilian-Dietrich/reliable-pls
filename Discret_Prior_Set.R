@@ -119,6 +119,7 @@ alpha_cut <- function(prioris, likelihood, alpha, dim) {
 
 ppp <- function(logistic_model, priori) {
   argmax <- summary(logistic_model)$coefficients[,1]
+  #print(paste(c("log: ", get_log_marg_l(logistic_model), " priori: ", priori(argmax))))
   result <- get_log_marg_l(logistic_model) + (priori(argmax)) #
   return(result)
 }

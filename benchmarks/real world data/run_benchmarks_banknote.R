@@ -7,13 +7,18 @@ library(MixGHD)
 N = 100
 share_unlabeled = 0.8
 p = 3
-n = 200
+n = 80
 
 # alpha Cut
 mu_priori_lower <- c(-50, -2, -2, -2)
 mu_priori_upper <-  c(-20, 2, 2, 2)
 sigma_priori <- matrix(c(7,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1),  nrow = 4)
 alpha = 0.8
+
+#eadmissible
+prioris = normal_radnom_spaced(5000, c(-1,-1,-1,-1), c(1,1,1,1))
+likelihood = likelihood_logistic
+alpha = 0.5
 
 # read in data frame
 data(banknote)
@@ -63,6 +68,8 @@ path_to_experiments = paste(getwd(),"/benchmarks/experiments", sep = "")
 
 
 # parallel sourcing
+source("benchmark_e_admissible.R")
+
 source(paste(getwd(),"/R/Alpha_cut/benchmark-multi_model_soft_revision.R", sep = ""))
 source(paste(getwd(),"/R/Alpha_cut/benchmark-alpha-cut.R", sep = ""))
 

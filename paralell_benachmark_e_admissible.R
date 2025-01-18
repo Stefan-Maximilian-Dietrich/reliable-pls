@@ -10,12 +10,10 @@ ind_res = vector()
 n_imp = ((nrow(data_frame) - n_test) * share_unlabeled) %>% round()
 ind_res_on_the_fly = matrix(nrow = n_imp, ncol = N)
 
-core <- as.numeric(min(20, parallel::detectCores() , length(data_sets_pred)))
+core <- as.numeric(min(4, parallel::detectCores() , N)) #
 print(paste("Parallel: cores ", core))
 cl <- parallel::makeForkCluster(core)
 doParallel::registerDoParallel(cl)
-
-
 
 gamma <- foreach(iter = 1:N, .combine = 'c') %dopar% {
   
@@ -124,7 +122,6 @@ saved_results <- list("Inductive on-the-fly mean" = mean_ind_fly,
 
 
 # save results so that they can be accessed and visualized later
-path = paste(getwd(),"/results/e_admissible_",
-             as.character(share_unlabeled),"_",as.character(name_df),
+path = paste(getwd(),"/results/e_admissible_",  as.character(share_unlabeled),"_",as.character(name_df),
              "_n=", as.character(nrow(data_frame)), "_p=", as.character(p), "_a=",  as.character(alpha), sep="")
 save(saved_results, file = path)
