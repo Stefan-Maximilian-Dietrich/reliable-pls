@@ -41,8 +41,9 @@ for (iter in 1:N) {
                                target = target,
                                glm_formula = formula,
                                prioris = prioris,
-                               likelihood = likelihood,
+                               log_likelihood = log_likelihood,
                                alpha = alpha,
+                               boundary = boundary,
                                creterion = "e-admissible")
   
   # get transductive and inductive results

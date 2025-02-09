@@ -7,7 +7,7 @@ set.seed(2138720)
 # simulate data
 share_unlabeled = 0.8
 p = 6 
-n = 60
+n = 200
 N = 50
 
 # Alpha cut 
@@ -23,8 +23,9 @@ sigma_priori <- matrix(c(3,0,0,0,0,0,0,
 alpha = 0.8
 
 # e admissible 
-prioris = normal_radnom_spaced(500, c(-4,-4,-4,-4,-4,-4,-4), c(4,4,4,4,4,4,4))
-likelihood = likelihood_logistic
+prioris = normal_radnom_spaced(100, 100*c(-4,-4,-4,-4,-4,-4,-4), 100*c(4,4,4,4,4,4,4))
+boundary =  list(1000*c(-2,-2,-2,-2,-2,-2,-2), 1000*c(2,2,2,2,2,2,2))
+log_likelihood = log_likelihood_logistic
 alpha = 0.5
 
 

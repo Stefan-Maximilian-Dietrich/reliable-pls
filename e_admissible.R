@@ -1,4 +1,4 @@
-source("Discret_Prior_Set.R")
+source("Function_e_ad.R")
 
 
 #see algo 1 in paper 
@@ -9,8 +9,9 @@ e_admissible <- function(labeled_data,
                          target,
                         glm_formula,
                         prioris,
-                        likelihood,
+                        log_likelihood,
                         alpha,
+                        boundary,
                         creterion = "e-admissible") {
   
   # some input checking
@@ -40,13 +41,12 @@ e_admissible <- function(labeled_data,
     
     
     # alpha cut 
-    ##print(paste(c("do:", "likelihood")))
+    #print(paste(c("do:", "likelihood")))
     
-    likelihood <- get_likelihood(labeled_data, glm_formula, target)
+    log_likelihood <- get_log_likelihood(labeled_data, glm_formula, target)
     
-    ##print(paste(c("do:", "alpha cut ")))
-    dim <- length( all.vars(formula)) 
-    prioris_cut <- alpha_cut(prioris, likelihood, alpha, dim)
+    #print(paste(c("do:", "alpha cut ")))
+    prioris_cut <- alpha_cut(prioris, log_likelihood, alpha, boundary)
     print(paste("Prioris:", length(prioris), "Prisoris after Cut with alpha =", alpha, ":", length(prioris_cut), "Ratio:", length(prioris_cut)/ length(prioris) ))
     
     # creat a logistic Modell for every possinle decision
@@ -55,7 +55,8 @@ e_admissible <- function(labeled_data,
     logistic_modells <- logistic_modell_function(labeled_data, unlabeled_data,glm_formula )
     
     #create Matrix with ppp of every combination of priori and likelihood
-    matrix <- decision_matrix(logistic_modells, prioris_cut)
+    dims <- c(ncol(labeled_data) -1, nrow(labeled_data))
+    matrix <- decision_matrix(dims, logistic_modells, prioris_cut)
     
 
     # Selec action whitch forfill the creterion
