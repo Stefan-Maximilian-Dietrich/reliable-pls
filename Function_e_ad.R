@@ -1,5 +1,5 @@
 normal_radnom_spaced <- function(n, a,b){
-  sigma_priori <- diag(length(a)) * 10
+  sigma_priori <- diag(length(a)) * 200
   mu <- list()
   
   for(i in 1:n){
@@ -30,7 +30,7 @@ normal_radnom_spaced <- function(n, a,b){
 }
 
 log_likelihood_logistic <- function(X, response) { 
-
+  
   likelihood <- function(theta) {
     p <- 1 / (1 + exp(-X %*% theta))
     log_likelihood <- sum(response * log(p+ 10^(-280)) + (1 - response) * log(1 - p + 10^(-280)))  # Korrekte Log-Likelihood
@@ -122,20 +122,20 @@ ppp <- function(dims, priori, log_likelihood) {
   n_var <- dims[1]
   n_obs <- dims[2]
   
-
-  otim <-  optim(rep(0,n_var), log_likelihood, control = list(fnscale = -1), hessian = TRUE)
   
+  otim <-  optim(rep(0,n_var), log_likelihood, control = list(fnscale = -1), hessian = TRUE)
   max <- otim$value
   argmax <- otim$par
   hessian <- otim$hessian
-
-
+  
+  
   ######
   if(!is.na(max)) {
     max <- max
   } else {
     max <- 0
   }
+
   
   if(!is.na(priori[[1]](argmax))) {
     pri <- priori[[1]](argmax)
@@ -149,11 +149,10 @@ ppp <- function(dims, priori, log_likelihood) {
     hess <- 0
   }
   
-  print(paste("log: ", max, " priori: ", pri, " hessian: ", hess))
+  print(paste("log: ", exp(max), " priori: ", pri, " hessian: ", exp(hess)))
   
   ########
-  result <- max + n_var/2 * log(2*pi/n_obs)  + pri - 0.25 * hess
-  print(argmax)
+  result <- exp(max)  * pri / exp(0.25 * hess)
   return(result)
 }
 
@@ -244,5 +243,4 @@ e_admissible_creterion <- function(matrix) {
   return(result)
   
 }
-
 ####################### TEST ##################################################

@@ -7,12 +7,12 @@ e_admissible <- function(labeled_data,
                          unlabeled_data,
                          test_data,
                          target,
-                        glm_formula,
-                        prioris,
-                        log_likelihood,
-                        alpha,
-                        boundary,
-                        creterion = "e-admissible") {
+                         glm_formula,
+                         prioris,
+                         log_likelihood,
+                         alpha,
+                         boundary,
+                         creterion = "e-admissible") {
   
   # some input checking
   assert_data_frame(labeled_data)
@@ -24,7 +24,9 @@ e_admissible <- function(labeled_data,
   n_imp = nrow(unlabeled_data)
   results = matrix(nrow = n_imp, ncol = 3)
   
-  for (i in seq(n_imp)) {
+  i = 0
+  while (nrow(unlabeled_data) != 0) {
+    i = i + 1
     print(paste("Unlabled data:", nrow(unlabeled_data), "Round:", i ))
     # fit model to labeled data
     logistic_model <- glm(formula = formula, 
@@ -54,11 +56,15 @@ e_admissible <- function(labeled_data,
     
     logistic_modells <- logistic_modell_function(labeled_data, unlabeled_data,glm_formula )
     
+    print("Hier")
     #create Matrix with ppp of every combination of priori and likelihood
-    dims <- c(ncol(labeled_data) -1, nrow(labeled_data))
+    logistic_model
+    dims <- c(length(coef(logistic_model)), nrow(labeled_data))
     matrix <- decision_matrix(dims, logistic_modells, prioris_cut)
+    print("Hier2")
     
-
+    
+    
     # Selec action whitch forfill the creterion
     if(creterion == "e-admissible") {
       select <- e_admissible_creterion(matrix)
@@ -111,5 +117,3 @@ e_admissible <- function(labeled_data,
   list(results, final_model)
   
 }
-
-
