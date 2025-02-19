@@ -16,9 +16,10 @@ sigma_priori <- matrix(c(7,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1),  nrow = 4)
 alpha = 0.8
 
 #eadmissible
-prioris = normal_radnom_spaced(5000, c(-1,-1,-1,-1), c(1,1,1,1))
-likelihood = likelihood_logistic
-alpha = 0.5
+prioris = normal_radnom_spaced(100, 30*c(-1,-1,-1,-1), 30*c(1,1,1,1))
+boundary =  list(500*c(-2,-2,-2,-2), 500*c(2,2,2,2))
+log_likelihood = log_likelihood_logistic
+alpha = 0.8
 
 # read in data frame
 data(banknote)
