@@ -29,21 +29,37 @@ normal_radnom_spaced <- function(n, a,b){
   return(combined_list)
 }
 
-log_likelihood_logistic <- function(X, response) { 
+log_likelihood_logistic_A <- function(X, response) { 
   
+  
+  # Log-Likelihood-Funktion
   likelihood <- function(theta) {
     p <- 1 / (1 + exp(-X %*% theta))
-    log_likelihood <- sum(response * log(p+ 10^(-280)) + (1 - response) * log(1 - p + 10^(-280)))  # Korrekte Log-Likelihood
-    #print( log(p))
-    #print(log(1 - p))
-    #print(log_likelihood)
+    #log_likelihood <- sum(response * log(p) + (1 - response) * log(1 - p))  # Korrekte Log-Likelihood
+    likelihood <- prod(p^response * (1-p)^(1 - response))
     
-    return(log_likelihood)
+    
+    #A <- cbind(p,  response,log(p),   (1 - response),log(1 - p) )
+    #print(A)
+    return(likelihood)
   }
   
   return(likelihood)
 }
 
+log_likelihood_logistic <- function(X, response) { 
+  
+  
+  # Log-Likelihood-Funktion
+  likelihood <- function(theta) {
+    p <- 1 / (1 + exp(-X %*% theta))
+    log_likelihood <- sum(response * log(p) + (1 - response) * log(1 - p))  # Korrekte Log-Likelihood
+
+    return(log_likelihood)
+  }
+  
+  return(likelihood)
+}
 get_log_likelihood <- function(labeled_data, glm_formula, target) {
   
   variables <- all.vars(glm_formula) #All variables involved in the regression.
@@ -57,7 +73,22 @@ get_log_likelihood <- function(labeled_data, glm_formula, target) {
   response <- as.matrix(selected_column <- subset(labeled_data, select = target)) #Response vector
   
   
-  return(log_likelihood_logistic(X,response ))
+  return(log_likelihood_logistic_A(X,response ))
+}
+get_log_likelihood_B <- function(labeled_data, glm_formula, target) {
+  
+  variables <- all.vars(glm_formula) #All variables involved in the regression.
+  
+  pred_variables <- variables[variables != target] #All variables involved in the regression except for the target variable.
+  
+  data_matrix <- as.matrix(selected_column <- subset(labeled_data, select = pred_variables)) #Design matrix without intercept
+  
+  X <- cbind(1, data_matrix) #Design matrix (with intercept)
+  
+  response <- as.matrix(selected_column <- subset(labeled_data, select = target)) #Response vector
+  
+  
+  return(log_likelihood_logistic_A(X,response ))
 }
 
 logistic_modell_function <- function(labeld_data, pseudo_data, formula) {

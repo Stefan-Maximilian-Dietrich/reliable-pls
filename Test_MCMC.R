@@ -8,9 +8,9 @@ calculateML <- function(priori, log_likelihood, boundary) {
 }
 
 priori <- list()
-priori[[2]] <-   function(n = 1) { mvnfast::rmvn(n = n, mu = c(1,1,1), sigma = diag(c(1,1,1)))}
+priori[[2]] <-   function(n = 1) { mvnfast::rmvn(n = n, mu = c(1,1,1,1), sigma = diag(c(1,1,1,1)))}
 
-priori[[1]]   <- function(theta) { mvnfast::dmvn(X = theta, mu = c(1,1,1), sigma = diag(c(1,1,1)))}
+priori[[1]]   <- function(theta) { mvnfast::dmvn(X = theta, mu = c(1,1,1,1), sigma = diag(c(100,100,100,100)))}
 
 log_likelihood <- function(theta) {log( mvnfast::dmvn(X = theta, mu = c(1,1,1), sigma = diag(c(1,1,1))))}
 
@@ -18,6 +18,8 @@ boundary <- list(-5*c(1,1,1), 5*c(1,1,1))
 
 calculateML(priori, log_likelihood, boundary)
 
+
+priori[[1]](c(20,20,20,20))
 
 ##############################################################################
 log_likelihood_logistic <- function(X, response) {
@@ -53,6 +55,7 @@ log_likelihood_logistic <- function(X, response) {
   likelihood <- function(theta) {
     p <- logistic_function(X, theta)
     log_likelihood <- sum(response * log(p) + (1 - response) * log(1 - p))  # Korrekte Log-Likelihood
+    print(log_likelihood)
     return(log_likelihood)
   }
   
@@ -74,7 +77,7 @@ get_log_likelihood <- function(labeled_data, glm_formula, target) {
   return(log_likelihood_logistic(X,response ))
 }
 
-labeled_data = data_frame[1:200,]
+labeled_data = data_frame[1:20,]
 formula = target_var ~ 1 + feature_1 + feature_2 + feature_3 + feature_4 + feature_5 + feature_6
 target = "target_var"
 
@@ -83,11 +86,10 @@ logistic_model <- glm(formula = formula,  data = labeled_data, family = "binomia
 max <- coef(logistic_model)
 vcov(logistic_model)
 
-cov(labeled_data)
+opt <- optim(c(rep(0,7)), log_likelihood, control = list(fnscale = -1), hessian = TRUE)$par
 
-max
 log_likelihood(max)
-opt <- optim(c(rep(0,7)), log_likelihood, control = list(fnscale = -1), hessian = TRUE)
+log_likelihood(opt)
 
 
 log_likelihood(rep(1,7))
