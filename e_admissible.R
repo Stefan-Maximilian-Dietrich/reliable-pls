@@ -99,6 +99,9 @@ e_admissible <- function(labeled_data,
     
     unlabeled_data <- unlabeled_data[-select,]
     print(paste("Number of choosen actions", length(select)))
+    if( nrow(unlabeled_data) == 0) {
+      i = n_imp
+    }
   }
   # get final model
   final_model <- logistic_model <- glm(formula = formula, 

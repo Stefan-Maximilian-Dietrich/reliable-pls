@@ -1,5 +1,5 @@
 normal_radnom_spaced <- function(n, a,b){
-  sigma_priori <- diag(length(a))
+  sigma_priori <- diag(length(a)) * 10
   mu <- list()
   
   for(i in 1:n){
@@ -129,11 +129,31 @@ ppp <- function(dims, priori, log_likelihood) {
   argmax <- otim$par
   hessian <- otim$hessian
 
-  print(paste("log: ", max, " priori: ", priori[[1]](argmax), " hessian: ", log(det(-hessian))))
+
+  ######
+  if(!is.na(max)) {
+    max <- max
+  } else {
+    max <- 0
+  }
   
+  if(!is.na(priori[[1]](argmax))) {
+    pri <- priori[[1]](argmax)
+  } else{
+    pri <- 0
+  }
   
-  result <- max + n_var/2 * log(2*pi/n_obs)  + log(priori[[1]](argmax)) - 0.25 * log(det(-hessian))
+  if(log(det(-hessian) != -Inf )) {
+    hess <- log(det(-hessian))
+  } else{
+    hess <- 0
+  }
   
+  print(paste("log: ", max, " priori: ", pri, " hessian: ", hess))
+  
+  ########
+  result <- max + n_var/2 * log(2*pi/n_obs)  + pri - 0.25 * hess
+  print(argmax)
   return(result)
 }
 
