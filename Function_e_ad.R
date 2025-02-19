@@ -99,17 +99,36 @@ calculateML <- function(priori, log_likelihood, boundary) {
   return(ML)
 }
 
-marginal_likelihood <- function(prioris, log_likelihood, boundary) {
-  Marginal_list <- c()
-  for(i in 1:length(prioris)) {
-    new <- calculateML(prioris[[i]], log_likelihood, boundary) 
-    Marginal_list <- c(Marginal_list, new)
+marginal_likelihood <- function(prioris, log_likelihood, boundary, paralell) {
+  
+  if(!paralell) {
+    print("Seriell")
+    Marginal_list <- c()
+    for(i in 1:length(prioris)) {
+      new <- calculateML(prioris[[i]], log_likelihood, boundary) 
+      Marginal_list <- c(Marginal_list, new)
+    }
+    return(Marginal_list)
   }
-  return(Marginal_list)
+  if(paralell) {
+    cores <- detectCores() - 1  
+    print(paste("Paralell Kerne:", cores))
+    cl <- parallel::makeForkCluster(cores)
+    doParallel::registerDoParallel(cl)
+    
+    Marginal_list <- foreach(i = 1:length(prioris), .combine = 'c') %dopar% {
+      calculateML(prioris[[i]], log_likelihood, boundary)
+    }
+    
+    stopCluster(cl)
+    
+    return(Marginal_list)
+  }
+
 }
 
-alpha_cut <- function(prioris, log_likelihood, alpha, boundary) {
-  marginal <- marginal_likelihood(prioris, log_likelihood, boundary)
+alpha_cut <- function(prioris, log_likelihood, alpha, boundary, paralell) {
+  marginal <- marginal_likelihood(prioris, log_likelihood, boundary, paralell)
   marginal[is.na(marginal)] <- -Inf
   print(marginal)
   max <- max(marginal, na.rm = TRUE)

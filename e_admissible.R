@@ -48,7 +48,7 @@ e_admissible <- function(labeled_data,
     log_likelihood <- get_log_likelihood(labeled_data, glm_formula, target)
     
     #print(paste(c("do:", "alpha cut ")))
-    prioris_cut <- alpha_cut(prioris, log_likelihood, alpha, boundary)
+    prioris_cut <- alpha_cut(prioris, log_likelihood, alpha, boundary, paralell = TRUE)
     print(paste("Prioris:", length(prioris), "Prisoris after Cut with alpha =", alpha, ":", length(prioris_cut), "Ratio:", length(prioris_cut)/ length(prioris) ))
     
     # creat a logistic Modell for every possinle decision
