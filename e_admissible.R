@@ -24,9 +24,8 @@ e_admissible <- function(labeled_data,
   n_imp = nrow(unlabeled_data)
   results = matrix(nrow = n_imp, ncol = 3)
   
-  i = 0
+  i = 1
   while (nrow(unlabeled_data) != 0) {
-    i = i + 1
     print(paste("Unlabled data:", nrow(unlabeled_data), "Round:", i ))
     # fit model to labeled data
     logistic_model <- glm(formula = formula, 
@@ -93,18 +92,19 @@ e_admissible <- function(labeled_data,
     test_acc <- sum(prediction_test == test_data[c(target)])/nrow(test_data)
     
     
-    # print result
-    #print(paste(c("do:", "save results")))
     
-    for(j in 1:length(select)) {
-      results[i+j-1,] <- c(j, new_labeled_obs[j, ][, c(target)], test_acc) %>% unlist()
+    for(j in 1:(length(select))) {
+      print(length(select))
+      print(paste("i:", i))
+      print(paste("j:", j))
+      
+      results[i,] <- c(j, new_labeled_obs[j, ][, c(target)], test_acc) %>% unlist()
+      i = i + 1
     }
     
     unlabeled_data <- unlabeled_data[-select,]
     print(paste("Number of choosen actions", length(select)))
-    if( nrow(unlabeled_data) == 0) {
-      i = n_imp
-    }
+
   }
   # get final model
   final_model <- logistic_model <- glm(formula = formula, 
