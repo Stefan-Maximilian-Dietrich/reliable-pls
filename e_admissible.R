@@ -44,7 +44,7 @@ e_admissible <- function(labeled_data,
     # alpha cut 
     #print(paste(c("do:", "likelihood")))
     
-    log_likelihood <- get_log_likelihood_B(labeled_data, glm_formula, target)
+    log_likelihood <- get_likelihood(labeled_data, glm_formula, target)
     
     #print(paste(c("do:", "alpha cut ")))
     prioris_cut <- alpha_cut(prioris, log_likelihood, alpha, boundary, paralell = FALSE)

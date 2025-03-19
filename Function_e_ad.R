@@ -29,7 +29,7 @@ normal_radnom_spaced <- function(n, a,b){
   return(combined_list)
 }
 
-log_likelihood_logistic_A <- function(X, response) { 
+likelihood_logistic <- function(X, response) { 
   
   
   # Log-Likelihood-Funktion
@@ -47,19 +47,35 @@ log_likelihood_logistic_A <- function(X, response) {
   return(likelihood)
 }
 
+get_likelihood <- function(labeled_data, glm_formula, target) {
+  
+  variables <- all.vars(glm_formula) #All variables involved in the regression.
+  
+  pred_variables <- variables[variables != target] #All variables involved in the regression except for the target variable.
+  
+  data_matrix <- as.matrix(selected_column <- subset(labeled_data, select = pred_variables)) #Design matrix without intercept
+  
+  X <- cbind(1, data_matrix) #Design matrix (with intercept)
+  
+  response <- as.matrix(selected_column <- subset(labeled_data, select = target)) #Response vector
+  
+  
+  return(likelihood_logistic(X,response ))
+}
+
 log_likelihood_logistic <- function(X, response) { 
   
   
   # Log-Likelihood-Funktion
   likelihood <- function(theta) {
     p <- 1 / (1 + exp(-X %*% theta))
-    log_likelihood <- sum(response * log(p) + (1 - response) * log(1 - p))  # Korrekte Log-Likelihood
-
+    log_likelihood <- sum(response * log(p) + (1 - response) * log(1 - p), na.rm = TRUE)  # Korrekte Log-Likelihood
     return(log_likelihood)
   }
   
   return(likelihood)
 }
+
 get_log_likelihood <- function(labeled_data, glm_formula, target) {
   
   variables <- all.vars(glm_formula) #All variables involved in the regression.
@@ -73,9 +89,23 @@ get_log_likelihood <- function(labeled_data, glm_formula, target) {
   response <- as.matrix(selected_column <- subset(labeled_data, select = target)) #Response vector
   
   
-  return(log_likelihood_logistic_A(X,response ))
+  return(log_likelihood_logistic(X,response ))
 }
-get_log_likelihood_B <- function(labeled_data, glm_formula, target) {
+
+gradient <- function(X, response) { 
+  
+  
+  # Erste Ableitung (Gradient)
+  gradient <- function(theta) {
+    p <- 1 / (1 + exp(-X %*% theta))
+    grad <- t(X) %*% (response - p)
+    return(grad)
+  }
+  
+  return(gradient)
+}
+
+get_gradient <- function(labeled_data, glm_formula, target) {
   
   variables <- all.vars(glm_formula) #All variables involved in the regression.
   
@@ -88,16 +118,50 @@ get_log_likelihood_B <- function(labeled_data, glm_formula, target) {
   response <- as.matrix(selected_column <- subset(labeled_data, select = target)) #Response vector
   
   
-  return(log_likelihood_logistic_A(X,response ))
+  return(gradient(X,response ))
+}
+
+hessian <- function(X) { 
+  
+  
+  hessian <- function(theta) {
+    p <- 1 / (1 + exp(-X %*% theta))
+    W <- diag(as.vector(p * (1 - p)))  # Diagonalmatrix mit p_i (1 - p_i)
+    H <- -t(X) %*% W %*% X
+    return(H)
+  }
+  
+  return(hessian)
+}
+
+get_hessian <- function(labeled_data, glm_formula, target) {
+  
+  variables <- all.vars(glm_formula) #All variables involved in the regression.
+  
+  pred_variables <- variables[variables != target] #All variables involved in the regression except for the target variable.
+  
+  data_matrix <- as.matrix(selected_column <- subset(labeled_data, select = pred_variables)) #Design matrix without intercept
+  
+  X <- cbind(1, data_matrix) #Design matrix (with intercept)
+  
+  response <- as.matrix(selected_column <- subset(labeled_data, select = target)) #Response vector
+  
+  
+  return(hessian(X))
 }
 
 logistic_modell_function <- function(labeld_data, pseudo_data, formula) {
   data <- apply(pseudo_data,1, function(x) {rbind(labeld_data, x)})
   
   target <- all.vars(formula)[1]
-  logistic_modells <- lapply(data, get_log_likelihood, glm_formula = formula, target = target)
   
-  return(logistic_modells)
+  logistic_likelihoods<- lapply(data, get_log_likelihood, glm_formula = formula, target = target)
+  gradient <- lapply(data, get_gradient, glm_formula = formula, target = target)
+  hessians <- lapply(data, get_hessian, glm_formula = formula, target = target)
+  
+  result <- mapply(list,logistic_likelihoods, gradient, hessians, SIMPLIFY = FALSE)
+  
+  return(result)
 }
 
 get_log_marg_l <- function(logistic_model, max) {
@@ -172,37 +236,19 @@ ppp <- function(dims, priori, log_likelihood) {
   n_var <- dims[1]
   n_obs <- dims[2]
   
-  
-  otim <-  optim(rep(0,n_var), log_likelihood, control = list(fnscale = -1), hessian = TRUE)
-  max <- otim$value
+  otim <-  optim(rep(0,n_var), log_likelihood[[1]], control = list(fnscale = -1), hessian = TRUE)
+  likelihood_argmax <- otim$value
   argmax <- otim$par
-  hessian <- otim$hessian
+  hessian <- log_likelihood[[3]](argmax)
   
-  
-  ######
-  if(!is.na(max)) {
-    max <- max
-  } else {
-    max <- 0
-  }
-
-  
-  if(!is.na(priori[[1]](argmax))) {
-    pri <- priori[[1]](argmax)
-  } else{
-    pri <- 0
-  }
-  
-  if(log(det(-hessian) != -Inf )) {
-    hess <- log(det(-hessian))
-  } else{
-    hess <- 0
-  }
-  
-  print(paste("log: ", exp(max), " priori: ", pri, " hessian: ", exp(hess)))
   
   ########
-  result <- exp(max)  * pri / exp(0.25 * hess)
+  likelihood <- exp(likelihood_argmax)
+  prior <- max( c( 10^(-100), priori[[1]](argmax)), na.rm = T)
+  hesse <- max(c(10^(-100), sqrt(det(hessian))), na.rm = T)
+
+  result <- likelihood * prior * hesse
+  print(paste("result", result))
   return(result)
 }
 

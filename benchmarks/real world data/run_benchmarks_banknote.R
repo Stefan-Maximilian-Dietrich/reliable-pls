@@ -16,7 +16,7 @@ sigma_priori <- matrix(c(7,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1),  nrow = 4)
 alpha = 0.5
 
 #eadmissible
-prioris = normal_radnom_spaced(10, c(-50,-1,-1,-1), c(-30,1,1,1))
+prioris = normal_radnom_spaced(4, c(-50,-1,-1,-1), c(-30,1,1,1))
 boundary =  list(500*c(-2,-2,-2,-2), 500*c(2,2,2,2))
 log_likelihood = log_likelihood_logistic
 alpha = 0.8
