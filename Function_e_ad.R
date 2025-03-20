@@ -261,7 +261,6 @@ decision_matrix <- function(dims, logistic_models, cut_prioris) {
       matrix[i,j] <- ppp(dims, cut_prioris[[j]], logistic_models[[i]])
     }
   }
-  print(matrix)
   return(matrix)
 }
 
@@ -304,7 +303,6 @@ generate_indicator_matrix <- function(mat) {
   # Bestimme die Anzahl der Reihen und Spalten
   m <- nrow(mat)
   n <- ncol(mat)
-  print(mat)
   # Erstelle eine leere Matrix mit der gleichen Dimension, die mit 0 gefüllt ist
   result <- matrix(0, nrow = m, ncol = n)
   
