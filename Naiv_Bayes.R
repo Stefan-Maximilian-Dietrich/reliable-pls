@@ -13,7 +13,7 @@ data_frame[c(target)] <- data_frame[c(target)] %>% unlist() %>% as.factor()
 levels_present <- levels(data_frame[c(target)] %>% unlist())
 # check whether labels are suited for replacement by 0,1
 levels_present
-levels(data_frame[, which(names(data_frame) %in% target)]) <- c(0,1)
+levels(data_frame[, which(names(data_frame) %in% target)]) <- c(1,2)
 data_frame$target <- as.numeric(data_frame$target) - 1 # Musste uch hinzufügen 
 
 
@@ -123,7 +123,7 @@ while(z < (start - 1)) {
     res <- rbind(res, c(i, exp(a)))
   }
   
-  #plot(res)
+  plot(res)
   max <- max(res[,2])
   max_priori <-res[res[,2] == max, 1][1]
   alpha <- 0.9
