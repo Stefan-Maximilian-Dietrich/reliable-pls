@@ -7,18 +7,12 @@ sampler_NB <- function(n_labled, n_unlabled, data, formula) {
   data_used <- data[, variables]
   
   n <- nrow(data_used)
-
   
-  train_idx <- sample(1:n, size = n_labled)  
-  remaining_idx <- setdiff(1:n, train_idx)
-  unlabeld_idx <- sample(remaining_idx, size = n_unlabled) 
-  test_idx <- setdiff(remaining_idx, unlabeld_idx)  # 10% Test
+  all_two <- FALSE
+  all_included <- FALSE
+  no_dublicat <- FALSE
   
-  train <- data_used[train_idx, ]
-  unlabed <- data_used[unlabeld_idx,]
-  test <- data_used[test_idx,]
-  
-  while(!all(table(train[,target ])>1) | length(table(train[,target ])) !=  length(table(data_used[,target ])) ) {
+  while(!all(all_two, all_included ,no_dublicat)) {
     train_idx <- sample(1:n, size = n_labled)  
     remaining_idx <- setdiff(1:n, train_idx)
     unlabeld_idx <- sample(remaining_idx, size = n_unlabled) 
@@ -27,7 +21,11 @@ sampler_NB <- function(n_labled, n_unlabled, data, formula) {
     train <- data_used[train_idx, ]
     unlabed <- data_used[unlabeld_idx,]
     test <- data_used[test_idx,]
-
+    
+    all_two <- all(table(train[,target ])>1)
+    all_included <- length(table(train[,target ])) ==  length(table(data_used[,target ]))
+    no_dublicat <- all(apply(train[,-c(1) ], 2, function(x) length(unique(x))) >= length(table(data_used[,target ])) * 2)
+    
   }
   
   return(list(train, unlabed, test))
@@ -90,7 +88,7 @@ predict_best_model <- function(cut_prioris, train) { #tunig möglich über best 
     choosen_vector <- rep(FALSE, times = length(cut_boolean))
     choosen_vector[choosen_index] <- TRUE
   }
-
+  
   
   best_priori <- cut_prioris[choosen_vector,][,-1]
   model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), prior = as.numeric(best_priori))
@@ -108,7 +106,7 @@ pseud_labeling <- function(best_modell, train, unlabeld) {
     combined_data <- rbind(train, pseudo_data_point) 
     l <- list (combined_data, c(pseudo_y, Y[i]))
     result_list[[i]] <- l ######
-   
+    
   }
   return(result_list)
 }
@@ -171,48 +169,10 @@ e_admissible_creterion <- function(matrix) {
 }
 
 test_confiusion <- function(priori, train, test) {
-  model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), prior = as.numeric(best_priori))
+  model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), prior = as.numeric(priori))
   predictions <- predict(model, newdata = as.matrix(test[, -1]), type = "class")
   ground_truth <- test$target
   confiusion <- caret::confusionMatrix(predictions, ground_truth)
   return(confiusion)
 }
 ###############################################################################
-
-train <- sampler_NB(4,30,data_frame, formula)[[1]]
-unlabeld <- sampler_NB(4,30,data_frame, formula)[[2]]
-test <- sampler_NB(9,30,data_frame, formula)[[3]]
-
-prioris<- generate_priori_simplex(c("p1", "p2"), step = 00.01)
-marg_prioris <- marginal_likelihoods(train, prioris)
-cut_priori <- alpha_cut(marg_prioris, 0.95)
-best_modell <- predict_best_model(cut_priori, train)
-pseudo_data <- pseud_labeling(best_modell, train, unlabeld)
-matrix <- decison_matrix(cut_priori, pseudo_data)
-ind_matrix <- generate_indicator_matrix(matrix)
-e_admissible <- e_admissible_creterion(ind_matrix)
-
-
-
-
-model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), prior = c(0.1,0.9))
-plot(marg_prioris[, c(3,1)])
-
-priori <- generate_priori_simplex(c("0", "1"), step = 00.01)[8,]
-likelihood(train,priori )
-# Classification
-predict(model, newdata = as.matrix(train[, -1]), type = "class")
-predict(model, newdata = as.matrix(train[, -1]), type = "prob")
-# Posterior probabilities
-
-# Beispiel: Eine Matrix mit n Zeilen und p Spalten
-M <- matrix(1:12, nrow = 4, byrow = TRUE)  # 4 Zeilen, 3 Spalten
-
-# Ein Vektor mit Spaltenindizes für jede Zeile
-indices <- c(2, 3, 1, 2)  # Wählt pro Zeile eine bestimmte Spalte aus
-
-# Werte extrahieren
-selected_values <- M[cbind(1:nrow(M), indices)]
-
-# Ergebnis ausgeben
-print(selected_values)
