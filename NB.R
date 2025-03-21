@@ -1,6 +1,6 @@
 ######
-n_labled = 6
-n_unlabled = 120
+n_labled = 8
+n_unlabled = 25
 data = data_frame
 formula = target ~ Diagonal + Bottom + Length
 alpha = 0.8
@@ -37,3 +37,4 @@ while(z < end) {
   #plot(marg_prioris$genuine, marg_prioris$marg_likelis)
   
 }
+as.numeric(result)
