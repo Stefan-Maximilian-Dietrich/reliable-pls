@@ -1,3 +1,31 @@
+check_untrainability <- function(train, data_used, target) {
+  # Prüfen, ob jede Kategorie im Trainingsdatensatz vertreten ist
+  category_table <- table(data_used[[target]])
+  category_table_train <- table(train[[target]])
+  
+  if (!(length(category_table) == length(category_table_train))) {
+    return(TRUE)
+  }
+  
+  # Prüfen ob jede spalte mindesten 2 hat 
+  if (!all(category_table_train > 1)) {
+    return(TRUE)
+  }
+  
+
+  # Spaltenweise prüfen, ob jede Kategorie mindestens zwei unterschiedliche Werte hat
+  valid_features <- sapply(split(features, train[[target]]), function(sub_df) {
+    apply(sub_df, 2, function(x) length(unique(x)) >= 2)
+  })
+  
+  if(!all(valid_features)) {
+    return(TRUE)
+  }
+  
+  return(FALSE)
+
+}
+
 sampler_NB <- function(n_labled, n_unlabled, data, formula) {
   variables <- all.vars(formula) 
   target <- variables[1]
@@ -5,11 +33,9 @@ sampler_NB <- function(n_labled, n_unlabled, data, formula) {
   
   n <- nrow(data_used)
   
-  all_two <- FALSE
-  all_included <- FALSE
-  no_dublicat <- FALSE
+  again <- TRUE
   
-  while(!all(all_two, all_included ,no_dublicat)) {
+  while(again) {
     train_idx <- sample(1:n, size = n_labled)  
     remaining_idx <- setdiff(1:n, train_idx)
     unlabeld_idx <- sample(remaining_idx, size = n_unlabled) 
@@ -19,9 +45,8 @@ sampler_NB <- function(n_labled, n_unlabled, data, formula) {
     unlabed <- data_used[unlabeld_idx,]
     test <- data_used[test_idx,]
     
-    all_two <- all(table(train[,target ])>1)
-    all_included <- length(table(train[,target ])) ==  length(table(data_used[,target ]))
-    no_dublicat <- all(apply(train[,-c(1) ], 2, function(x) length(unique(x))) >= length(table(data_used[,target ])) * 2)
+    
+    again <- check_untrainability(train, data_used ,target)
     
   }
   
