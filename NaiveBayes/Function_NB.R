@@ -14,6 +14,8 @@ check_untrainability <- function(train, data_used, target) {
   
 
   # Spaltenweise prüfen, ob jede Kategorie mindestens zwei unterschiedliche Werte hat
+  features <- train[, !(names(train) %in% target), drop = FALSE]
+  
   valid_features <- sapply(split(features, train[[target]]), function(sub_df) {
     apply(sub_df, 2, function(x) length(unique(x)) >= 2)
   })
