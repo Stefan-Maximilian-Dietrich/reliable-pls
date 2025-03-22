@@ -1,9 +1,9 @@
 ######
-#n_labled = 8
-##n_unlabled = 25
-#data = data_frame
-#formula = target ~ Diagonal + Bottom + Length
-#alpha = 0.8
+n_labled = 8
+n_unlabled = 25
+data = data_frame
+formula = target ~ Diagonal + Bottom + Length
+alpha = 0.8
 #####
 sample <- sampler_NB(n_labled,n_unlabled,data, formula)
 train <- sample[[1]]

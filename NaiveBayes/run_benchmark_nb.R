@@ -46,5 +46,5 @@ load(path)
 gamma 
 
 n_labled = 4
-n_unlabled = 4
-alpha = 0.1
+n_unlabled = 8
+alpha = 0.6

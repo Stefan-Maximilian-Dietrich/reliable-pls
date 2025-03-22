@@ -1,6 +1,3 @@
-library("naivebayes")	
-library("caret")
-
 sampler_NB <- function(n_labled, n_unlabled, data, formula) {
   variables <- all.vars(formula) 
   target <- variables[1]
