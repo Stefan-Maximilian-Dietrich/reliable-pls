@@ -16,7 +16,7 @@ e_admissible_SSL <- function(train, unlabeld, test, alpha) {
     
     #AusWAHL Index
     pseudo_data <- pseud_labeling(best_modell, train, unlabeld) #für die claculation
-    pseudo_labled_data <-  predict_pseudo_labled_data(best_modell, train, unlabeld) #für die auswahl
+    pseudo_labled_data <-  predict_pseudo_labled_data(best_modell, unlabeld) #für die auswahl
     matrix <- decison_matrix(cut_priori, pseudo_data)
     ind_matrix <- generate_indicator_matrix(matrix)
     e_admissible <- e_admissible_creterion(ind_matrix)
