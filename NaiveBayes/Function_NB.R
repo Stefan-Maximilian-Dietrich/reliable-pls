@@ -254,6 +254,13 @@ test_confiusion <- function(priori, train, test) {
   confiusion <- caret::confusionMatrix(predictions, ground_truth)
   return(confiusion)
 }
+
+predict_pseudo_labled_data <- function(best_modell, unlabeld) {
+  X <- unlabeld[, -1]
+  pseudo_y <-as.factor(predict(best_modell, newdata = as.matrix(X), type = "class"))
+  pseudo_data_point <- cbind(target = pseudo_y, tibble(X))
+  return(pseudo_data_point)
+}
 ########################################################################
 minimum_viable <- function(data, target) {
   categories <- unique(data[, target])
