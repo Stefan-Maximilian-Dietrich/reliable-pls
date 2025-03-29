@@ -13,11 +13,17 @@ e_admissible_SSL <- function(train, unlabeld, test, alpha) {
     marg_prioris <- marginal_likelihoods(train, prioris)
     cut_priori <- alpha_cut(marg_prioris, alpha)
     best_modell <- predict_best_model(cut_priori, train)
-    pseudo_data <- pseud_labeling(best_modell, train, unlabeld)
+    
+    #AusWAHL Index
+    pseudo_data <- pseud_labeling(best_modell, train, unlabeld) #für die claculation
+    pseudo_labled_data <-  predict_pseudo_labled_data(best_modell, train, unlabeld) #für die auswahl
     matrix <- decison_matrix(cut_priori, pseudo_data)
     ind_matrix <- generate_indicator_matrix(matrix)
     e_admissible <- e_admissible_creterion(ind_matrix)
-    train <- rbind(train, unlabeld[e_admissible,])
+    
+
+    ###########
+    train <- rbind(train, pseudo_labled_data[e_admissible, ])
     unlabeld <- unlabeld[-e_admissible, ]
     ########### Evaluation
     confusion <- test_confiusion(priori = best_modell$prior, train, test)
