@@ -12,3 +12,5 @@ library("doParallel")
 
 ### Data Sets
 install.packages("MixGHD")
+install.packages("RCurl")
+install.packages("mlbench") 

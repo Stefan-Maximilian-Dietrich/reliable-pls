@@ -41,16 +41,64 @@ sampler_NB <- function(n_labled, n_unlabled, data, formula) {
     train_idx <- sample(1:n, size = n_labled)  
     remaining_idx <- setdiff(1:n, train_idx)
     unlabeld_idx <- sample(remaining_idx, size = n_unlabled) 
-    test_idx <- setdiff(remaining_idx, unlabeld_idx)  # 10% Test
+    test_idx <- setdiff(remaining_idx, unlabeld_idx)  
     
     train <- data_used[train_idx, ]
     unlabed <- data_used[unlabeld_idx,]
     test <- data_used[test_idx,]
     
-    
+    print(table(train[, target]))
     again <- check_untrainability(train, data_used ,target)
     
   }
+  
+  return(list(train, unlabed, test))
+  
+}
+
+sampler_NB_up <- function(n_labled, n_unlabled, data, formula) {
+  variables <- all.vars(formula) 
+  target <- variables[1]
+  data_used <- data[, variables]
+  
+  categories <- unique(data_used[, target])
+  if(length(categories)*2 > n_labled) {
+    stop("Labeld date less than reqiert to fit a GNB")
+  }
+
+  train <- NULL
+  for(cat in categories){
+    data_temp <- data_used[data_used[,target]==cat, ]
+    first <- data_temp[sample(1:nrow(data_temp), 1), , drop=FALSE]
+    train <- rbind(train, first)
+    col_to_check <- 2:ncol(data_temp)
+    #x <- data_temp[1,]
+    indicator <- !apply(data_temp, 1, function(x) {as.numeric(first[col_to_check]) == as.numeric(x)[-1]})
+    
+    witch_diff <- apply(indicator, 2, all)
+    if(!any(witch_diff)) {
+      stop(paste("Data set is not viable for GAUSIAN Naive Bayes. Problem in", cat))
+    }
+
+    data_temp2 <- data_temp[witch_diff, ]
+    second <- data_temp2[sample(1:nrow(data_temp2), 1), , drop=FALSE]
+    train <- rbind(train, second)
+  }
+  
+  filterd <- data_used[!apply(data_used, 1, function(x) any(apply(train, 1, function(y) all(x == y)))), , drop=FALSE]
+  n <- nrow(filterd)
+  k <- nrow(train)
+
+  train_idx <- sample(1:n, size = n_labled-k)  
+  remaining_idx <- setdiff(1:n, train_idx)
+  unlabeld_idx <- sample(remaining_idx, size = n_unlabled) 
+  test_idx <- setdiff(remaining_idx, unlabeld_idx)  
+    
+  train_rest <- filterd[train_idx, ]
+  train <- rbind(train, train_rest)
+  unlabed <- filterd[unlabeld_idx,]
+  test <- filterd[test_idx,]
+  
   
   return(list(train, unlabed, test))
   
@@ -193,10 +241,34 @@ e_admissible_creterion <- function(matrix) {
 }
 
 test_confiusion <- function(priori, train, test) {
-  model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), prior = as.numeric(priori))
+
+  if(is.null(priori)) {
+    model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train[, 1]))
+
+  } else {
+    model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), prior = as.numeric(priori))
+  }
+
   predictions <- predict(model, newdata = as.matrix(test[, -1]), type = "class")
   ground_truth <- test$target
   confiusion <- caret::confusionMatrix(predictions, ground_truth)
   return(confiusion)
 }
-###############################################################################
+########################################################################
+minimum_viable <- function(data, target) {
+  categories <- unique(data[, target])
+  min_vaib <- c(n_labled =length(categories)*2, n_unlabled = 0)
+  return(min_vaib)
+} 
+
+generate_formula <- function(data, target) {
+  predictors <- setdiff(names(data), target)  # Alle Spalten außer der Zielvariable
+  formula_str <- paste(target, "~", paste(predictors, collapse = " + "))
+  return(as.formula(formula_str))  # Formel als R-Objekt zurückgeben
+}
+
+data_loader <- function(data_name) {
+  source(paste(getwd(),"/NaiveBayes/data_NB/", data_name, ".R", sep = ""))
+}
+
+
