@@ -25,7 +25,7 @@ names(data_frame)[names(data_frame) == 'diagnosis'] <- 'target'
 #MCAR
 data_frame = na.omit(data_frame)
 
-p = 15
+p = 30
 
 # formula for glm
 vars <- c("target ~")

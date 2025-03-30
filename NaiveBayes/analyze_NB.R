@@ -31,13 +31,34 @@ for(path in files) {
   
 }
 
-for(path in files) {
+# Beispiel: Liste mit 'value' Vektoren und 'visible' Werten
+ground_path <-  paste(getwd(),"/NaiveBayes/results_NB", sep="")
+files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)
+improvment_matrix <- NULL
+for(path in files) { # anteil der fehler im vergleich zu SL 0 = alle fehler beseitigt 1= genua so viele fehler 2= doppelt so vile fehler 
+  print(path)
   load(path)
   mathods <- unique(names(gamma))
-  if(any(mathods == "visible")) {
-    delete <- seq(from = 2, to = length(gamma), by = 2)
-    gamma[delete] <- NULL
-    names(gamma) <- rep("e_admissible", length(gamma)) ##### liste von hinten gepaddet werden 
-  }
+  
+  gruppen <- split(gamma, mathods)
+  matrizen <- lapply(gruppen, function(x) do.call(rbind, x))
+  spalten_mittelwerte <- lapply(matrizen, colMeans)
+  
+  erow_ref_point <- 1- spalten_mittelwerte$SL[1]
+  errow_quote <- lapply(spalten_mittelwerte, function(x) 1- x[length(x)])
+  improvement <- lapply(errow_quote, function(x)  x/erow_ref_point)
+  ratio <- unlist(improvement)
+  
+  numbers <- as.numeric(unlist(regmatches(path, gregexpr("[0-9]+(?:\\.[0-9]+)?", path))))
+  names(numbers) <- c("L", "U", "alp")
+  bereinigter_string <- sub(".*/", "", path)
+  vec <- c(numbers, ratio)
+  prefix <- sub("_.*", "", bereinigter_string)
+  df <- data.frame(data = prefix, as.list(vec))
+  improvment_matrix <- rbind(improvment_matrix, df)
+  
   
 }
+
+View(improvment_matrix)
+

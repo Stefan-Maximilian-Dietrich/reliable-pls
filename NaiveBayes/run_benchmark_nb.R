@@ -9,6 +9,12 @@ alp <- c(0.6)
 N = 8
 used_data <- c("banknote")
 
+n_labled <- c(5)
+n_unlabled <- c(8)
+alpha <- c(0.6)
+N = 8
+dat <- c("banknote")
+
 for(dat in used_data) {
   for(n_labled in label) { 
     for(n_unlabled in unlabel) {

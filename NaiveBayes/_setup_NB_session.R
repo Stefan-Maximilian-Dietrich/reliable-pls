@@ -8,9 +8,18 @@ library("naivebayes")
 library("caret")
 library("tidyverse")
 library("doParallel")
+library("ggplot2")
+
+
 
 
 ### Data Sets
 install.packages("MixGHD")
 install.packages("RCurl")
 install.packages("mlbench") 
+
+# Data Sets 
+library("MixGHD")
+library("RCurl")
+library("mlbench") 
+
