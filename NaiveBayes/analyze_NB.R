@@ -44,6 +44,7 @@ for(path in files) { # anteil der fehler im vergleich zu SL 0 = alle fehler bese
   matrizen <- lapply(gruppen, function(x) do.call(rbind, x))
   spalten_mittelwerte <- lapply(matrizen, colMeans)
   
+  ead_end <- spalten_mittelwerte$e_admissible[length(spalten_mittelwerte$e_admissible)]
   erow_ref_point <- 1- spalten_mittelwerte$SL[1]
   errow_quote <- lapply(spalten_mittelwerte, function(x) 1- x[length(x)])
   improvement <- lapply(errow_quote, function(x)  x/erow_ref_point)
@@ -52,7 +53,7 @@ for(path in files) { # anteil der fehler im vergleich zu SL 0 = alle fehler bese
   numbers <- as.numeric(unlist(regmatches(path, gregexpr("[0-9]+(?:\\.[0-9]+)?", path))))
   names(numbers) <- c("L", "U", "alp")
   bereinigter_string <- sub(".*/", "", path)
-  vec <- c(numbers, ratio)
+  vec <- c(numbers, e_ad_end = ead_end, ratio)
   prefix <- sub("_.*", "", bereinigter_string)
   df <- data.frame(data = prefix, as.list(vec))
   improvment_matrix <- rbind(improvment_matrix, df)

@@ -148,6 +148,12 @@ alpha_cut <- function(marg_prioris, alpha) {
   return(cut_prioris)
 }
 
+beta_cut <- function(marg_prioris, beta) { # beste prozenz der alphas 
+  quant <- quantile(marg_prioris$marg_likelis, beta)
+  cut_prioris <- marg_prioris[marg_prioris$marg_likelis >= quant,]
+  return(cut_prioris)
+}
+
 predict_best_model <- function(cut_prioris, train) { #tunig möglich über best prior
   cut_boolean <- cut_prioris$marg_likelis == max(cut_prioris$marg_likelis)
   true_indices <- which(cut_boolean)
