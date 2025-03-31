@@ -155,7 +155,7 @@ marginal_likelihoods <- function(train,  prioris) {
 
 alpha_cut <- function(marg_prioris, alpha) {
   max <- max(marg_prioris$marg_likelis)
-  cut_prioris <- marg_prioris[marg_prioris$marg_likelis >= log(alpha*max),]
+  cut_prioris <- marg_prioris[marg_prioris$marg_likelis >= (1+alpha) * max,]
   return(cut_prioris)
 }
 
