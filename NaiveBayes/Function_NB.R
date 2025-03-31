@@ -104,13 +104,25 @@ sampler_NB_up <- function(n_labled, n_unlabled, data, formula) {
   
 }
 
-likelihood <- function(train, priori) {   
+likelihood <- function(train, priori) {   ##################
   model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), prior = as.numeric(priori))
   posterior_probs <- predict(model, newdata = as.matrix(train[, -1]), type = "prob")
-  real_probs <- posterior_probs[cbind(1:nrow(train), train[, 1])]
-  marg_likelihood <-  exp(sum(log(real_probs))) ### falls so beleibt umbenennen 
+  
+  levels <- as.character(levels( train$target))
+  truth <- as.character(as.factor(train$target))
+  
+  result <- t(sapply(truth, function(x) setdiff(levels, x)))
+  
+  true_probs <- posterior_probs[cbind(1:nrow(train), as.factor(train$target))]
+  false_probs <- posterior_probs[cbind(1:nrow(train), as.factor(result))]
+  false_likely <- sum(log1p(-false_probs))
+  true_likely <- sum(log(true_probs))
+  
+  marg_likelihood <- true_likely +false_likely
+  
   return(marg_likelihood)
 }
+
 
 generate_priori_simplex <- function(categories, step = 0.1) {
   dims <- length(categories)
