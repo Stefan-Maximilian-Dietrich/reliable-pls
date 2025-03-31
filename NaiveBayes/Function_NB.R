@@ -104,7 +104,7 @@ sampler_NB_up <- function(n_labled, n_unlabled, data, formula) {
   
 }
 
-likelihood <- function(train, priori) {   ##################
+likelihood <- function(train, priori) { 
   model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), prior = as.numeric(priori))
   posterior_probs <- predict(model, newdata = as.matrix(train[, -1]), type = "prob")
   
@@ -122,7 +122,6 @@ likelihood <- function(train, priori) {   ##################
   
   return(marg_likelihood)
 }
-
 
 generate_priori_simplex <- function(categories, step = 0.1) {
   dims <- length(categories)
@@ -156,7 +155,7 @@ marginal_likelihoods <- function(train,  prioris) {
 
 alpha_cut <- function(marg_prioris, alpha) {
   max <- max(marg_prioris$marg_likelis)
-  cut_prioris <- marg_prioris[marg_prioris$marg_likelis >= alpha*max,]
+  cut_prioris <- marg_prioris[marg_prioris$marg_likelis >= log(alpha*max),]
   return(cut_prioris)
 }
 
