@@ -61,5 +61,6 @@ for(path in files) { # anteil der fehler im vergleich zu SL 0 = alle fehler bese
   
 }
 
-View(improvment_matrix)
+
+View(improvment_matrix[order(improvment_matrix$data, improvment_matrix$L, improvment_matrix$U, improvment_matrix$alp),])
 

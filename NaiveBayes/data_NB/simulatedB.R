@@ -1,6 +1,6 @@
 
-categories <- 1:5
-varibales <- 60
+categories <- 1:10
+varibales <- 100
 data  <- NULL
 n <- 3000
 for(i in categories) {

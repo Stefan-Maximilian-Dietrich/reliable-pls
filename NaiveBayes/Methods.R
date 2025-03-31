@@ -106,4 +106,3 @@ refernce_SL <- function(train, unlabeld, test, priori = NULL) {
   acc <- rep(acc_new, times= nrow(unlabeld) + 1)
   return(acc)
 }
-
