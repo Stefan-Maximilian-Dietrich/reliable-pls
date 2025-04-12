@@ -2,7 +2,7 @@
 categories <- 1:5
 varibales <- 60
 data  <- NULL
-n <- 200
+n <- 3000
 for(i in categories) {
   for(j in 1:n){
     X <-rnorm(varibales, categories[i], 2)
