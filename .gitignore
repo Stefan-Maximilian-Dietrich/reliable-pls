@@ -2,5 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+.NaiveBayes/results_NB_PC
+.NaiveBayes/results_NB_PC_old
 .Rproj
 .gitignore

@@ -1,6 +1,6 @@
 e_admissible_SSL <- function(train, unlabeld, test, alpha) {
   levels_present <- levels(data[,c(all.vars(formula)[1])]) 
-  prioris<- generate_priori_simplex(levels_present, step = 00.1)
+  prioris<- generate_priori_simplex(levels_present, step = 0.01)
   
   model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
   pred_test <- predict(model, newdata = as.matrix(test[, -1]), type = "class")
@@ -11,7 +11,19 @@ e_admissible_SSL <- function(train, unlabeld, test, alpha) {
   end <- nrow(unlabeld)
   while(z <= end) {
     marg_prioris <- marginal_likelihoods(train, prioris)
+    
+    ##### Visualiserung
+    p <- ggplot(marg_prioris, aes(x = genuine, y = marg_likelis)) +
+      geom_point() +  # Scatter plot
+      geom_line() +   # Line plot
+      geom_hline(yintercept =(1+alpha) * max(marg_prioris$marg_likelis), linetype = "dashed", color = "red") +  # Horizontal line at y = 0
+      labs(title = "Simple ggplot Example", x = "X-axis", y = "Y-axis") +
+      theme_minimal()  # Use a minimal theme
+    print(p)
+    ################
     cut_priori <- alpha_cut(marg_prioris, alpha)
+
+    
     best_modell <- predict_best_model(cut_priori, train)
     
     #AusWAHL Index

@@ -1,5 +1,5 @@
 # Beispiel: Liste mit 'value' Vektoren und 'visible' Werten
-ground_path <-  paste(getwd(),"/NaiveBayes/results_NB", sep="")
+ground_path <-  paste(getwd(),"/NaiveBayes/results_NB_PC", sep="")
 files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)
 for(path in files) {
   print(path)
@@ -32,7 +32,7 @@ for(path in files) {
 }
 
 # Beispiel: Liste mit 'value' Vektoren und 'visible' Werten
-ground_path <-  paste(getwd(),"/NaiveBayes/results_NB", sep="")
+ground_path <-  paste(getwd(),"/NaiveBayes/results_NB_PC", sep="")
 files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)
 improvment_matrix <- NULL
 for(path in files) { # anteil der fehler im vergleich zu SL 0 = alle fehler beseitigt 1= genua so viele fehler 2= doppelt so vile fehler 

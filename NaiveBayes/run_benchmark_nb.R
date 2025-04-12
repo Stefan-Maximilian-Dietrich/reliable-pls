@@ -3,17 +3,11 @@ source(paste(getwd(),"/NaiveBayes/Function_NB.R", sep = ""))
 source(paste(getwd(),"/NaiveBayes/Methods.R", sep = ""))
 
 
-label <- c(5)
-unlabel <- c(8)
+label <- c(6)
+unlabel <- c(12)
 alp <- c(0.6)
-N = 8
+N = 60
 used_data <- c("banknote")
-
-n_labled <- c(5)
-n_unlabled <- c(8)
-alpha <- c(0.6)
-N = 8
-dat <- c("banknote")
 
 for(dat in used_data) {
   for(n_labled in label) { 
@@ -23,12 +17,13 @@ for(dat in used_data) {
         data_loader(dat)
         core <- as.numeric(min(20, parallel::detectCores() , N)) 
         print(paste("Parallel: cores ", core))
+        
         cl <- parallel::makeForkCluster(core)
         doParallel::registerDoParallel(cl)
         
         gamma <- foreach(m = 1:N, .combine = 'c') %dopar% {
           set.seed(m+n_labled*100+n_unlabled*10000+alpha*100000)
-          sample <- sampler_NB(n_labled,n_unlabled,data, formula)
+          sample <- sampler_NB_up(n_labled,n_unlabled,data, formula)
           train <- sample[[1]]
           unlabeld <- sample[[2]]
           test <-sample[[3]]
