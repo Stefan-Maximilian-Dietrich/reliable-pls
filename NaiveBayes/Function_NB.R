@@ -12,7 +12,7 @@ check_untrainability <- function(train, data_used, target) {
     return(TRUE)
   }
   
-
+  
   # Spaltenweise prüfen, ob jede Kategorie mindestens zwei unterschiedliche Werte hat
   features <- train[, !(names(train) %in% target), drop = FALSE]
   
@@ -25,7 +25,7 @@ check_untrainability <- function(train, data_used, target) {
   }
   
   return(FALSE)
-
+  
 }
 
 sampler_NB <- function(n_labled, n_unlabled, data, formula) {
@@ -47,7 +47,6 @@ sampler_NB <- function(n_labled, n_unlabled, data, formula) {
     unlabed <- data_used[unlabeld_idx,]
     test <- data_used[test_idx,]
     
-    print(table(train[, target]))
     again <- check_untrainability(train, data_used ,target)
     
   }
@@ -65,7 +64,7 @@ sampler_NB_up <- function(n_labled, n_unlabled, data, formula) {
   if(length(categories)*2 > n_labled) {
     stop("Labeld date less than reqiert to fit a GNB")
   }
-
+  
   train <- NULL
   for(cat in categories){
     data_temp <- data_used[data_used[,target]==cat, ]
@@ -79,7 +78,7 @@ sampler_NB_up <- function(n_labled, n_unlabled, data, formula) {
     if(!any(witch_diff)) {
       stop(paste("Data set is not viable for GAUSIAN Naive Bayes. Problem in", cat))
     }
-
+    
     data_temp2 <- data_temp[witch_diff, ]
     second <- data_temp2[sample(1:nrow(data_temp2), 1), , drop=FALSE]
     train <- rbind(train, second)
@@ -88,12 +87,12 @@ sampler_NB_up <- function(n_labled, n_unlabled, data, formula) {
   filterd <- data_used[!apply(data_used, 1, function(x) any(apply(train, 1, function(y) all(x == y)))), , drop=FALSE]
   n <- nrow(filterd)
   k <- nrow(train)
-
+  
   train_idx <- sample(1:n, size = n_labled-k)  
   remaining_idx <- setdiff(1:n, train_idx)
   unlabeld_idx <- sample(remaining_idx, size = n_unlabled) 
   test_idx <- setdiff(remaining_idx, unlabeld_idx)  
-    
+  
   train_rest <- filterd[train_idx, ]
   train <- rbind(train, train_rest)
   unlabed <- filterd[unlabeld_idx,]
@@ -108,13 +107,15 @@ likelihood <- function(train, priori) {
   model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), prior = as.numeric(priori))
   posterior_probs <- predict(model, newdata = as.matrix(train[, -1]), type = "prob")
   
-  levels <- as.character(levels( train$target))
-  truth <- as.character(as.factor(train$target))
   
-  result <- t(sapply(truth, function(x) setdiff(levels, x)))
   
-  true_probs <- posterior_probs[cbind(1:nrow(train), as.factor(train$target))]
-  false_probs <- posterior_probs[cbind(1:nrow(train), as.factor(result))]
+  ####
+  vec_posterior_probs <- unlist(as.vector(posterior_probs))
+  adress_True <- nrow(train) * (as.numeric(train$target) -1 )+ 1:nrow(train) 
+  true_probs <- vec_posterior_probs[adress_True]
+  false_probs <- vec_posterior_probs[-adress_True]
+  
+  
   false_likely <- sum(log1p(-false_probs))
   true_likely <- sum(log(true_probs))
   
@@ -200,23 +201,180 @@ pseud_labeling <- function(best_modell, train, unlabeld) {
   return(result_list)
 }
 
-decison_matrix <- function(cut_priori, pseudo_data) {
-  cut_priori<- cut_priori[, -1]
+decison_matrix_2 <- function(cut_priori, pseudo_data) {
+  cut_priori_r<- cut_priori[, -1]
   
   k <- length(pseudo_data)
-  l <- nrow(cut_priori)
+  l <- nrow(cut_priori_r)
   matrix <- matrix(NA, nrow = k, ncol = l)
   
   for(i in 1:k) {
     train <- pseudo_data[[i]][[1]]
     for(j in 1:l) {
-      priori <- as.numeric(cut_priori[j, ])
+      priori <- as.numeric(cut_priori_r[j, ])
       new <-  likelihood(train,  priori)
       matrix[i,j] <- new
     }
   }
+  
+  
+  
+  #########
+  
   return(matrix)
+  
+  
+  #######
 }
+
+decison_matrix_3 <- function(cut_priori, pseudo_data) {
+  
+  #########
+  
+  priori_list <- cut_priori[, -1]
+  data_list <- lapply(pseudo_data, function(x) x[[1]])
+  result <- lapply(data_list, function(x) {
+    apply(priori_list, 1, function(y) likelihood(x,  y))
+  })
+  matrix <- do.call(rbind, result)
+  return(matrix)
+  
+  
+  #######
+}
+
+likelihood_2 <- function(posterior_probs, train) { 
+  vec_posterior_probs <- unlist(as.vector(posterior_probs))
+  adress_True <- nrow(train) * (as.numeric(train$target) -1 )+ 1:nrow(train) 
+  true_probs <- vec_posterior_probs[adress_True]
+  false_probs <- vec_posterior_probs[-adress_True]
+  
+  
+  false_likely <- sum(log1p(-false_probs))
+  true_likely <- sum(log(true_probs))
+  
+  marg_likelihood <- true_likely +false_likely
+  return(marg_likelihood)
+}
+
+manual_predict_2 <- function(means, sds, priors, new_data) {
+  
+  # Klassen (Spaltennamen der Mittelwertmatrix)
+  classes <- colnames(means)
+  
+  # Ergebnis für jede neue Beobachtung (jede Zeile in new_data)
+  result <- apply(new_data, 1, function(x) {
+    
+    # Berechne die Posterior-Wahrscheinlichkeit für jede Klasse
+    posterior_probs <- sapply(classes, function(class) {
+      
+      # Berechne die Wahrscheinlichkeitsdichte jedes Merkmals in dieser Klasse
+      feature_probs <- sapply(1:length(x), function(i) {
+        # Mittelwert und Standardabweichung für das Merkmal i und Klasse
+        mu <- means[i, class]
+        sigma <- sds[i, class]
+        
+        # Berechne die Dichte der Normalverteilung für jedes Merkmal
+        dnorm(x[i], mean = mu, sd = sigma)
+      })
+      
+      # Multipliziere die Dichten und berücksichtige die Prior-Wahrscheinlichkeit der Klasse
+      prior_prob <- priors[class]
+      likelihood <- prod(feature_probs)
+      posterior_prob <- prior_prob * likelihood
+      return(posterior_prob)
+    })
+    
+    # Normalisiere die Posterior-Wahrscheinlichkeiten, damit ihre Summe 1 ergibt
+    total_prob <- sum(posterior_probs)
+    posterior_probs_normalized <- posterior_probs / total_prob
+    return(posterior_probs_normalized)
+  })
+  
+  # Gebe die normalisierten Posterior-Wahrscheinlichkeiten zurück
+  return(t(result))
+}
+
+manual_predict <- function(means, sds, priors, new_data) {
+  
+  # Klassen (Spaltennamen der Mittelwertmatrix)
+  classes <- colnames(means)
+  
+  # Ergebnis für jede neue Beobachtung (jede Zeile in new_data)
+  result <- apply(new_data, 1, function(x) {
+    
+    # Berechne die Posterior-Wahrscheinlichkeit für jede Klasse
+    posterior_probs <- sapply(classes, function(class) {
+      
+      # Berechne die Wahrscheinlichkeitsdichte jedes Merkmals in dieser Klasse
+      
+      # Mittelwert und Standardabweichung für das Merkmal i und Klasse
+      mu <- means[, class]
+      sigma <- sds[, class]
+      
+      # Berechne die Dichte der Normalverteilung für jedes Merkmal
+      
+      feature_probs <- dnorm(x, mean = mu, sd = sigma)
+      
+      
+      # Multipliziere die Dichten und berücksichtige die Prior-Wahrscheinlichkeit der Klasse
+      prior_prob <- priors[class]
+      likelihood <- prod(feature_probs)
+      posterior_prob <- prior_prob * likelihood
+      return(posterior_prob)
+    })
+    
+    # Normalisiere die Posterior-Wahrscheinlichkeiten, damit ihre Summe 1 ergibt
+    total_prob <- sum(posterior_probs)
+    posterior_probs_normalized <- posterior_probs / total_prob
+    return(posterior_probs_normalized)
+  })
+  
+  # Gebe die normalisierten Posterior-Wahrscheinlichkeiten zurück
+  return(t(result))
+}
+
+decison_matrix_4 <- function(cut_priori, pseudo_data) {
+  priori_list <- cut_priori[, -1]
+  data_list <- lapply(pseudo_data, function(x) x[[1]])
+  raw_GNB <- lapply(data_list, function(x) {gaussian_naive_bayes(x = as.matrix(x[, -1]), y = x$target)})
+  
+  matrix <- NULL
+  for(i in 1:length(raw_GNB)) {
+    list_data_modell <- apply(priori_list,1, function(x) {raw_GNB[[i]]$prior <- x  
+    return(raw_GNB[[i]])} )
+    
+    prob <- lapply(list_data_modell, function(x){predict(x, newdata = as.matrix(data_list[[i]][, -1]), type = "prob")})
+    
+    matrix <- rbind(matrix, unlist(lapply(prob, function(x){likelihood_2(x, data_list[[i]])})))
+  }
+  
+  return(matrix)
+  #######
+} # Aktuell schnelste 
+
+decison_matrix<- function(cut_priori, pseudo_data) {
+  priori_list <- cut_priori[, -1]
+  data_list <- lapply(pseudo_data, function(x) x[[1]])
+  raw_GNB <- lapply(data_list, function(x) {gaussian_naive_bayes(x = as.matrix(x[, -1]), y = x$target)})
+  
+  matrix <- NULL
+  
+  for(i in 1:length(raw_GNB)) {
+    
+    list_data_modell <- apply(priori_list,1, function(x) {raw_GNB[[i]]$prior <- x  
+    return(raw_GNB[[i]])} )
+    
+    prob <- lapply(list_data_modell, function(x){predict(x, newdata = as.matrix(data_list[[i]][, -1]), type = "prob")})
+    #prob <- lapply(list_data_modell, function(x){manual_predict(means =  t(x$params$mu), sds = t(x$params$sd), priors = x$prior, new_data = as.matrix(data_list[[i]][, -1]))})
+    # für viele große datensätze 
+    matrix <- rbind(matrix, unlist(lapply(prob, function(x){likelihood_2(x, data_list[[i]])})))
+    
+  }
+  
+  return(matrix)
+  #######
+} # Aktuell schnelste 
 
 generate_indicator_matrix <- function(mat) {
   # Bestimme die Anzahl der Reihen und Spalten
@@ -258,14 +416,14 @@ e_admissible_creterion <- function(matrix) {
 }
 
 test_confiusion <- function(priori, train, test) {
-
+  
   if(is.null(priori)) {
     model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train[, 1]))
-
+    
   } else {
     model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), prior = as.numeric(priori))
   }
-
+  
   predictions <- predict(model, newdata = as.matrix(test[, -1]), type = "class")
   ground_truth <- test$target
   confiusion <- caret::confusionMatrix(predictions, ground_truth)
@@ -294,5 +452,3 @@ generate_formula <- function(data, target) {
 data_loader <- function(data_name) {
   source(paste(getwd(),"/NaiveBayes/data_NB/", data_name, ".R", sep = ""))
 }
-
-

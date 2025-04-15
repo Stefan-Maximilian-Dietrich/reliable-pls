@@ -1,4 +1,5 @@
 e_admissible_SSL <- function(prioris, train, unlabeld, test, alpha) {
+  
   model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
   pred_test <- predict(model, newdata = as.matrix(test[, -1]), type = "class")
   acc_new <- sum((pred_test == test$target))/length(pred_test)
@@ -20,10 +21,11 @@ e_admissible_SSL <- function(prioris, train, unlabeld, test, alpha) {
     #AusWAHL Index
     pseudo_data <- pseud_labeling(best_modell, train, unlabeld) #für die claculation
     pseudo_labled_data <-  predict_pseudo_labled_data(best_modell, unlabeld) #für die auswahl
+    
     matrix <- decison_matrix(cut_priori, pseudo_data)
+  
     ind_matrix <- generate_indicator_matrix(matrix)
     e_admissible <- e_admissible_creterion(ind_matrix)
-    print(length(e_admissible))
 
     ###########
     train <- rbind(train, pseudo_labled_data[e_admissible, ])
@@ -39,6 +41,7 @@ e_admissible_SSL <- function(prioris, train, unlabeld, test, alpha) {
     #plot(marg_prioris$genuine, marg_prioris$marg_likelis)
     
   }
+ 
   return(as.numeric(result))
   
 } 
@@ -109,3 +112,7 @@ refernce_SL <- function(train, unlabeld, test, priori = NULL) {
   acc <- rep(acc_new, times= nrow(unlabeld) + 1)
   return(acc)
 }
+
+
+
+

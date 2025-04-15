@@ -23,3 +23,6 @@ library("MixGHD")
 library("RCurl")
 library("mlbench") 
 
+install.packages("profvis") 
+library("profvis") 
+
