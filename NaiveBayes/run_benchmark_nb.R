@@ -7,7 +7,7 @@ label <- c(6)
 unlabel <- c(20)
 alp <- c(0.9)
 N = 4
-used_data <- c("brestAll_cancer")
+used_data <- c("brestAll")
 
 for(dat in used_data) {
   data_loader(dat)
