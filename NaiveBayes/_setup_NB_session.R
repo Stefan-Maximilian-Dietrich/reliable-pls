@@ -3,7 +3,10 @@ install.packages("caret")
 install.packages("tidyverse")
 install.packages("doParallel")
 install.packages("dplyr")
-
+install.packages("furrr")
+install.packages("progressr")
+install.packages("tibble")
+install.packages("dplyr")
 
 library("naivebayes")	
 library("caret")
@@ -11,7 +14,10 @@ library("tidyverse")
 library("doParallel")
 library("ggplot2")
 library("dplyr")
-
+library("furrr")
+library("progressr")
+library("tibble")
+library("dplyr")
 
 
 

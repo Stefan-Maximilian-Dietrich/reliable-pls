@@ -22,17 +22,15 @@ for(path in files) {
   
   bereinigter_string <- sub(".*/", "", path)
   
-  # Plot erstellen
-  plot_object <- ggplot(df, aes(x = X, y = Mittelwert, color = Name, group = Name)) +
-    geom_line(size = 1) +
-    geom_point(size = 2) +
-    labs(x = "unlabed Data", y = "Test accuracy", title = bereinigter_string)  
+ 
 
   plot_object <- ggplot(df, aes(x = X, y = Mittelwert, color = Name, group = Name)) +
     geom_line(size = 1) +
     geom_point(size = 2) +
     labs(colour = "method") +
-    labs(x = "unlabeled data", y = "test accuracy", title = "Simulated: labeled = 100, unlabeled = 400 ")  
+    labs(x = "unlabed Data", y = "Test accuracy", title = bereinigter_string)  
+  
+    #labs(x = "unlabeled data", y = "test accuracy", title = "Simulated: labeled = 100, unlabeled = 400 ")  
   
   
     

@@ -452,3 +452,26 @@ generate_formula <- function(data, target) {
 data_loader <- function(data_name) {
   source(paste(getwd(),"/NaiveBayes/data_NB/", data_name, ".R", sep = ""))
 }
+
+
+#### moitoring 
+duration_function <- function(time_a, time_b) {
+  duration <- as.numeric(difftime(time_b, time_a, units = "secs"))
+  
+  # Intelligente Formatierung
+  if (duration < 60) {
+    out <- sprintf("DONE in %.2f seconds", duration)
+  } else if (duration < 3600) {
+    minutes <- duration / 60
+    out <- sprintf("DONE in %.2f minutes", minutes)
+  } else if (duration < 86400) {
+    hours <- duration / 3600
+    out <- sprintf("DONE in %.2f hours", hours)
+  } else {
+    days <- duration / 86400
+    out <- sprintf("DONE in %.2f days", days)
+  }
+  
+  print(out)
+}
+
