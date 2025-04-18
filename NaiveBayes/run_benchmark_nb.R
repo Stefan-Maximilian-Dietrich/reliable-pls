@@ -3,11 +3,11 @@ source(paste(getwd(),"/NaiveBayes/Function_NB.R", sep = ""))
 source(paste(getwd(),"/NaiveBayes/Methods.R", sep = ""))
 
 
-label <- c(6)
-unlabel <- c(20)
-alp <- c(0.9)
+label <- c(4, 18, 16, 32, 64)
+unlabel <- c(4,16, 64, 256)
+alp <- c(0.5, 0.9)
 N = 4
-used_data <- c("brestAll")
+used_data <- c("ionosphere")
 
 for(dat in used_data) {
   data_loader(dat)
@@ -22,9 +22,9 @@ for(dat in used_data) {
         
         cl <- parallel::makeForkCluster(core)
         doParallel::registerDoParallel(cl)
+    
         
         gamma <- foreach(m = 1:N, .combine = 'c') %dopar% {
-          set.seed(m+n_labled*100+n_unlabled*10000)
           set.seed(m+n_labled*100+n_unlabled*10000+alpha*100000)
           
           sample <- sampler_NB_up(n_labled,n_unlabled,data, formula)
@@ -57,7 +57,7 @@ for(dat in used_data) {
 
 ################################################################################
 n_labled <- c(20)
-n_unlabled <- c(120)
+n_unlabled <- c(5)
 alpha <- c(0.8)
 dat <- c("banknote")
 m = 1
