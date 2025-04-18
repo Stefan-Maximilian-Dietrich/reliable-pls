@@ -1,5 +1,4 @@
-library(dplyr)
-library(fdm2id)
+
 
 # read in data frame
 data(ionosphere)
