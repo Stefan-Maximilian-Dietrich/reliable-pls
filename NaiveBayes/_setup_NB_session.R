@@ -1,39 +1,33 @@
-install.packages("naivebayes")
-install.packages("caret")
-install.packages("tidyverse")
-install.packages("doParallel")
-install.packages("dplyr")
-install.packages("furrr")
-install.packages("progressr")
-install.packages("tibble")
-install.packages("dplyr")
+# Liste der Pakete zum Installieren und Laden
+pakete <- c(
+  "naivebayes",   # Paket für Naive Bayes Klassifikation
+  "caret",        # Paket für maschinelles Lernen und Modelltraining
+  "tidyverse",    # Sammlung von Paketen für Datenmanipulation und -visualisierung
+  "doParallel",   # Paket für paralleles Rechnen
+  "dplyr",        # Paket für Datenmanipulation und Filterung
+  "furrr",        # Paket für parallele Ausführung von purrr-Operationen
+  "progressr",    # Paket zur Verfolgung des Fortschritts von langen Berechnungen
+  "tibble",       # Paket für das Arbeiten mit data.frame-ähnlichen Objekten
+  "partitions",   # Paket für die Arbeit mit Partitionen und Kombinationen
+  "MixGHD",       # Paket für MixGHD-Methoden
+  "RCurl",        # Paket für das Abrufen von Daten aus dem Web
+  "mlbench",      # Paket für maschinelles Lernen mit Benchmark-Datensätzen
+  "fdm2id",       # Paket für den Zugriff auf die fdm2id-Daten
+  "profvis"       # Paket zur Profilerstellung und Leistungsanalyse von R-Code
+)
 
-library("naivebayes")	
-library("caret")
-library("tidyverse")
-library("doParallel")
-library("ggplot2")
-library("dplyr")
-library("furrr")
-library("progressr")
-library("tibble")
-library("dplyr")
+# Schleife, um Pakete zu installieren und zu laden
+for (paket in pakete) {
+  # Überprüfen, ob das Paket installiert ist, und es nur installieren, wenn nicht
+  if (!requireNamespace(paket, quietly = TRUE)) {
+    install.packages(paket)
+  }
+  # Paket laden
+  library(paket, character.only = TRUE)
+}
 
+source(paste(getwd(),"/NaiveBayes/Function_NB.R", sep = ""))
+source(paste(getwd(),"/NaiveBayes/Methods.R", sep = ""))
 
-
-### Data Sets
-install.packages("MixGHD")
-install.packages("RCurl")
-install.packages("mlbench") 
-install.packages("fdm2id")
-
-# Data Sets 
-library("MixGHD")
-library("RCurl")
-library("mlbench") 
-library("fdm2id")
-
-
-install.packages("profvis") 
-library("profvis") 
+cat("Session ready")
 

@@ -1,15 +1,3 @@
-#load Functions
-source(paste(getwd(),"/NaiveBayes/Function_NB.R", sep = ""))
-source(paste(getwd(),"/NaiveBayes/Methods.R", sep = ""))
-
-workers = 4
-
-label <- c(4)
-unlabel <- c(4,16)
-alp <- c( 0.9)
-N = 8
-used_data <- c("ionosphere")
-
 for(dat in used_data) {
   data_loader(dat)
   levels_present <- levels(data[,c(all.vars(formula)[1])]) 
@@ -59,9 +47,12 @@ for(dat in used_data) {
         path = paste(getwd(),"/NaiveBayes/results_NB/", dat,"_L_", as.character(n_labled), "_U_",  as.character(n_unlabled), "_alp_" , as.character(alpha), sep="")
         save(gamma, file = path)
 
+        #### Plot 
+        Graphic_on_the_fly(path)
+        
+        
         time_b <- Sys.time()
-        time_diff <- as.character(time_b-time_a)
-        print(paste("DONE ", time_diff))
+        duration_function(time_a, time_b)
         
         
         

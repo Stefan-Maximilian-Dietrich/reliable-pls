@@ -475,3 +475,205 @@ duration_function <- function(time_a, time_b) {
   print(out)
 }
 
+Graphic_on_the_fly <- function(path) {
+
+  
+  load(path)
+  mathods <- unique(names(gamma))
+  
+  gruppen <- split(gamma, mathods)
+  matrizen <- lapply(gruppen, function(x) do.call(rbind, x))
+  spalten_mittelwerte <- lapply(matrizen, colMeans)
+  
+  # Umwandlung in ein Dataframe für ggplot
+  df <- do.call(rbind, lapply(names(spalten_mittelwerte), function(name) {
+    data.frame(Name = name, X = 1:length(spalten_mittelwerte[[name]]), 
+               Mittelwert = spalten_mittelwerte[[name]])
+  }))
+  df$X <- df$X-1
+  
+  bereinigter_string <- sub(".*/", "", path)
+  
+  
+  titel_d <- titel_data(path)
+  titel_l <- extrahiere_zahl_L(path)
+  titel_u <- extrahiere_zahl_U(path)
+  plot_object <- ggplot(df, aes(x = X, y = Mittelwert, color = Name, group = Name)) +
+    geom_line(size = 1) +
+    geom_point(size = 2) +
+    labs(x = "unlabed Data", y = "test accuracy", title = paste0(titel_d, ": labeled = ", titel_l, ", unlabeled = ", titel_u))  
+  
+  print(plot_object)
+  
+  
+
+}
+
+#### Analyce 
+titel_data <- function(path) {
+  text <- sub(".*/", "", path)
+  
+  sapply(text, function(x) {
+    # 1. Kürzen ab "_L_"
+    gekuerzt <- sub("_L_.*", "", x)
+    
+    # 2. Alles klein, dann Wortweise großschreiben (nach Leerzeichen)
+    worte <- strsplit(tolower(gekuerzt), " ")[[1]]
+    worte_cap <- paste0(toupper(substring(worte, 1, 1)), substring(worte, 2))
+    zusammengesetzt <- paste(worte_cap, collapse = " ")
+    
+    # 3. Leerzeichen einfügen, wenn Kleinbuchstabe direkt vor Großbuchstabe kommt (z. B. "iA" → "i A")
+    mit_abstand <- gsub("([a-z])([A-Z])", "\\1 \\2", zusammengesetzt)
+    
+    return(mit_abstand)
+  })
+}
+
+extrahiere_zahl_L <- function(text) {
+  regmatches(text, regexpr("(?<=_L_)[0-9]+", text, perl = TRUE))
+}
+
+extrahiere_zahl_U <- function(text) {
+  regmatches(text, regexpr("(?<=_U_)[0-9]+", text, perl = TRUE))
+}
+
+make_all_Graphics <- function(online) {
+  if(online) {
+    ground_path <-  paste(getwd(),"/NaiveBayes/results_NB", sep="")
+    
+  } else {
+    ground_path <-  paste(getwd(),"/NaiveBayes/results_NB_PC", sep="")
+  }
+  
+  files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)
+  
+  ###
+  ###
+  for(path in files) {
+    print(path)
+    load(path)
+    mathods <- unique(names(gamma))
+    
+    gruppen <- split(gamma, mathods)
+    matrizen <- lapply(gruppen, function(x) do.call(rbind, x))
+    spalten_mittelwerte <- lapply(matrizen, colMeans)
+    
+    # Umwandlung in ein Dataframe für ggplot
+    df <- do.call(rbind, lapply(names(spalten_mittelwerte), function(name) {
+      data.frame(Name = name, X = 1:length(spalten_mittelwerte[[name]]), 
+                 Mittelwert = spalten_mittelwerte[[name]])
+    }))
+    df$X <- df$X-1
+    
+    bereinigter_string <- sub(".*/", "", path)
+    
+    
+    titel_d <- titel_data(path)
+    titel_l <- extrahiere_zahl_L(path)
+    titel_u <- extrahiere_zahl_U(path)
+    plot_object <- ggplot(df, aes(x = X, y = Mittelwert, color = Name, group = Name)) +
+      theme(legend.position = "none") +
+      geom_line(size = 1) +
+      geom_point(size = 2) +
+      labs(x = "unlabed Data", y = "test accuracy", title = paste0(titel_d, ": labeled = ", titel_l, ", unlabeled = ", titel_u))  
+    
+    ggsave(paste("/Users/Stefan/Desktop/Studium/Publikation/Experimetn_Grafiken/", bereinigter_string, ".png", sep = ""), width = 20, height = 20, units = "cm", dpi = 300,plot = plot_object)
+    
+  }
+  
+}
+
+show_all_Results <- function(online) {
+  if(online) {
+    ground_path <-  paste(getwd(),"/NaiveBayes/results_NB", sep="")
+    
+  } else {
+    ground_path <-  paste(getwd(),"/NaiveBayes/results_NB_PC", sep="")
+  }
+  files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)
+  improvment_matrix <- NULL
+  for(path in files) { # anteil der fehler im vergleich zu SL 0 = alle fehler beseitigt 1= genua so viele fehler 2= doppelt so vile fehler 
+    print(path)
+    load(path)
+    mathods <- unique(names(gamma))
+    
+    gruppen <- split(gamma, mathods)
+    matrizen <- lapply(gruppen, function(x) do.call(rbind, x))
+    spalten_mittelwerte <- lapply(matrizen, colMeans)
+    
+    ead_end <- spalten_mittelwerte$e_admissible[length(spalten_mittelwerte$e_admissible)]
+    erow_ref_point <- 1- spalten_mittelwerte$SL[1]
+    errow_quote <- lapply(spalten_mittelwerte, function(x) 1- x[length(x)])
+    improvement <- lapply(errow_quote, function(x)  x/erow_ref_point)
+    ratio <- unlist(improvement)
+    
+    numbers <- as.numeric(unlist(regmatches(path, gregexpr("[0-9]+(?:\\.[0-9]+)?", path))))
+    names(numbers) <- c("L", "U", "alp")
+    bereinigter_string <- sub(".*/", "", path)
+    vec <- c(numbers, e_ad_end = ead_end, ratio)
+    prefix <- sub("_.*", "", bereinigter_string)
+    df <- data.frame(data = prefix, as.list(vec))
+    improvment_matrix <- rbind(improvment_matrix, df)
+    
+    
+  }
+  
+  View(improvment_matrix[order(improvment_matrix$data, improvment_matrix$L, improvment_matrix$U, improvment_matrix$alp),])
+  
+  
+}
+
+show_Summary <- function(online) {
+  if(online) {
+    ground_path <-  paste(getwd(),"/NaiveBayes/results_NB", sep="")
+    
+  } else {
+    ground_path <-  paste(getwd(),"/NaiveBayes/results_NB_PC", sep="")
+  }
+
+  files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)
+  improvment_matrix <- NULL
+  for(path in files) { # anteil der fehler im vergleich zu SL 0 = alle fehler beseitigt 1= genua so viele fehler 2= doppelt so vile fehler 
+    print(path)
+    load(path)
+    mathods <- unique(names(gamma))
+    
+    gruppen <- split(gamma, mathods)
+    matrizen <- lapply(gruppen, function(x) do.call(rbind, x))
+    spalten_mittelwerte <- lapply(matrizen, colMeans)
+    
+    ead_end <- spalten_mittelwerte$e_admissible[length(spalten_mittelwerte$e_admissible)]
+    erow_ref_point <- 1- spalten_mittelwerte$SL[1]
+    errow_quote <- lapply(spalten_mittelwerte, function(x) 1- x[length(x)])
+    improvement <- lapply(errow_quote, function(x)  x/erow_ref_point)
+    ratio <- unlist(improvement)
+    
+    numbers <- as.numeric(unlist(regmatches(path, gregexpr("[0-9]+(?:\\.[0-9]+)?", path))))
+    names(numbers) <- c("L", "U", "alp")
+    bereinigter_string <- sub(".*/", "", path)
+    vec <- c(numbers, e_ad_end = ead_end, ratio)
+    prefix <- sub("_.*", "", bereinigter_string)
+    df <- data.frame(data = prefix, as.list(vec))
+    improvment_matrix <- rbind(improvment_matrix, df)
+    
+    
+  }
+  
+  imp <- improvment_matrix[improvment_matrix$U > 2*improvment_matrix$L  ,]
+  names_data_a <- unique(imp$data)
+  summary_table <- NULL
+  for(t in names_data_a){
+    data_loader(t)
+    p <- length(all.vars(formula)) - 1
+    k <- length(unique(data$target))
+    anzahl <- nrow(imp[imp$data == t,])
+    besserSL <- paste0(round(sum(imp[imp$data == t,]$e_admissible < 1)/anzahl * 100), "%")
+    besserSSL <- paste0(round(sum(imp[imp$data == t,]$e_admissible < imp[imp$data == t,]$SSL )/anzahl * 100), "%")
+    row <- c(Datensatz = t, Variblen = p, Kategorien = k,  Anzahl_Experimente = anzahl, besser_als_SL = besserSL, besser_als_SSL = besserSSL)
+    summary_table <- rbind(summary_table, row)
+  }
+  
+  summary_table_df <- as.data.frame(summary_table)
+  row.names(summary_table_df) <- NULL
+  View(summary_table_df)
+}
