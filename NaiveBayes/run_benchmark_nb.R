@@ -7,7 +7,7 @@ for(dat in used_data) {
       for(alpha in alp) {
         
         
-        print(paste("RUNNING on ",workers, " workers: data ", dat, " n_labled: ", n_labled, " n_unlabled: ", n_unlabled, " alpha: ", alpha, sep= ""))
+        print(paste("RUNNING on ",workers, " workers: data ", dat, " n_labled: ", n_labled, " n_unlabled: ", n_unlabled, " alpha: ", alpha, sep= "")) ### könnte die anzahl der prioris hinzunehmen 
         time_a <- Sys.time()
         
         # 2. Parallelisierungsstrategie festlegen (plattformunabhängig)
@@ -29,11 +29,13 @@ for(dat in used_data) {
             test <-sample[[3]]
             
             e_admissible <- e_admissible_SSL(prioris, train, unlabeld, test, alpha)
-            
+            maximal <- maximal_SSL(prioris, train, unlabeld, test, alpha)
+            Gamma_MaxiMin <- Gamma_MaxiMin_SSL(prioris, train, unlabeld, test, alpha)
+            Gamma_MaxiMax <- Gamma_MaxiMax_SSL(prioris, train, unlabeld, test, alpha)
             SSL <- refernce_SSL(train, unlabeld, test, priori = NULL)
             SL <- refernce_SL(train, unlabeld, test, priori = NULL) 
             
-            l <- list(e_admissible=e_admissible,SSL = SSL, SL= SL )
+            l <- list(e_admissible=e_admissible,SSL = SSL, SL= SL, Gamma_MaxiMin = Gamma_MaxiMin, Gamma_MaxiMax=Gamma_MaxiMax, maximal = maximal )
             
             # Fortschritt updaten
             p(sprintf("Zeile %d bearbeitet", i))

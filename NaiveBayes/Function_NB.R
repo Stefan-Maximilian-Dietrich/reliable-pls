@@ -415,6 +415,28 @@ e_admissible_creterion <- function(matrix) {
   
 }
 
+# Funktion zur Bestimmung der "maximalen" Objekte
+maximalitaetskriterium <- function(matrix) {
+  n <- nrow(matrix)
+  return_vec <- NULL
+  for(i in 1:n) {
+    compare <- (1:n)[1:n != i]
+    bool_vec <- NULL
+    for(j in compare) {
+      if(any(matrix[i, ] > matrix[j, ])) {
+        bool_vec <- c(bool_vec, TRUE)
+      } else {
+        bool_vec <- c(bool_vec, FALSE)
+      }
+    }
+    if(all(bool_vec)) {
+      return_vec <- c(return_vec,i)
+      
+    }
+  }
+  return(return_vec)
+}
+
 test_confiusion <- function(priori, train, test) {
   
   if(is.null(priori)) {
@@ -435,6 +457,30 @@ predict_pseudo_labled_data <- function(best_modell, unlabeld) {
   pseudo_y <-as.factor(predict(best_modell, newdata = as.matrix(X), type = "class"))
   pseudo_data_point <- cbind(target = pseudo_y, tibble(X))
   return(pseudo_data_point)
+}
+
+combinations <- function(n, k) {
+  if (k == 1) {
+    return(matrix(n, nrow = 1))
+  }
+  
+  result <- NULL
+  for (i in 0:n) {
+    rest <- combinations(n - i, k - 1)
+    result <- rbind(result, cbind(i, rest))
+  }
+  return(result)
+}
+
+gerate_priori_simplex_rec <- function(levels, refinement){
+  k <- length(levels)
+  n <- refinement - k
+  priori_matrix <- combinations(n, k)
+  priori_matrix <- priori_matrix + 1
+  priori_matrix <- priori_matrix/refinement
+  colnames(priori_matrix) <- as.character(levels)
+  
+  return(as.data.frame(priori_matrix))
 }
 ########################################################################
 minimum_viable <- function(data, target) {
@@ -509,7 +555,7 @@ Graphic_on_the_fly <- function(path) {
 
 }
 
-#### Analyce 
+#### Analyse
 titel_data <- function(path) {
   text <- sub(".*/", "", path)
   
@@ -676,4 +722,44 @@ show_Summary <- function(online) {
   summary_table_df <- as.data.frame(summary_table)
   row.names(summary_table_df) <- NULL
   View(summary_table_df)
+}
+
+all_experiments <- function(online){
+  if(online) {
+    ground_path <-  paste(getwd(),"/NaiveBayes/results_NB", sep="")
+    
+  } else {
+    ground_path <-  paste(getwd(),"/NaiveBayes/results_NB_PC", sep="")
+  }
+  files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)
+  improvment_matrix <- NULL
+  for(path in files) { # anteil der fehler im vergleich zu SL 0 = alle fehler beseitigt 1= genua so viele fehler 2= doppelt so vile fehler 
+    print(path)
+    load(path)
+    mathods <- unique(names(gamma))
+    
+    gruppen <- split(gamma, mathods)
+    matrizen <- lapply(gruppen, function(x) do.call(rbind, x))
+    spalten_mittelwerte <- lapply(matrizen, colMeans)
+    
+    ead_end <- spalten_mittelwerte$e_admissible[length(spalten_mittelwerte$e_admissible)]
+    erow_ref_point <- 1- spalten_mittelwerte$SL[1]
+    errow_quote <- lapply(spalten_mittelwerte, function(x) 1- x[length(x)])
+    improvement <- lapply(errow_quote, function(x)  x/erow_ref_point)
+    ratio <- unlist(improvement)
+    
+    numbers <- as.numeric(unlist(regmatches(path, gregexpr("[0-9]+(?:\\.[0-9]+)?", path))))
+    names(numbers) <- c("L", "U", "alp")
+    bereinigter_string <- sub(".*/", "", path)
+    vec <- c(numbers, e_ad_end = ead_end, ratio)
+    prefix <- sub("_.*", "", bereinigter_string)
+    df <- data.frame(data = prefix, as.list(vec))
+    improvment_matrix <- rbind(improvment_matrix, df)
+    
+    
+  }
+  
+  return(improvment_matrix[,c(1,2,3,4)])
+  
+  
 }
