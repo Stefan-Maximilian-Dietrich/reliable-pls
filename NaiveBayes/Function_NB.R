@@ -434,6 +434,25 @@ maximalitaetskriterium <- function(matrix) {
       
     }
   }
+  
+  if(is.null(return_vec)) {
+    for(i in 1:n) {
+      compare <- (1:n)[1:n != i]
+      bool_vec <- NULL
+      for(j in compare) {
+        if(any(matrix[i, ] >= matrix[j, ])) {
+          bool_vec <- c(bool_vec, TRUE)
+        } else {
+          bool_vec <- c(bool_vec, FALSE)
+        }
+      }
+      if(all(bool_vec)) {
+        return_vec <- c(return_vec,i)
+        
+      }
+    }
+    return_vec <- sample(return_vec, 1)
+  }
   return(return_vec)
 }
 
@@ -522,7 +541,7 @@ duration_function <- function(time_a, time_b) {
 }
 
 Graphic_on_the_fly <- function(path) {
-
+  
   
   load(path)
   mathods <- unique(names(gamma))
@@ -552,7 +571,7 @@ Graphic_on_the_fly <- function(path) {
   print(plot_object)
   
   
-
+  
 }
 
 #### Analyse
@@ -676,7 +695,7 @@ show_Summary <- function(online) {
   } else {
     ground_path <-  paste(getwd(),"/NaiveBayes/results_NB_PC", sep="")
   }
-
+  
   files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)
   improvment_matrix <- NULL
   for(path in files) { # anteil der fehler im vergleich zu SL 0 = alle fehler beseitigt 1= genua so viele fehler 2= doppelt so vile fehler 
