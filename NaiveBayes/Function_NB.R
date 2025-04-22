@@ -748,9 +748,10 @@ all_experiments <- function(online){
     improvement <- lapply(errow_quote, function(x)  x/erow_ref_point)
     ratio <- unlist(improvement)
     
-    numbers <- as.numeric(unlist(regmatches(path, gregexpr("[0-9]+(?:\\.[0-9]+)?", path))))
+    path_cut <- sub(".*NaiveBayes", "", path)
+    numbers <- as.numeric(unlist(regmatches(path_cut, gregexpr("[0-9]+(?:\\.[0-9]+)?", path_cut))))
     names(numbers) <- c("L", "U", "alp")
-    bereinigter_string <- sub(".*/", "", path)
+    bereinigter_string <- sub(".*/", "", path_cut)
     vec <- c(numbers, e_ad_end = ead_end, ratio)
     prefix <- sub("_.*", "", bereinigter_string)
     df <- data.frame(data = prefix, as.list(vec))
@@ -759,7 +760,7 @@ all_experiments <- function(online){
     
   }
   
-  return(improvment_matrix[,c(1,2,3,4)])
+  return(improvment_matrix)
   
   
 }
