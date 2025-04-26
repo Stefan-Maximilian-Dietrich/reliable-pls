@@ -13,7 +13,9 @@ pakete <- c(
   "RCurl",        # Paket für das Abrufen von Daten aus dem Web
   "mlbench",      # Paket für maschinelles Lernen mit Benchmark-Datensätzen
   "fdm2id",       # Paket für den Zugriff auf die fdm2id-Daten
-  "profvis"       # Paket zur Profilerstellung und Leistungsanalyse von R-Code
+  "profvis",
+  "mlr3verse"
+  # Paket zur Profilerstellung und Leistungsanalyse von R-Code
 )
 
 # Schleife, um Pakete zu installieren und zu laden
