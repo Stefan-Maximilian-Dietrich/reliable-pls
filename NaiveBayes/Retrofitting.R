@@ -1,7 +1,7 @@
 source(paste(getwd(),"/NaiveBayes/_setup_NB_session.R", sep = ""))
-N = 60
-workers = 20
-
+N = 4
+workers = 4
+online = FALSE
 
 
 experiemnts <- all_experiments(online)
@@ -21,13 +21,13 @@ experiemnts[experiemnts$data == "simulatedA",]$refinement <- 10
 # delete for neasted for loops in favour of one for loop tha does all axperiments 
 
 
-for(i in 13:15){
+for(j in 4){
   
-  dat <- experiemnts[i,]$data
-  n_labled <- experiemnts[i,]$L
-  n_unlabled <- experiemnts[i,]$U
-  alpha <-  experiemnts[i,]$alp
-  refinement <-experiemnts[i,]$refinement
+  dat <- experiemnts[j,]$data
+  n_labled <- experiemnts[j,]$L
+  n_unlabled <- experiemnts[j,]$U
+  alpha <-  experiemnts[j,]$alp
+  refinement <-experiemnts[j,]$refinement
   
   
   data_loader(dat)
@@ -48,7 +48,7 @@ for(i in 13:15){
     p <- progressor(steps = N)  # Fortschritt explizit setzen
     
     gamma_l <- future_map(1:N, function(i) {
-      set.seed(i+n_labled*100+n_unlabled*10000+alpha*100000)
+      set.seed(i+n_labled*100+n_unlabled*10000)
       
       sample <- sampler_NB_up(n_labled,n_unlabled,data, formula)
       train <- sample[[1]]

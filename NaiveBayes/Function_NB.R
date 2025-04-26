@@ -415,7 +415,16 @@ e_admissible_creterion <- function(matrix) {
   
 }
 
-# Funktion zur Bestimmung der "maximalen" Objekte
+M_MaxiMin_creterion <- function(matrix) {
+  a <- apply(matrix, 1, min)
+  a_s <- which.max(a)[1]
+}
+
+M_MaxiMax_creterion <- function(matrix) {
+  a <- apply(matrix, 1, max)
+  a_s <- which.max(a)[1]
+}
+
 maximalitaetskriterium <- function(matrix) {
   n <- nrow(matrix)
   return_vec <- NULL
@@ -455,6 +464,8 @@ maximalitaetskriterium <- function(matrix) {
   }
   return(return_vec)
 }
+
+# Funktion zur Bestimmung der "maximalen" Objekte
 
 test_confiusion <- function(priori, train, test) {
   
@@ -515,9 +526,51 @@ generate_formula <- function(data, target) {
 }
 
 data_loader <- function(data_name) {
-  source(paste(getwd(),"/NaiveBayes/data_NB/", data_name, ".R", sep = ""))
+  source(paste(getwd(),"/NaiveBayes/data_NB/in_use_data/", data_name, ".R", sep = ""))
 }
 
+cross_product_to_experiment <- function(cross_prod) {
+  lst <- cross_prod
+  # Konvertiere jeden Vektor in die Form einer Liste (mit Namen für Spalten)
+  named_lst <- setNames(lst, paste0("V", seq_along(lst)))
+  
+  # Kartesisches Produkt als DataFrame
+  result <- expand.grid(named_lst, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+  names(result) <- c("data", "L", "U", "alp", "prio_t", "prio_r")
+  df <- result
+  lapply(seq_len(nrow(df)), function(i) {
+    as.list(df[i, , drop = FALSE])
+  })
+}
+
+paths_to_experiment <- function(folder = "/NaiveBayes/results_NB_PC"){
+
+  ground_path <-  paste(getwd(),folder, sep="")
+    
+
+  files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)
+  improvment_matrix <- NULL
+  for(path in files) { # anteil der fehler im vergleich zu SL 0 = alle fehler beseitigt 1= genua so viele fehler 2= doppelt so vile fehler 
+    print(path)
+    load(path)
+    
+    path_cut <- sub(".*NaiveBayes", "", path)
+    numbers <- as.numeric(unlist(regmatches(path_cut, gregexpr("[0-9]+(?:\\.[0-9]+)?", path_cut))))
+    names(numbers) <- c("L", "U", "alp", "prio_r")
+    bereinigter_string <- sub(".*/", "", path_cut)
+    method <- regmatches(bereinigter_string, regexpr("(?<=_prio_)[^_]+", bereinigter_string, perl = TRUE))
+    
+    prefix <- sub("_.*", "", bereinigter_string)
+    df <- data.frame(data = prefix, as.list(numbers[1:3]), prio_t = method, as.list(numbers[4]))
+    improvment_matrix <- rbind(improvment_matrix, df)
+  }
+  
+  lapply(seq_len(nrow(improvment_matrix)), function(i) {
+    as.list(improvment_matrix[i, , drop = FALSE])
+  })
+
+  
+}
 
 #### moitoring 
 duration_function <- function(time_a, time_b) {
@@ -755,23 +808,46 @@ all_experiments <- function(online){
   for(path in files) { # anteil der fehler im vergleich zu SL 0 = alle fehler beseitigt 1= genua so viele fehler 2= doppelt so vile fehler 
     print(path)
     load(path)
+
+    path_cut <- sub(".*NaiveBayes", "", path)
+    numbers <- as.numeric(unlist(regmatches(path_cut, gregexpr("[0-9]+(?:\\.[0-9]+)?", path_cut))))
+    names(numbers) <- c("L", "U", "alp", "n_prio")
+    bereinigter_string <- sub(".*/", "", path_cut)
+    method <- regmatches(bereinigter_string, regexpr("(?<=_prio_)[^_]+", bereinigter_string, perl = TRUE))
+    
+    prefix <- sub("_.*", "", bereinigter_string)
+    df <- data.frame(data = prefix, as.list(numbers[1:3]), technique = method, as.list(numbers[4]))
+    improvment_matrix <- rbind(improvment_matrix, df)
+  }
+  
+  return(improvment_matrix)
+  
+  
+}
+
+Results_end <- function(online) {
+  if(online) {
+    ground_path <-  paste(getwd(),"/NaiveBayes/results_NB", sep="")
+    
+  } else {
+    ground_path <-  paste(getwd(),"/NaiveBayes/results_NB_PC", sep="")
+  }
+  files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)
+  improvment_matrix <- NULL
+  for(path in files) { # anteil der fehler im vergleich zu SL 0 = alle fehler beseitigt 1= genua so viele fehler 2= doppelt so vile fehler 
+    print(path)
+    load(path)
     mathods <- unique(names(gamma))
     
     gruppen <- split(gamma, mathods)
     matrizen <- lapply(gruppen, function(x) do.call(rbind, x))
     spalten_mittelwerte <- lapply(matrizen, colMeans)
+    endwerte <- unlist(lapply(spalten_mittelwerte, function(i) {i[length(i)]}))
     
-    ead_end <- spalten_mittelwerte$e_admissible[length(spalten_mittelwerte$e_admissible)]
-    erow_ref_point <- 1- spalten_mittelwerte$SL[1]
-    errow_quote <- lapply(spalten_mittelwerte, function(x) 1- x[length(x)])
-    improvement <- lapply(errow_quote, function(x)  x/erow_ref_point)
-    ratio <- unlist(improvement)
-    
-    path_cut <- sub(".*NaiveBayes", "", path)
-    numbers <- as.numeric(unlist(regmatches(path_cut, gregexpr("[0-9]+(?:\\.[0-9]+)?", path_cut))))
+    numbers <- as.numeric(unlist(regmatches(path, gregexpr("[0-9]+(?:\\.[0-9]+)?", path))))
     names(numbers) <- c("L", "U", "alp")
-    bereinigter_string <- sub(".*/", "", path_cut)
-    vec <- c(numbers, e_ad_end = ead_end, ratio)
+    bereinigter_string <- sub(".*/", "", path)
+    vec <- c(numbers, endwerte)
     prefix <- sub("_.*", "", bereinigter_string)
     df <- data.frame(data = prefix, as.list(vec))
     improvment_matrix <- rbind(improvment_matrix, df)
@@ -779,7 +855,165 @@ all_experiments <- function(online){
     
   }
   
-  return(improvment_matrix)
+  return(improvment_matrix[order(improvment_matrix$data, improvment_matrix$L, improvment_matrix$U, improvment_matrix$alp),])
   
   
+}
+
+Results_best <- function(online) {
+  if(online) {
+    ground_path <-  paste(getwd(),"/NaiveBayes/results_NB", sep="")
+    
+  } else {
+    ground_path <-  paste(getwd(),"/NaiveBayes/results_NB_PC", sep="")
+  }
+  files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)
+  improvment_matrix <- NULL
+  for(path in files) { # anteil der fehler im vergleich zu SL 0 = alle fehler beseitigt 1= genua so viele fehler 2= doppelt so vile fehler 
+    print(path)
+    load(path)
+    mathods <- unique(names(gamma))
+    
+    gruppen <- split(gamma, mathods)
+    matrizen <- lapply(gruppen, function(x) do.call(rbind, x))
+    spalten_mittelwerte <- lapply(matrizen, colMeans)
+    beste <- unlist(lapply(spalten_mittelwerte,  max))
+    
+    numbers <- as.numeric(unlist(regmatches(path, gregexpr("[0-9]+(?:\\.[0-9]+)?", path))))
+    names(numbers) <- c("L", "U", "alp")
+    bereinigter_string <- sub(".*/", "", path)
+    vec <- c(numbers, beste)
+    prefix <- sub("_.*", "", bereinigter_string)
+    df <- data.frame(data = prefix, as.list(vec))
+    improvment_matrix <- rbind(improvment_matrix, df)
+    
+    
+  }
+  
+  return(improvment_matrix[order(improvment_matrix$data, improvment_matrix$L, improvment_matrix$U, improvment_matrix$alp),])
+  
+  
+}
+
+create_full_match_matrices <- function(df) {
+  players <- colnames(df)
+  n <- length(players)
+  
+  win_matrix <- matrix(0, nrow = n, ncol = n, dimnames = list(players, players))
+  draw_matrix <- matrix(0, nrow = n, ncol = n, dimnames = list(players, players))
+  loss_matrix <- matrix(0, nrow = n, ncol = n, dimnames = list(players, players))
+  
+  for (i in 1:nrow(df)) {
+    scores <- as.numeric(df[i, ])
+    
+    for (j in 1:n) {
+      for (k in 1:n) {
+        if (j != k) {
+          if (scores[j] > scores[k]) {
+            win_matrix[players[j], players[k]] <- win_matrix[players[j], players[k]] + 1
+            loss_matrix[players[k], players[j]] <- loss_matrix[players[k], players[j]] + 1
+          } else if (scores[j] == scores[k]) {
+            draw_matrix[players[j], players[k]] <- draw_matrix[players[j], players[k]] + 1
+          }
+        }
+      }
+    }
+  }
+  
+  return(list(
+    win_matrix = win_matrix,
+    draw_matrix = draw_matrix,
+    loss_matrix = loss_matrix
+  ))
+} # GPT
+
+## Retrofit
+retrofit_prioris <- function(){
+  # Verzeichnis mit den Dateien
+  pfad <-  paste(getwd(),"/NaiveBayes/results_NB_PC", sep="")
+  
+  # Alle Dateien im Verzeichnis
+  dateien <- list.files(pfad, full.names = TRUE)
+  
+  # Mapping von Präfix zu Suffix
+  suffix_map <- list(
+    "Breast_Cancer"= "prio_grid_99",
+    "Banknote" = "prio_grid_99",
+    "Simulated_A" = "prio_grid_126",
+    "Ionosphere"= "prio_grid_99",
+    "Waveform"= "prio_grid_171",
+    "Iris" = "prio_grid_171"
+  )
+  
+  # Umbenennung basierend auf dem Präfix
+  for (datei in dateien) {
+    name <- basename(datei)
+    for (prefix in names(suffix_map)) {
+      if (startsWith(name, prefix)) {
+        neuer_name <- paste0(name, "_", suffix_map[[prefix]])
+        neuer_pfad <- file.path(pfad, neuer_name)
+        file.rename(datei, neuer_pfad)
+        break
+      }
+    }
+  }
+}
+
+rename_net_to_grid <- function() {
+  # Liste aller Dateien im Verzeichnis
+  folder_path <-  paste(getwd(),"/NaiveBayes/results_NB_PC", sep="")
+  
+  files <- list.files(folder_path, full.names = TRUE)
+  
+  # Filtere nur die Dateien, die "_net_" im Namen haben
+  net_files <- files[grepl("_net_", basename(files))]
+  
+  for (file in net_files) {
+    # Neuer Dateiname mit "_grid_" statt "_net_"
+    new_name <- gsub("_net_", "_grid_", basename(file))
+    
+    # Vollständiger Pfad zum neuen Dateinamen
+    new_path <- file.path(dirname(file), new_name)
+    
+    # Datei umbenennen
+    file.rename(file, new_path)
+  }
+  
+  message(length(net_files), " Dateien wurden umbenannt.")
+}
+
+retrofit_names <- function(){
+
+  # Verzeichnis mit den Dateien
+  pfad <-  paste(getwd(),"/NaiveBayes/results_NB_PC", sep="")
+  
+  # Alle Dateien im Verzeichnis
+  dateien <- list.files(pfad, full.names = TRUE)
+  
+  # Alle Dateien im Verzeichnis
+
+  # Ersetzungsliste: ersetze "alt" durch "neu"
+  ersetzungen <- list(
+    "brestAll" = "Breast_Cancer",
+    "banknote" = "Banknote",
+    "simulatedA" = "Simulated_A",
+    "ionosphere" = "Ionosphere",
+    "waveform" = "Waveform",
+    "iris" = "Iris"
+  )
+  
+  # Durch alle Dateien gehen
+  for (datei in files) {
+    alter_name <- basename(datei)
+    neuer_name <- alter_name
+    for (alt in names(ersetzungen)) {
+      neu <- ersetzungen[[alt]]
+      neuer_name <- gsub(alt, neu, neuer_name)
+    }
+    if (alter_name != neuer_name) {
+      alter_pfad <- file.path(pfad, alter_name)
+      neuer_pfad <- file.path(pfad, neuer_name)
+      file.rename(alter_pfad, neuer_pfad)
+    }
+  }
 }
