@@ -61,7 +61,7 @@ sampler_NB_up <- function(n_labled, n_unlabled, data, formula) {
   data_used <- data[, variables]
   
   categories <- unique(data_used[, target])
-  if(length(categories)*2 > n_labled) {
+  if(length(categories)*2  >= n_labled) {
     stop("Labeld date less than reqiert to fit a GNB")
   }
   
@@ -835,7 +835,6 @@ Results_end <- function(online) {
   files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)
   improvment_matrix <- NULL
   for(path in files) { # anteil der fehler im vergleich zu SL 0 = alle fehler beseitigt 1= genua so viele fehler 2= doppelt so vile fehler 
-    print(path)
     load(path)
     mathods <- unique(names(gamma))
     
@@ -845,7 +844,7 @@ Results_end <- function(online) {
     endwerte <- unlist(lapply(spalten_mittelwerte, function(i) {i[length(i)]}))
     vektor <- setNames(rep(NA, length(names(methods))), names(methods))
     vektor[names(endwerte)] <- endwerte
-
+    
     numbers <- as.numeric(unlist(regmatches(path, gregexpr("[0-9]+(?:\\.[0-9]+)?", path))))
     names(numbers) <- c("L", "U", "alp", "Prioris")
     bereinigter_string <- sub(".*/", "", path)
@@ -901,6 +900,30 @@ Results_best <- function(online) {
   return(improvment_matrix[order(improvment_matrix$data, improvment_matrix$L, improvment_matrix$U, improvment_matrix$alp),])
   
   
+}
+
+Result_end_better_SL <- function(online, diq) {
+  imp_mat_all <- Results_end(online)
+  imp_mat<- imp_mat_all[imp_mat_all$U >= diq * imp_mat_all$L,]
+  exp <- imp_mat[, c(1:5)]
+  res <- imp_mat[, -c(1:5)] > imp_mat$SL
+  df <- cbind(exp,res )
+  cols <- names(imp_mat[, -c(1:5)])
+  df %>%
+    group_by(data) %>%
+    summarise(across(c(cols),\(x) mean(x, na.rm = TRUE)))
+}
+
+Result_end_better_SSL <- function(online, diq) {
+  imp_mat_all <- Results_end(online)
+  imp_mat<- imp_mat_all[imp_mat_all$U >= diq * imp_mat_all$L,]
+  exp <- imp_mat[, c(1:5)]
+  res <- imp_mat[, -c(1:5)] > imp_mat$SSL
+  df <- cbind(exp,res )
+  cols <- names(imp_mat[, -c(1:5)])
+  df %>%
+    group_by(data) %>%
+    summarise(across(c(cols),\(x) mean(x, na.rm = TRUE)))
 }
 
 create_full_match_matrices <- function(df) {
