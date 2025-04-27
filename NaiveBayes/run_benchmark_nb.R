@@ -58,10 +58,10 @@ for(j in 1:length(Experiments)){
       
       if(methods$M_MaxiMin){
         M_MaxiMin <- M_MaxiMin_SSL(prioris, train, unlabeld, test, alpha)
-      } else {SL <- NA}
+      } else {M_MaxiMin <- NA}
       if(methods$M_MaxiMax){
         M_MaxiMax <- M_MaxiMax_SSL(prioris, train, unlabeld, test, alpha)
-      } else {SL <- NA}
+      } else {M_MaxiMax <- NA}
       
       l <- list(e_admissible=e_admissible,SSL = SSL, SL= SL, Gamma_MaxiMin = Gamma_MaxiMin, Gamma_MaxiMax=Gamma_MaxiMax, maximal = maximal, M_MaxiMin= M_MaxiMin, M_MaxiMax = M_MaxiMax)
       
