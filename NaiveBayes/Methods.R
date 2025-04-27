@@ -11,10 +11,10 @@ e_admissible_SSL <- function(prioris, train, unlabeld, test, alpha) {
     marg_prioris <- marginal_likelihoods(train, prioris)
     
     ##### Visualiserung
-
+    
     ################
     cut_priori <- alpha_cut(marg_prioris, alpha)
-
+    
     
     best_modell <- predict_best_model(cut_priori, train)
     
@@ -23,10 +23,10 @@ e_admissible_SSL <- function(prioris, train, unlabeld, test, alpha) {
     pseudo_labled_data <-  predict_pseudo_labled_data(best_modell, unlabeld) #für die auswahl
     
     matrix <- decison_matrix(cut_priori, pseudo_data)
-  
+    
     ind_matrix <- generate_indicator_matrix(matrix)
     e_admissible <- e_admissible_creterion(ind_matrix)
-
+    
     ###########
     train <- rbind(train, pseudo_labled_data[e_admissible, ])
     unlabeld <- unlabeld[-e_admissible, ]
@@ -41,7 +41,7 @@ e_admissible_SSL <- function(prioris, train, unlabeld, test, alpha) {
     #plot(marg_prioris$genuine, marg_prioris$marg_likelis)
     
   }
- 
+  
   return(as.numeric(result))
   
 } 
@@ -335,8 +335,8 @@ M_MaxiMin_SSL <- function(prioris, train, unlabeld, test, alpha) {
     M_MaxiMin <- M_MaxiMin_creterion(matrix)
     
     ###########
-    train <- rbind(train, pseudo_labled_data[M_MaxiMin, ])
-    unlabeld <- unlabeld[-M_MaxiMin, ]
+    train <- rbind(train, pseudo_labled_data[c(M_MaxiMin), ])
+    unlabeld <- unlabeld[-c(M_MaxiMin), ]
     ########### Evaluation
     confusion <- test_confiusion(priori = best_modell$prior, train, test)
     for(w in 1:(length(M_MaxiMin))) {
@@ -377,12 +377,13 @@ M_MaxiMax_SSL <- function(prioris, train, unlabeld, test, alpha) {
     pseudo_data <- pseud_labeling(best_modell, train, unlabeld) #für die claculation
     pseudo_labled_data <-  predict_pseudo_labled_data(best_modell, unlabeld) #für die auswahl
     
-
-    M_MaxiMax  <- M_MaxiMax_creterion(matrix)
-
+    matrix <- decison_matrix(cut_priori, pseudo_data)
+    
+    M_MaxiMax <- M_MaxiMax_creterion(matrix)
+    
     ###########
-    train <- rbind(train, pseudo_labled_data[M_MaxiMax, ])
-    unlabeld <- unlabeld[-M_MaxiMax, ]
+    train <- rbind(train, pseudo_labled_data[c(M_MaxiMax), ])
+    unlabeld <- unlabeld[-c(M_MaxiMax), ]
     ########### Evaluation
     confusion <- test_confiusion(priori = best_modell$prior, train, test)
     for(w in 1:(length(M_MaxiMax))) {
@@ -398,9 +399,3 @@ M_MaxiMax_SSL <- function(prioris, train, unlabeld, test, alpha) {
   return(as.numeric(result))
   
 } 
-
-
-
-
-
-

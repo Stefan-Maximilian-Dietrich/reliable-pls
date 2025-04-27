@@ -544,10 +544,10 @@ cross_product_to_experiment <- function(cross_prod) {
 }
 
 paths_to_experiment <- function(folder = "/NaiveBayes/results_NB_PC"){
-
+  
   ground_path <-  paste(getwd(),folder, sep="")
-    
-
+  
+  
   files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)
   improvment_matrix <- NULL
   for(path in files) { # anteil der fehler im vergleich zu SL 0 = alle fehler beseitigt 1= genua so viele fehler 2= doppelt so vile fehler 
@@ -568,7 +568,7 @@ paths_to_experiment <- function(folder = "/NaiveBayes/results_NB_PC"){
   lapply(seq_len(nrow(improvment_matrix)), function(i) {
     as.list(improvment_matrix[i, , drop = FALSE])
   })
-
+  
   
 }
 
@@ -739,7 +739,7 @@ show_all_Results <- function(online) {
   View(improvment_matrix[order(improvment_matrix$data, improvment_matrix$L, improvment_matrix$U, improvment_matrix$alp),])
   
   
-}
+} #alt
 
 show_Summary <- function(online) {
   if(online) {
@@ -794,7 +794,7 @@ show_Summary <- function(online) {
   summary_table_df <- as.data.frame(summary_table)
   row.names(summary_table_df) <- NULL
   View(summary_table_df)
-}
+} # alt
 
 all_experiments <- function(online){
   if(online) {
@@ -808,7 +808,7 @@ all_experiments <- function(online){
   for(path in files) { # anteil der fehler im vergleich zu SL 0 = alle fehler beseitigt 1= genua so viele fehler 2= doppelt so vile fehler 
     print(path)
     load(path)
-
+    
     path_cut <- sub(".*NaiveBayes", "", path)
     numbers <- as.numeric(unlist(regmatches(path_cut, gregexpr("[0-9]+(?:\\.[0-9]+)?", path_cut))))
     names(numbers) <- c("L", "U", "alp", "n_prio")
@@ -843,11 +843,13 @@ Results_end <- function(online) {
     matrizen <- lapply(gruppen, function(x) do.call(rbind, x))
     spalten_mittelwerte <- lapply(matrizen, colMeans)
     endwerte <- unlist(lapply(spalten_mittelwerte, function(i) {i[length(i)]}))
-    
+    vektor <- setNames(rep(NA, length(names(methods))), names(methods))
+    vektor[names(endwerte)] <- endwerte
+
     numbers <- as.numeric(unlist(regmatches(path, gregexpr("[0-9]+(?:\\.[0-9]+)?", path))))
-    names(numbers) <- c("L", "U", "alp")
+    names(numbers) <- c("L", "U", "alp", "Prioris")
     bereinigter_string <- sub(".*/", "", path)
-    vec <- c(numbers, endwerte)
+    vec <- c(numbers, vektor)
     prefix <- sub("_.*", "", bereinigter_string)
     df <- data.frame(data = prefix, as.list(vec))
     improvment_matrix <- rbind(improvment_matrix, df)
@@ -879,10 +881,16 @@ Results_best <- function(online) {
     spalten_mittelwerte <- lapply(matrizen, colMeans)
     beste <- unlist(lapply(spalten_mittelwerte,  max))
     
+    vektor <- setNames(rep(NA, length(names(methods))), names(methods))
+    vektor[names(beste)] <- beste
+    
     numbers <- as.numeric(unlist(regmatches(path, gregexpr("[0-9]+(?:\\.[0-9]+)?", path))))
-    names(numbers) <- c("L", "U", "alp")
+    names(numbers) <- c("L", "U", "alp", "Prioris")
     bereinigter_string <- sub(".*/", "", path)
-    vec <- c(numbers, beste)
+    vec <- c(numbers, vektor)
+    prefix <- sub("_.*", "", bereinigter_string)
+    df <- data.frame(data = prefix, as.list(vec))
+    improvment_matrix <- rbind(improvment_matrix, df)
     prefix <- sub("_.*", "", bereinigter_string)
     df <- data.frame(data = prefix, as.list(vec))
     improvment_matrix <- rbind(improvment_matrix, df)
@@ -983,7 +991,7 @@ rename_net_to_grid <- function() {
 }
 
 retrofit_names <- function(){
-
+  
   # Verzeichnis mit den Dateien
   pfad <-  paste(getwd(),"/NaiveBayes/results_NB_PC", sep="")
   
@@ -991,7 +999,7 @@ retrofit_names <- function(){
   dateien <- list.files(pfad, full.names = TRUE)
   
   # Alle Dateien im Verzeichnis
-
+  
   # Ersetzungsliste: ersetze "alt" durch "neu"
   ersetzungen <- list(
     "brestAll" = "Breast_Cancer",
@@ -1003,7 +1011,7 @@ retrofit_names <- function(){
   )
   
   # Durch alle Dateien gehen
-  for (datei in files) {
+  for (datei in dateien) {
     alter_name <- basename(datei)
     neuer_name <- alter_name
     for (alt in names(ersetzungen)) {
