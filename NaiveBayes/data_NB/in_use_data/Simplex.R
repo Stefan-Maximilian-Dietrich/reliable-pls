@@ -1,9 +1,7 @@
-d <- 10
-# 1. Generator erstellen 
-tg = tgen("simplex", d = d)
-
-# 2. Dann Datensatz mit n Punkten erzeugen
-task = tg$generate(200000)
+d <- 5
+tg = mlr3::mlr_task_generators$get("simplex")
+tg$param_set$values$d = d
+task = tg$generate(100000)
 
 # 3. Daten extrahieren
 data = task$data()
