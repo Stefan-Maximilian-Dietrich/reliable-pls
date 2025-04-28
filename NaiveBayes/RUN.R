@@ -31,7 +31,7 @@ cross_prod <- list( # Experiments are created by cross product
 Experiments <- cross_product_to_experiment(cross_prod) 
 
 # Methode 3  
-Experiments <- paths_to_experiment() 
+Experiments <- paths_to_experiment(select = 1:20) 
 
 suffix <- "" 
 source(paste(getwd(),"/NaiveBayes/run_benchmark_nb.R", sep = ""))   

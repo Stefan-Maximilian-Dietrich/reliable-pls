@@ -543,12 +543,12 @@ cross_product_to_experiment <- function(cross_prod) {
   })
 }
 
-paths_to_experiment <- function(folder = "/NaiveBayes/results_NB_PC"){
+paths_to_experiment <- function(folder = "/NaiveBayes/results_NB_PC", select){
   
   ground_path <-  paste(getwd(),folder, sep="")
   
   
-  files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)
+  files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)[select]
   improvment_matrix <- NULL
   for(path in files) { # anteil der fehler im vergleich zu SL 0 = alle fehler beseitigt 1= genua so viele fehler 2= doppelt so vile fehler 
     print(path)
