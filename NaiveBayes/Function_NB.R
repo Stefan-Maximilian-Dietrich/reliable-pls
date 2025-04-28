@@ -418,11 +418,14 @@ e_admissible_creterion <- function(matrix) {
 M_MaxiMin_creterion <- function(matrix) {
   a <- apply(matrix, 1, min)
   a_s <- which.max(a)[1]
+  return(a_s)
 }
 
 M_MaxiMax_creterion <- function(matrix) {
   a <- apply(matrix, 1, max)
   a_s <- which.max(a)[1]
+  return(a_s)
+  
 }
 
 maximalitaetskriterium <- function(matrix) {
