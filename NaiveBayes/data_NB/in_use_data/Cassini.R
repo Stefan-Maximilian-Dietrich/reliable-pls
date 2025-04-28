@@ -18,3 +18,4 @@ vars <- c("target ~")
 for (v in 2:3) {
   vars <- c(vars, colnames(data)[v])
 }
+formula = paste(vars, collapse=" + ") %>% as.formula()
