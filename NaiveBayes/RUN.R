@@ -39,7 +39,8 @@ source(paste(getwd(),"/NaiveBayes/run_benchmark_nb.R", sep = ""))
 ### analyse Results
 online <- FALSE #Wenn TRUE anaylse dirket im LRZ Cluster  
 make_all_Graphics(online) 
-
+Result_end_better_SL(online, 4)
+Result_end_better_SSL(online, 2)
 create_full_match_matrices(Results_end(online)[, -c(1:5)])
 rowSums(create_full_match_matrices(Results_end(online)[, -c(1:5)])[[1]])
 

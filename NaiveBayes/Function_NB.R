@@ -61,7 +61,7 @@ sampler_NB_up <- function(n_labled, n_unlabled, data, formula) {
   data_used <- data[, variables]
   
   categories <- unique(data_used[, target])
-  if(length(categories)*2  >= n_labled) {
+  if(length(categories)*2  > n_labled) {
     stop("Labeld date less than reqiert to fit a GNB")
   }
   
