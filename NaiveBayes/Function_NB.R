@@ -575,6 +575,14 @@ paths_to_experiment <- function(folder = "/NaiveBayes/results_NB_PC", select){
   
 }
 
+split <- function(List, names) {
+  return_list <- list()
+  for(j in names){
+    return_list[[j]] <- List[names(List) == j]
+  }
+  return(return_list)
+}
+
 #### moitoring 
 duration_function <- function(time_a, time_b) {
   duration <- as.numeric(difftime(time_b, time_a, units = "secs"))
@@ -658,7 +666,7 @@ extrahiere_zahl_U <- function(text) {
   regmatches(text, regexpr("(?<=_U_)[0-9]+", text, perl = TRUE))
 }
 
-make_all_Graphics <- function(online) {
+make_all_Graphics <- function(online, legende = FALSE, methods = c("SL", "SSL", "e_admissible", "maximal", "Gamma_MaxiMin", "Gamma_MaxiMax","M_MaxiMin", "M_MaxiMax")) {
   if(online) {
     ground_path <-  paste(getwd(),"/NaiveBayes/results_NB", sep="")
     
@@ -675,7 +683,7 @@ make_all_Graphics <- function(online) {
     load(path)
     mathods <- unique(names(gamma))
     
-    gruppen <- split(gamma, mathods)
+    gruppen <- split(gamma, mathods)[methods]
     matrizen <- lapply(gruppen, function(x) do.call(rbind, x))
     spalten_mittelwerte <- lapply(matrizen, colMeans)
     
@@ -692,14 +700,27 @@ make_all_Graphics <- function(online) {
     titel_d <- titel_data(path)
     titel_l <- extrahiere_zahl_L(path)
     titel_u <- extrahiere_zahl_U(path)
-    plot_object <- ggplot(df, aes(x = X, y = Mittelwert, color = Name, group = Name)) +
-      theme(legend.position = "none") +
-      geom_line(size = 1) +
-      geom_point(size = 2) +
-      labs(x = "unlabed Data", y = "test accuracy", title = paste0(titel_d, ": labeled = ", titel_l, ", unlabeled = ", titel_u))  
     
-    ggsave(paste("/Users/Stefan/Desktop/Studium/Publikation/Experimetn_Grafiken/", bereinigter_string, ".png", sep = ""), width = 20, height = 20, units = "cm", dpi = 300,plot = plot_object)
+    if(!legende) {
+      plot_object <- ggplot(df, aes(x = X, y = Mittelwert, color = Name, group = Name)) +
+        theme(legend.position = "none") +
+        geom_line(size = 1) +
+        geom_point(size = 2) +
+        labs(x = "unlabed Data", y = "test accuracy", title = paste0(titel_d, ": labeled = ", titel_l, ", unlabeled = ", titel_u))  
+      
+      ggsave(paste("/Users/Stefan/Desktop/Studium/Publikation/Experimetn_Grafiken/", bereinigter_string, ".png", sep = ""), width = 20, height = 20, units = "cm", dpi = 300,plot = plot_object)
+      
+    } else {
+      plot_object <- ggplot(df, aes(x = X, y = Mittelwert, color = Name, group = Name)) +
+        geom_line(size = 1) +
+        geom_point(size = 2) +
+        labs(x = "unlabed Data", y = "test accuracy", title = paste0(titel_d, ": labeled = ", titel_l, ", unlabeled = ", titel_u))  
+      
+      ggsave(paste("/Users/Stefan/Desktop/Studium/Publikation/Experimetn_Grafiken/", bereinigter_string, ".png", sep = ""), width = 20, height = 20, units = "cm", dpi = 300,plot = plot_object)
+      
+    }
     
+
   }
   
 }
@@ -840,7 +861,7 @@ Results_end <- function(online) {
   for(path in files) { # anteil der fehler im vergleich zu SL 0 = alle fehler beseitigt 1= genua so viele fehler 2= doppelt so vile fehler 
     load(path)
     mathods <- unique(names(gamma))
-    
+    print(mathods)
     gruppen <- split(gamma, mathods)
     matrizen <- lapply(gruppen, function(x) do.call(rbind, x))
     spalten_mittelwerte <- lapply(matrizen, colMeans)
@@ -855,7 +876,6 @@ Results_end <- function(online) {
     prefix <- sub("_.*", "", bereinigter_string)
     df <- data.frame(data = prefix, as.list(vec))
     improvment_matrix <- rbind(improvment_matrix, df)
-    
     
   }
   
@@ -1049,5 +1069,50 @@ retrofit_names <- function(){
       neuer_pfad <- file.path(pfad, neuer_name)
       file.rename(alter_pfad, neuer_pfad)
     }
+  }
+}
+
+retrofit_p <- function(){
+  
+  # Verzeichnis mit den Dateien
+  pfad <-  paste(getwd(),"/NaiveBayes/results_NB_PC", sep="")
+  
+  # Alle Dateien im Verzeichnis
+  dateien <- list.files(pfad, full.names = TRUE)
+  
+  # Alle Dateien im Verzeichnis
+  
+  # Ersetzungsliste: ersetze "alt" durch "neu"
+  ersetzungen <- list(
+    "grid_99" = "grid_100",
+    "grid_171" = "grid_20",
+    "grid_126" = "grid_10"
+
+  )
+  
+  # Durch alle Dateien gehen
+  for (datei in dateien) {
+    alter_name <- basename(datei)
+    neuer_name <- alter_name
+    for (alt in names(ersetzungen)) {
+      neu <- ersetzungen[[alt]]
+      neuer_name <- gsub(alt, neu, neuer_name)
+    }
+    if (alter_name != neuer_name) {
+      alter_pfad <- file.path(pfad, alter_name)
+      neuer_pfad <- file.path(pfad, neuer_name)
+      file.rename(alter_pfad, neuer_pfad)
+    }
+  }
+}
+
+retrofit_erase <- function() {
+  ground_path <-  paste(getwd(),"/NaiveBayes/results_NB_PC", sep="")
+  files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)
+  for(path in files){
+    load(path)
+    behlaten <- !(names(gamma) == "Gamma_MaxiMin" | names(gamma) == "Gamma_MaxiMax")
+    gamma <- gamma[behlaten]
+    save(gamma, file = path)
   }
 }

@@ -8,8 +8,6 @@ methods <- list(SL = T,
                 SSL = T,
                 e_admissible= T, 
                 maximal = F, 
-                Gamma_MaxiMin = F, 
-                Gamma_MaxiMax = F,
                 M_MaxiMin = F, 
                 M_MaxiMax = F)
 # Methodee 1 (Zielstrukur)
@@ -38,7 +36,7 @@ source(paste(getwd(),"/NaiveBayes/run_benchmark_nb.R", sep = ""))
 
 ### analyse Results
 online <- FALSE #Wenn TRUE anaylse dirket im LRZ Cluster  
-make_all_Graphics(online) 
+make_all_Graphics(online, legende = T, methods = c("SL", "e_admissible", "maximal")) 
 Result_end_better_SL(online, 4)
 Result_end_better_SSL(online, 2)
 create_full_match_matrices(Results_end(online)[, -c(1:5)])
