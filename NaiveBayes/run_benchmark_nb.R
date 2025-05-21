@@ -43,13 +43,23 @@ for(j in 1:length(Experiments)){
       if(methods$maximal){
         maximal <- maximal_SSL(prioris, train, unlabeld, test, alpha)
       } else {maximal <- NA}
-      
+      if(methods$Gamma_MaxiMin){
+        Gamma_MaxiMin <- Gamma_MaxiMin_SSL(prioris, train, unlabeld, test, alpha)
+      } else {Gamma_MaxiMin <- NA}
+      if(methods$Gamma_MaxiMax){
+        Gamma_MaxiMax <- Gamma_MaxiMax_SSL(prioris, train, unlabeld, test, alpha)
+      } else {Gamma_MaxiMax <- NA}
       if(methods$SSL){
         SSL <- refernce_SSL(train, unlabeld, test, priori = NULL)
       } else {SSL <- NA}
+      
       if(methods$SL){
         SL <- refernce_SL(train, unlabeld, test, priori = NULL) 
       } else {SL <- NA}
+      
+      if(methods$SSL_variance){
+        SSL_variance <- refernce_SSL_variance(train, unlabeld, test, priori = NULL) 
+      } else {SSL_variance <- NA}
       
       if(methods$M_MaxiMin){
         M_MaxiMin <- M_MaxiMin_SSL(prioris, train, unlabeld, test, alpha)
@@ -58,7 +68,7 @@ for(j in 1:length(Experiments)){
         M_MaxiMax <- M_MaxiMax_SSL(prioris, train, unlabeld, test, alpha)
       } else {M_MaxiMax <- NA}
       
-      l <- list(e_admissible=e_admissible,SSL = SSL, SL= SL, maximal = maximal, M_MaxiMin= M_MaxiMin, M_MaxiMax = M_MaxiMax)
+      l <- list(e_admissible=e_admissible,SSL = SSL, SL= SL, SSL_variance = SSL_variance, Gamma_MaxiMin = Gamma_MaxiMin, Gamma_MaxiMax=Gamma_MaxiMax, maximal = maximal, M_MaxiMin= M_MaxiMin, M_MaxiMax = M_MaxiMax)
       
       # Fortschritt updaten
       p(sprintf("Zeile %d bearbeitet", i))
@@ -85,3 +95,4 @@ for(j in 1:length(Experiments)){
   
   
 }
+

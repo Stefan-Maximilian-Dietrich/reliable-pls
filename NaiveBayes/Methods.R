@@ -46,53 +46,6 @@ e_admissible_SSL <- function(prioris, train, unlabeld, test, alpha) {
   
 } 
 
-maximal_SSL <- function(prioris, train, unlabeld, test, alpha) {
-  
-  model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
-  pred_test <- predict(model, newdata = as.matrix(test[, -1]), type = "class")
-  acc_new <- sum((pred_test == test$target))/length(pred_test)
-  result <- acc_new
-  
-  z = 1
-  end <- nrow(unlabeld)
-  while(z <= end) {
-    marg_prioris <- marginal_likelihoods(train, prioris)
-    
-    ##### Visualiserung
-    
-    ################
-    cut_priori <- alpha_cut(marg_prioris, alpha)
-    
-    
-    best_modell <- predict_best_model(cut_priori, train)
-    
-    #AusWAHL Index
-    pseudo_data <- pseud_labeling(best_modell, train, unlabeld) #für die claculation
-    pseudo_labled_data <-  predict_pseudo_labled_data(best_modell, unlabeld) #für die auswahl
-    
-    matrix <- decison_matrix(cut_priori, pseudo_data)
-    
-    maximal <- maximalitaetskriterium(matrix)
-    
-    ###########
-    train <- rbind(train, pseudo_labled_data[maximal, ])
-    unlabeld <- unlabeld[-maximal, ]
-    ########### Evaluation
-    confusion <- test_confiusion(priori = best_modell$prior, train, test)
-    for(w in 1:(length(maximal))) {
-      
-      result <- c(result, confusion$overall[1])   ##### wird list mir allen möglichen wert
-      z = z + 1
-    }
-    #print(result)
-    #plot(marg_prioris$genuine, marg_prioris$marg_likelis)
-    
-  }
-  
-  return(as.numeric(result))
-  
-} 
-
 refernce_SSL <- function(train, unlabeld, test, priori = NULL) {
   
   if(is.null(priori)) {
@@ -146,6 +99,157 @@ refernce_SSL <- function(train, unlabeld, test, priori = NULL) {
   return(acc)
   
 }
+
+refernce_SSL_variance <- function(train, unlabeld, test, priori = NULL) { ####
+  unlabeld$target <- NA
+  
+  if(is.null(priori)) {
+    model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
+    
+  } else {
+    model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), prior = priori)
+  }
+  
+  pred_test <- predict(model, newdata = as.matrix(test[, -1]), type = "class")
+  acc_new <- sum((pred_test == test$target))/length(pred_test)
+  acc <- acc_new
+  
+  for(i in 1:nrow(unlabeld)) {
+    if(is.null(priori)) {
+      model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
+      
+    } else {
+      model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), priori = priori)
+    }
+    model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
+    pred_prob <- predict(model, newdata = as.matrix(unlabeld[, -1]), type = "prob")
+    pred_class <- predict(model, newdata = as.matrix(unlabeld[, -1]), type = "class")
+    unlabeld$target <- pred_class
+    
+    second_largest <- apply(pred_prob, 1, function(row) sort(row, decreasing = TRUE)[2])
+    first_largest <- apply(pred_prob, 1, function(row) sort(row, decreasing = TRUE)[1])
+    max_variance <- which.max(log(first_largest) - log(second_largest))
+  
+
+    train <- rbind(train,unlabeld[max_variance, ] )
+    unlabeld <- unlabeld[-c(max_variance), ]
+
+    if(is.null(priori)) {
+      new_model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
+      
+    } else {
+      new_model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), prior = priori)
+    }
+    
+    pred_test <- predict(new_model, newdata = as.matrix(test[, -1]), type = "class")
+    acc_new <- sum((pred_test == test$target))/length(pred_test)
+    acc <- c(acc, acc_new)
+    
+  }
+  return(acc)
+  
+}
+
+refernce_SSL_entropy <- function(train, unlabeld, test, priori = NULL) { ####
+  unlabeld$target <- NA
+  
+  if(is.null(priori)) {
+    model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
+    
+  } else {
+    model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), prior = priori)
+  }
+  
+  pred_test <- predict(model, newdata = as.matrix(test[, -1]), type = "class")
+  acc_new <- sum((pred_test == test$target))/length(pred_test)
+  acc <- acc_new
+  
+  for(i in 1:nrow(unlabeld)) {
+    if(is.null(priori)) {
+      model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
+      
+    } else {
+      model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), priori = priori)
+    }
+    model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
+    pred_prob <- predict(model, newdata = as.matrix(unlabeld[, -1]), type = "prob")
+    pred_class <- predict(model, newdata = as.matrix(unlabeld[, -1]), type = "class")
+    unlabeld$target <- pred_class
+    
+    entropy_values <- apply(pred_prob, 1, function(p) {
+      p <- p[p > 0]
+      return(-sum(p * log2(p)))
+    })
+    
+   
+    min_entropy <- which.min(entropy_values)
+    
+    
+    train <- rbind(train,unlabeld[min_entropy, ] )
+    unlabeld <- unlabeld[-c(min_entropy), ]
+    
+    if(is.null(priori)) {
+      new_model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
+      
+    } else {
+      new_model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), prior = priori)
+    }
+    
+    pred_test <- predict(new_model, newdata = as.matrix(test[, -1]), type = "class")
+    acc_new <- sum((pred_test == test$target))/length(pred_test)
+    acc <- c(acc, acc_new)
+    
+  }
+  return(acc)
+  
+}
+
+maximal_SSL <- function(prioris, train, unlabeld, test, alpha) {
+  
+  model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
+  pred_test <- predict(model, newdata = as.matrix(test[, -1]), type = "class")
+  acc_new <- sum((pred_test == test$target))/length(pred_test)
+  result <- acc_new
+  
+  z = 1
+  end <- nrow(unlabeld)
+  while(z <= end) {
+    marg_prioris <- marginal_likelihoods(train, prioris)
+    
+    ##### Visualiserung
+    
+    ################
+    cut_priori <- alpha_cut(marg_prioris, alpha)
+    
+    
+    best_modell <- predict_best_model(cut_priori, train)
+    
+    #AusWAHL Index
+    pseudo_data <- pseud_labeling(best_modell, train, unlabeld) #für die claculation
+    pseudo_labled_data <-  predict_pseudo_labled_data(best_modell, unlabeld) #für die auswahl
+    
+    matrix <- decison_matrix(cut_priori, pseudo_data)
+    
+    maximal <- maximalitaetskriterium(matrix)
+    
+    ###########
+    train <- rbind(train, pseudo_labled_data[maximal, ])
+    unlabeld <- unlabeld[-maximal, ]
+    ########### Evaluation
+    confusion <- test_confiusion(priori = best_modell$prior, train, test)
+    for(w in 1:(length(maximal))) {
+      
+      result <- c(result, confusion$overall[1])   ##### wird list mir allen möglichen wert
+      z = z + 1
+    }
+    #print(result)
+    #plot(marg_prioris$genuine, marg_prioris$marg_likelis)
+    
+  }
+  
+  return(as.numeric(result))
+  
+} 
 
 refernce_SL <- function(train, unlabeld, test, priori = NULL) {
   if(is.null(priori)) {

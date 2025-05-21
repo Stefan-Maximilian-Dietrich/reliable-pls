@@ -546,16 +546,58 @@ cross_product_to_experiment <- function(cross_prod) {
   })
 }
 
-paths_to_experiment <- function(folder = "/NaiveBayes/results_NB_PC", select){
+paths_to_experiment <- function(folder = "/NaiveBayes/results_NB_PCa", select = NULL, met = NULL){
   
   ground_path <-  paste(getwd(),folder, sep="")
   
+  if(is.null(select)) {
+    files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)
+  } else {
+    files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)[select]
+  }
   
-  files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)[select]
+  
+  
+  if(online) {
+    ground_path <-  paste(getwd(),"/NaiveBayes/results_NB", sep="")
+    
+  } else {
+    ground_path <-  paste(getwd(),"/NaiveBayes/results_NB_PCa", sep="")
+  }
+  files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)
+  improvment_matrix <- NULL
+  path <- files[1]
+  for(path in files) { # anteil der fehler im vergleich zu SL 0 = alle fehler beseitigt 1= genua so viele fehler 2= doppelt so vile fehler 
+    load(path)
+    mathods <- unique(names(gamma))
+    print(mathods)
+    gruppen <- split(gamma, mathods)
+    matrizen <- lapply(gruppen, function(x) do.call(rbind, x))
+    spalten_mittelwerte <- lapply(matrizen, colMeans)
+    endwerte <- unlist(lapply(spalten_mittelwerte, function(i) {i[length(i)]}))
+    vektor <- setNames(rep(NA, length(names(mathods))), names(mathods))
+    vektor[names(endwerte)] <- endwerte
+    
+    numbers <- as.numeric(unlist(regmatches(path, gregexpr("[0-9]+(?:\\.[0-9]+)?", path))))
+    names(numbers) <- c("L", "U", "alp", "Prioris")
+    bereinigter_string <- sub(".*/", "", path)
+    vec <- c(numbers, vektor)
+    prefix <- sub("_.*", "", bereinigter_string)
+    df <- data.frame(data = prefix, as.list(vec))
+    improvment_matrix <- rbind(improvment_matrix, df)
+    
+  }
+
+  if(!is.null(met)) {
+    choose <- is.na(improvment_matrix[,met])
+    files <- files[choose]
+  }
+  
   improvment_matrix <- NULL
   for(path in files) { # anteil der fehler im vergleich zu SL 0 = alle fehler beseitigt 1= genua so viele fehler 2= doppelt so vile fehler 
     print(path)
     load(path)
+    
     
     path_cut <- sub(".*NaiveBayes", "", path)
     numbers <- as.numeric(unlist(regmatches(path_cut, gregexpr("[0-9]+(?:\\.[0-9]+)?", path_cut))))
@@ -568,10 +610,11 @@ paths_to_experiment <- function(folder = "/NaiveBayes/results_NB_PC", select){
     improvment_matrix <- rbind(improvment_matrix, df)
   }
   
-  lapply(seq_len(nrow(improvment_matrix)), function(i) {
+  result <- lapply(seq_len(nrow(improvment_matrix)), function(i) {
     as.list(improvment_matrix[i, , drop = FALSE])
   })
   
+  return(result)
   
 }
 
@@ -666,7 +709,7 @@ extrahiere_zahl_U <- function(text) {
   regmatches(text, regexpr("(?<=_U_)[0-9]+", text, perl = TRUE))
 }
 
-make_all_Graphics <- function(online, legende = FALSE, methods = c("SL", "SSL", "e_admissible", "maximal", "Gamma_MaxiMin", "Gamma_MaxiMax","M_MaxiMin", "M_MaxiMax")) {
+make_all_Graphics <- function(online, legende = FALSE, methods = c("SL", "SSL", "e_admissible", "maximal","M_MaxiMin", "M_MaxiMax")) {
   if(online) {
     ground_path <-  paste(getwd(),"/NaiveBayes/results_NB", sep="")
     
@@ -854,10 +897,11 @@ Results_end <- function(online) {
     ground_path <-  paste(getwd(),"/NaiveBayes/results_NB", sep="")
     
   } else {
-    ground_path <-  paste(getwd(),"/NaiveBayes/results_NB_PC", sep="")
+    ground_path <-  paste(getwd(),"/NaiveBayes/results_NB_PC1", sep="")
   }
   files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)
   improvment_matrix <- NULL
+  path <- files[1]
   for(path in files) { # anteil der fehler im vergleich zu SL 0 = alle fehler beseitigt 1= genua so viele fehler 2= doppelt so vile fehler 
     load(path)
     mathods <- unique(names(gamma))
@@ -866,7 +910,7 @@ Results_end <- function(online) {
     matrizen <- lapply(gruppen, function(x) do.call(rbind, x))
     spalten_mittelwerte <- lapply(matrizen, colMeans)
     endwerte <- unlist(lapply(spalten_mittelwerte, function(i) {i[length(i)]}))
-    vektor <- setNames(rep(NA, length(names(methods))), names(methods))
+    vektor <- setNames(rep(NA, length(names(mathods))), names(mathods))
     vektor[names(endwerte)] <- endwerte
     
     numbers <- as.numeric(unlist(regmatches(path, gregexpr("[0-9]+(?:\\.[0-9]+)?", path))))

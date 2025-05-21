@@ -7,6 +7,7 @@ N = 60
 methods <- list(SL = T, 
                 SSL = T,
                 e_admissible= T, 
+                SSL_variance = T,
                 maximal = F, 
                 M_MaxiMin = F, 
                 M_MaxiMax = F)
