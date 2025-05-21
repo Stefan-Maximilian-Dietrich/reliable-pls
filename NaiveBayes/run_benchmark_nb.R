@@ -43,12 +43,7 @@ for(j in 1:length(Experiments)){
       if(methods$maximal){
         maximal <- maximal_SSL(prioris, train, unlabeld, test, alpha)
       } else {maximal <- NA}
-      if(methods$Gamma_MaxiMin){
-        Gamma_MaxiMin <- Gamma_MaxiMin_SSL(prioris, train, unlabeld, test, alpha)
-      } else {Gamma_MaxiMin <- NA}
-      if(methods$Gamma_MaxiMax){
-        Gamma_MaxiMax <- Gamma_MaxiMax_SSL(prioris, train, unlabeld, test, alpha)
-      } else {Gamma_MaxiMax <- NA}
+      
       if(methods$SSL){
         SSL <- refernce_SSL(train, unlabeld, test, priori = NULL)
       } else {SSL <- NA}
