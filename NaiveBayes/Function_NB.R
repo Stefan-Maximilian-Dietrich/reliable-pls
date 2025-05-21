@@ -605,7 +605,7 @@ paths_to_experiment <- function(folder = "/NaiveBayes/results_NB_PCa", select = 
     bereinigter_string <- sub(".*/", "", path_cut)
     method <- regmatches(bereinigter_string, regexpr("(?<=_prio_)[^_]+", bereinigter_string, perl = TRUE))
     
-    prefix <- sub("_.*", "", bereinigter_string)
+    prefix <- sub("_L_.*", "", bereinigter_string)
     df <- data.frame(data = prefix, as.list(numbers[1:3]), prio_t = method, as.list(numbers[4]))
     improvment_matrix <- rbind(improvment_matrix, df)
   }

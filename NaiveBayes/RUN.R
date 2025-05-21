@@ -30,7 +30,7 @@ cross_prod <- list( # Experiments are created by cross product
 Experiments <- cross_product_to_experiment(cross_prod) 
 
 # Methode 3  
-Experiments <- paths_to_experiment(select = 1:20) 
+Experiments <- paths_to_experiment(folder = "/NaiveBayes/results_NB_PCa", select = NULL, met = "e_admissible")
 
 suffix <- "" 
 source(paste(getwd(),"/NaiveBayes/run_benchmark_nb.R", sep = ""))   
