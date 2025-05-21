@@ -897,7 +897,7 @@ Results_end <- function(online) {
     ground_path <-  paste(getwd(),"/NaiveBayes/results_NB", sep="")
     
   } else {
-    ground_path <-  paste(getwd(),"/NaiveBayes/results_NB_PC1", sep="")
+    ground_path <-  paste(getwd(),"/NaiveBayes/results_NB_PCa", sep="")
   }
   files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)
   improvment_matrix <- NULL
