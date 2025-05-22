@@ -46,14 +46,15 @@ print(plot_object)
 
 
 ################################################################################
-ground_path_results <-  paste(getwd(),"/NaiveBayes/results_NB_PC", sep="")
+
+ground_path_results <-  paste(getwd(),"/NaiveBayes/results_NB_PCa", sep="")
 files_result <- list.files(path = ground_path_results, full.names = TRUE, recursive = TRUE)
 ground_path_new <-  paste(getwd(),"/NaiveBayes/new", sep="")
 files_new <- list.files(path = ground_path_new, full.names = TRUE, recursive = TRUE)
 
-bese <- files_new[grepl("variance$", files_new)]
+suffix <- "_var"
 
-path <- bese[10]
+path <- files_result[101]
 for(path in bese){
   load(path)
   gamma_base <- gamma
@@ -65,30 +66,11 @@ for(path in bese){
   spalten_mittelwerte_new_base <- lapply(matrizen, colMeans)
   
   name <-  sub(".*/", "", path)
-  name1 <- sub("_ad.*", "", name)
 
 
-  gamma_alt <- tryCatch(
-    {
-      new_path <-  paste(getwd(),"/NaiveBayes/results_NB_PC/",name1, sep="")
-      load(alt_path)
-      gamma  # explizit zurückgeben
-    },
-    error = function(e) {
-      # Alternativwert zurückgeben
-      NA
-    }
-  )
-  
-  filtered_gamma_alt <- Filter(function(x) !is.na(x[1]), gamma_alt)
-  mathods <- unique(names(filtered_gamma_alt))
-  gruppen <- split(gamma, mathods)
-  matrizen <- lapply(gruppen, function(x) do.call(rbind, x))
-  spalten_mittelwerte_new_alt <- lapply(matrizen, colMeans)
-  
   gamma_new <- tryCatch(
     {
-      new_path <- paste(getwd(), "/NaiveBayes/new/", name1, "_adMM", sep = "")
+      new_path <-  paste(getwd(),"/NaiveBayes/new/",name, suffix, sep="")
       load(new_path)
       gamma  # explizit zurückgeben
     },
@@ -97,6 +79,7 @@ for(path in bese){
       NA
     }
   )
+  
   
   filtered_gamma_new <- Filter(function(x) !is.na(x[1]), gamma_new)
   mathods <- unique(names(filtered_gamma_new))

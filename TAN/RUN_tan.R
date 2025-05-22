@@ -1,20 +1,20 @@
 ### setup Session 
-source(paste(getwd(),"/NaiveBayes/_setup_NB_session.R", sep = ""))
+source(paste(getwd(),"/TAN/_setup_TAN_session.R", sep = ""))
 
 ### run Experiments
-workers = 20
-N = 60
+workers = 3
+N = 9
+structure = "NB"
 methods <- list(SL = T, 
-                SSL = F,
-                e_admissible= F, 
-                SSL_variance = F,
+                SSL = T,
+                e_admissible= T, 
+                SSL_variance = T,
                 SSL_entropy = T,
-                maximal = F, 
-                M_MaxiMin = F, 
-                M_MaxiMax = F)
+                maximal = T, 
+                M_MaxiMin = T, 
+                M_MaxiMax = T)
 # Methodee 1 (Zielstrukur)
 Experiments <- list( # All Experiments are define direct
-  list(data = "Simulated_A", L = 50, U = 300, alp = 0.9, prio_t = "grid", prio_r = 10),
   list(data = "Banknote", L = 10, U = 100, alp = 0.9, prio_t = "grid", prio_r = 100),
   list(data = "Wave", L = 20, U = 60, alp = 0.9, prio_t = "grid", prio_r = 20)
 )
@@ -33,8 +33,8 @@ Experiments <- cross_product_to_experiment(cross_prod)
 # Methode 3  
 Experiments <- paths_to_experiment(folder = "/NaiveBayes/results_NB_PCa", select = NULL, met = "SSL_entropy")
 
-suffix <- "_ent" 
-source(paste(getwd(),"/NaiveBayes/run_benchmark_nb.R", sep = ""))   
+suffix <- "" 
+source(paste(getwd(),"/TAN/run_benchmark_tan.R", sep = ""))   
 
 ### analyse Results
 online <- FALSE #Wenn TRUE anaylse dirket im LRZ Cluster  

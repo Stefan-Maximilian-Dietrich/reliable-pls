@@ -9,9 +9,10 @@ for(j in 1:length(Experiments)){
   priori_tec <-  experiemnt$prio_t
   refinement <-experiemnt$prio_r
   
-  
+  seed <- sum(utf8ToInt(tolower(dat))) # gereiret aus den Wort das die den Datensatz beschriebt 
+  set.seed(seed)
   data_loader(dat)
-  
+
   levels_present <- levels(data[,c(all.vars(formula)[1])]) 
   
   prioris <- gerate_priori_simplex_rec(levels_present, refinement) # muss neu gemacht werden 
@@ -40,6 +41,7 @@ for(j in 1:length(Experiments)){
       if(methods$e_admissible){
         e_admissible <- e_admissible_SSL(prioris, train, unlabeld, test, alpha)
       } else {e_admissible <- NA}
+      
       if(methods$maximal){
         maximal <- maximal_SSL(prioris, train, unlabeld, test, alpha)
       } else {maximal <- NA}
@@ -56,14 +58,19 @@ for(j in 1:length(Experiments)){
         SSL_variance <- refernce_SSL_variance(train, unlabeld, test, priori = NULL) 
       } else {SSL_variance <- NA}
       
+      if(methods$SSL_entropy){
+        SSL_entropy <- refernce_SSL_entropy(train, unlabeld, test, priori = NULL) 
+      } else {SSL_entropy <- NA}
+      
       if(methods$M_MaxiMin){
         M_MaxiMin <- M_MaxiMin_SSL(prioris, train, unlabeld, test, alpha)
       } else {M_MaxiMin <- NA}
+      
       if(methods$M_MaxiMax){
         M_MaxiMax <- M_MaxiMax_SSL(prioris, train, unlabeld, test, alpha)
       } else {M_MaxiMax <- NA}
       
-      l <- list(e_admissible=e_admissible,SSL = SSL, SL= SL, SSL_variance = SSL_variance, Gamma_MaxiMin = Gamma_MaxiMin, Gamma_MaxiMax=Gamma_MaxiMax, maximal = maximal, M_MaxiMin= M_MaxiMin, M_MaxiMax = M_MaxiMax)
+      l <- list(e_admissible=e_admissible,SSL = SSL, SL= SL, SSL_variance = SSL_variance,SSL_entropy = SSL_entropy,  maximal = maximal, M_MaxiMin= M_MaxiMin, M_MaxiMax = M_MaxiMax)
       
       # Fortschritt updaten
       p(sprintf("Zeile %d bearbeitet", i))
@@ -83,10 +90,6 @@ for(j in 1:length(Experiments)){
   
   time_b <- Sys.time()
   duration_function(time_a, time_b)
-  
-  
-  
-  
   
   
 }
