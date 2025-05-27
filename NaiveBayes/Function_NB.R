@@ -1168,3 +1168,41 @@ experiment_to_adress <- function(exp) {
   adress <- paste0(exp$data, "_L_", exp$L, "_U_", exp$U, "_alp_", exp$alp, "_", exp$prio_t, "_", exp$prio_r)
   return(adress)
 }
+#### Meta Paralell 
+check_semaphor <- function() {
+  load("/dss/dsshome1/03/di35lox/MASTER/SEMAPHOR")
+  return(SEMAPHOR)
+}
+
+change_semaphor <- function(bool) {
+  SEMAPHOR = bool
+  save(SEMAPHOR, file = "/dss/dsshome1/03/di35lox/MASTER/SEMAPHOR")
+}
+
+wait <- function() {
+  for(i in 1:15) {
+   if(check_semaphor()) {
+     change_semaphor(FALSE)
+     break
+   } else{
+     Sys.sleep(1)
+   } 
+    if(i == 15) {
+      stop("Zeitüberschreitung in der Semaphore")
+      
+    }
+  }
+}
+
+get_experiment <- function() {
+  load("/dss/dsshome1/03/di35lox/MASTER/CHECK")
+  return_exp <- CHECK[!CHECK$overall & !CHECK$inProgress, ][1, ]
+  if(nrow(return_exp) == 0) {
+    stop("all Experiments done or in Progress")
+  }
+  CHECK[!CHECK$overall & !CHECK$inProgress, ][1, ]$inProgress <- TRUE
+  save(CHECK, file = "/dss/dsshome1/03/di35lox/MASTER/CHECK")
+  
+  return(return_exp)
+}
+

@@ -1,6 +1,7 @@
 ### setup Session 
 source(paste(getwd(),"/NaiveBayes/_setup_NB_session.R", sep = ""))
 
+save_path <- "/dss/dsshome1/03/di35lox/"
 ### run Experiments
 workers = 20
 N = 60

@@ -83,7 +83,7 @@ refernce_SSL <- function(train, unlabeld, test, priori = NULL) {
       new_model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), prior = priori)
     }
     
-    confusion <- test_confiusion(priori = priori train, test)
+    confusion <- test_confiusion(priori = priori, train, test)
     result <- c(result, list(confusion))  
     
     

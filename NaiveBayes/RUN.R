@@ -5,13 +5,13 @@ save_path <- ""##############################
 workers = 20
 N = 60
 methods <- list(SL = T, 
-                SSL = F,
-                e_admissible= F, 
-                SSL_variance = F,
+                SSL = T,
+                e_admissible= T, 
+                SSL_variance = T,
                 SSL_entropy = T,
-                maximal = F, 
-                M_MaxiMin = F, 
-                M_MaxiMax = F)
+                maximal = T, 
+                M_MaxiMin = T, 
+                M_MaxiMax = T)
 # Methodee 1 (Zielstrukur)
 Experiments <- list( # All Experiments are define direct
   list(data = "Simulated_A", L = 50, U = 300, alp = 0.9, prio_t = "grid", prio_r = 10),
