@@ -14,5 +14,5 @@ methods <- list(SL = T,
                 M_MaxiMin = T, 
                 M_MaxiMax = T)
 
-source(paste(getwd(),"/NaiveBayes/run_benchmark_nb.R", sep = ""))   
+source(paste(getwd(),"/NaiveBayes/META_run_nb.R", sep = ""))   
 
