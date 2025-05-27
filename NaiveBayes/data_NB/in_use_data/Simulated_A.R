@@ -1,8 +1,8 @@
-
 categories <- 1:5
 varibales <- 60
 data  <- NULL
 n <- 3000
+set.seed(1)
 for(i in categories) {
   for(j in 1:n){
     X <-rnorm(varibales, categories[i], 2)

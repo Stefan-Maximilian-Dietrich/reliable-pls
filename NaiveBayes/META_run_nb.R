@@ -1,4 +1,4 @@
-for(j in 1:length(Experiments)){
+while(TRUE){
   
   experiemnt <- Experiments[[j]]
   
@@ -12,7 +12,7 @@ for(j in 1:length(Experiments)){
   seed <- sum(utf8ToInt(tolower(dat))) # gereiret aus den Wort das die den Datensatz beschriebt 
   set.seed(seed)
   data_loader(dat)
-
+  
   levels_present <- levels(data[,c(all.vars(formula)[1])]) 
   
   prioris <- gerate_priori_simplex_rec(levels_present, refinement) # muss neu gemacht werden 
@@ -86,13 +86,13 @@ for(j in 1:length(Experiments)){
         save(M_MaxiMax, file = titel)
       } 
       
-
+      
       # Fortschritt updaten
       p(sprintf("Zeile %d bearbeitet", i))
       
     })
   })
-
+  
   
   #### Plot 
   #Graphic_on_the_fly(path)

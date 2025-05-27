@@ -3,6 +3,7 @@
 tg = tgen("cassini")
 
 # 2. Dann Datensatz mit n Punkten erzeugen
+set.seed(1)
 task = tg$generate(1000)
 
 # 3. Daten extrahieren

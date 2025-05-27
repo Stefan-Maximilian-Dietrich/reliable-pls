@@ -709,24 +709,27 @@ extrahiere_zahl_U <- function(text) {
   regmatches(text, regexpr("(?<=_U_)[0-9]+", text, perl = TRUE))
 }
 
-make_all_Graphics <- function(online, legende = FALSE, methods = c("SL", "SSL", "e_admissible", "maximal","M_MaxiMin", "M_MaxiMax")) {
+make_all_Graphics <- function(online, legende = FALSE, methods = c("SL","SSL_entropy", "SSL_variance" ,"SSL", "e_admissible", "maximal","M_MaxiMin", "M_MaxiMax")) {
   if(online) {
     ground_path <-  paste(getwd(),"/NaiveBayes/results_NB", sep="")
     
   } else {
-    ground_path <-  paste(getwd(),"/NaiveBayes/results_NB_PC", sep="")
+    ground_path <-  paste(getwd(),"/NaiveBayes/results_NB_PCa", sep="")
   }
   
   files <- list.files(path = ground_path, full.names = TRUE, recursive = TRUE)
   
   ###
   ###
+  path <- files[1]
   for(path in files) {
     print(path)
     load(path)
     mathods <- unique(names(gamma))
     
-    gruppen <- split(gamma, mathods)[methods]
+    gruppen <- (split(gamma, mathods)[methods])
+    gruppen <- Filter(is.list, gruppen)
+    
     matrizen <- lapply(gruppen, function(x) do.call(rbind, x))
     spalten_mittelwerte <- lapply(matrizen, colMeans)
     
@@ -759,7 +762,7 @@ make_all_Graphics <- function(online, legende = FALSE, methods = c("SL", "SSL", 
         geom_point(size = 2) +
         labs(x = "unlabed Data", y = "test accuracy", title = paste0(titel_d, ": labeled = ", titel_l, ", unlabeled = ", titel_u))  
       
-      ggsave(paste("/Users/Stefan/Desktop/Studium/Publikation/Experimetn_Grafiken/", bereinigter_string, ".png", sep = ""), width = 20, height = 20, units = "cm", dpi = 300,plot = plot_object)
+      ggsave(paste("/Users/Stefan/Desktop/Studium/Forschung/Grafiken/", bereinigter_string, ".png", sep = ""), width = 20, height = 20, units = "cm", dpi = 300,plot = plot_object)
       
     }
     
@@ -1159,4 +1162,9 @@ retrofit_erase <- function() {
     gamma <- gamma[behlaten]
     save(gamma, file = path)
   }
+}
+###
+experiment_to_adress <- function(exp) {
+  adress <- paste0(exp$data, "_L_", exp$L, "_U_", exp$U, "_alp_", exp$alp, "_", exp$prio_t, "_", exp$prio_r)
+  return(adress)
 }

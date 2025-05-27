@@ -1,6 +1,6 @@
 ### setup Session 
 source(paste(getwd(),"/NaiveBayes/_setup_NB_session.R", sep = ""))
-
+save_path <- ""##############################
 ### run Experiments
 workers = 20
 N = 60
@@ -38,7 +38,9 @@ source(paste(getwd(),"/NaiveBayes/run_benchmark_nb.R", sep = ""))
 
 ### analyse Results
 online <- FALSE #Wenn TRUE anaylse dirket im LRZ Cluster  
+make_all_Graphics(online, legende = T) 
 make_all_Graphics(online, legende = T, methods = c("SL", "e_admissible", "maximal")) 
+
 Result_end_better_SL(online, 4)
 Result_end_better_SSL(online, 2)
 create_full_match_matrices(Results_end(online)[, -c(1:5)])

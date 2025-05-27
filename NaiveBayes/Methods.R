@@ -1,10 +1,9 @@
 e_admissible_SSL <- function(prioris, train, unlabeld, test, alpha) {
   
-  model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
-  pred_test <- predict(model, newdata = as.matrix(test[, -1]), type = "class")
-  acc_new <- sum((pred_test == test$target))/length(pred_test)
-  result <- acc_new
-  
+  confusion <- test_confiusion(priori = NULL, train, test)
+  result <- list(confusion)
+
+
   z = 1
   end <- nrow(unlabeld)
   while(z <= end) {
@@ -30,11 +29,11 @@ e_admissible_SSL <- function(prioris, train, unlabeld, test, alpha) {
     ###########
     train <- rbind(train, pseudo_labled_data[e_admissible, ])
     unlabeld <- unlabeld[-e_admissible, ]
+    
     ########### Evaluation
     confusion <- test_confiusion(priori = best_modell$prior, train, test)
     for(w in 1:(length(e_admissible))) {
-      
-      result <- c(result, confusion$overall[1])   ##### wird list mir allen möglichen wert
+      result <- c(result, list(confusion))  
       z = z + 1
     }
     #print(result)
@@ -42,22 +41,15 @@ e_admissible_SSL <- function(prioris, train, unlabeld, test, alpha) {
     
   }
   
-  return(as.numeric(result))
+  return(result)
   
 } 
 
 refernce_SSL <- function(train, unlabeld, test, priori = NULL) {
   
-  if(is.null(priori)) {
-    model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
-    
-  } else {
-    model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), prior = priori)
-  }
+  confusion <- test_confiusion(priori = priori, train, test)
+  result <- list(confusion)
   
-  pred_test <- predict(model, newdata = as.matrix(test[, -1]), type = "class")
-  acc_new <- sum((pred_test == test$target))/length(pred_test)
-  acc <- acc_new
   
   for(i in 1:nrow(unlabeld)) {
     if(is.null(priori)) {
@@ -91,28 +83,20 @@ refernce_SSL <- function(train, unlabeld, test, priori = NULL) {
       new_model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), prior = priori)
     }
     
-    pred_test <- predict(new_model, newdata = as.matrix(test[, -1]), type = "class")
-    acc_new <- sum((pred_test == test$target))/length(pred_test)
-    acc <- c(acc, acc_new)
+    confusion <- test_confiusion(priori = priori train, test)
+    result <- c(result, list(confusion))  
+    
     
   }
-  return(acc)
+  return(result)
   
 }
 
 refernce_SSL_variance <- function(train, unlabeld, test, priori = NULL) { ####
   unlabeld$target <- NA
   
-  if(is.null(priori)) {
-    model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
-    
-  } else {
-    model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), prior = priori)
-  }
-  
-  pred_test <- predict(model, newdata = as.matrix(test[, -1]), type = "class")
-  acc_new <- sum((pred_test == test$target))/length(pred_test)
-  acc <- acc_new
+  confusion <- test_confiusion(priori = priori, train, test)
+  result <- list(confusion)
   
   for(i in 1:nrow(unlabeld)) {
     if(is.null(priori)) {
@@ -134,35 +118,19 @@ refernce_SSL_variance <- function(train, unlabeld, test, priori = NULL) { ####
     train <- rbind(train,unlabeld[max_variance, ] )
     unlabeld <- unlabeld[-c(max_variance), ]
 
-    if(is.null(priori)) {
-      new_model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
-      
-    } else {
-      new_model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), prior = priori)
-    }
-    
-    pred_test <- predict(new_model, newdata = as.matrix(test[, -1]), type = "class")
-    acc_new <- sum((pred_test == test$target))/length(pred_test)
-    acc <- c(acc, acc_new)
+    confusion <- test_confiusion(priori = priori, train, test)
+    result <- c(result, list(confusion))
     
   }
-  return(acc)
+  return(result)
   
 }
 
 refernce_SSL_entropy <- function(train, unlabeld, test, priori = NULL) { ####
   unlabeld$target <- NA
   
-  if(is.null(priori)) {
-    model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
-    
-  } else {
-    model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), prior = priori)
-  }
-  
-  pred_test <- predict(model, newdata = as.matrix(test[, -1]), type = "class")
-  acc_new <- sum((pred_test == test$target))/length(pred_test)
-  acc <- acc_new
+  confusion <- test_confiusion(priori = priori, train, test)
+  result <- list(confusion)
   
   for(i in 1:nrow(unlabeld)) {
     if(is.null(priori)) {
@@ -188,28 +156,18 @@ refernce_SSL_entropy <- function(train, unlabeld, test, priori = NULL) { ####
     train <- rbind(train,unlabeld[min_entropy, ] )
     unlabeld <- unlabeld[-c(min_entropy), ]
     
-    if(is.null(priori)) {
-      new_model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
-      
-    } else {
-      new_model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), prior = priori)
-    }
-    
-    pred_test <- predict(new_model, newdata = as.matrix(test[, -1]), type = "class")
-    acc_new <- sum((pred_test == test$target))/length(pred_test)
-    acc <- c(acc, acc_new)
+    confusion <- test_confiusion(priori = priori, train, test)
+    result <- c(result, list(confusion))
     
   }
-  return(acc)
+  return(result)
   
 }
 
 maximal_SSL <- function(prioris, train, unlabeld, test, alpha) {
   
-  model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
-  pred_test <- predict(model, newdata = as.matrix(test[, -1]), type = "class")
-  acc_new <- sum((pred_test == test$target))/length(pred_test)
-  result <- acc_new
+  confusion <- test_confiusion(priori = NULL, train, test)
+  result <- list(confusion)
   
   z = 1
   end <- nrow(unlabeld)
@@ -239,7 +197,7 @@ maximal_SSL <- function(prioris, train, unlabeld, test, alpha) {
     confusion <- test_confiusion(priori = best_modell$prior, train, test)
     for(w in 1:(length(maximal))) {
       
-      result <- c(result, confusion$overall[1])   ##### wird list mir allen möglichen wert
+      result <- c(result, list(confusion))   ##### wird list mir allen möglichen wert
       z = z + 1
     }
     #print(result)
@@ -247,29 +205,20 @@ maximal_SSL <- function(prioris, train, unlabeld, test, alpha) {
     
   }
   
-  return(as.numeric(result))
+  return(result)
   
 } 
 
 refernce_SL <- function(train, unlabeld, test, priori = NULL) {
-  if(is.null(priori)) {
-    model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
-    
-  } else {
-    model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target), priori = priori)
-  }
-  pred_test <- predict(model, newdata = as.matrix(test[, -1]), type = "class")
-  acc_new <- sum((pred_test == test$target))/length(pred_test)
-  acc <- rep(acc_new, times= nrow(unlabeld) + 1)
-  return(acc)
+  confusion <- test_confiusion(priori = priori, train, test)
+  result <- rep(list(confusion), nrow(unlabeld) +1)
+  return(result)
 }
 
 M_MaxiMin_SSL <- function(prioris, train, unlabeld, test, alpha) {
   
-  model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
-  pred_test <- predict(model, newdata = as.matrix(test[, -1]), type = "class")
-  acc_new <- sum((pred_test == test$target))/length(pred_test)
-  result <- acc_new
+  confusion <- test_confiusion(priori = NULL, train, test)
+  result <- list(confusion)
   
   z = 1
   end <- nrow(unlabeld)
@@ -299,7 +248,7 @@ M_MaxiMin_SSL <- function(prioris, train, unlabeld, test, alpha) {
     confusion <- test_confiusion(priori = best_modell$prior, train, test)
     for(w in 1:(length(M_MaxiMin))) {
       
-      result <- c(result, confusion$overall[1])   ##### wird list mir allen möglichen wert
+      result <- c(result, list(confusion))   ##### wird list mir allen möglichen wert
       z = z + 1
     }
     #print(result)
@@ -307,16 +256,14 @@ M_MaxiMin_SSL <- function(prioris, train, unlabeld, test, alpha) {
     
   }
   
-  return(as.numeric(result))
+  return(result)
   
 } 
 
 M_MaxiMax_SSL <- function(prioris, train, unlabeld, test, alpha) {
   
-  model <- gaussian_naive_bayes(x = as.matrix(train[, -1]), y = as.factor(train$target))
-  pred_test <- predict(model, newdata = as.matrix(test[, -1]), type = "class")
-  acc_new <- sum((pred_test == test$target))/length(pred_test)
-  result <- acc_new
+  confusion <- test_confiusion(priori = NULL, train, test)
+  result <- list(confusion)
   
   z = 1
   end <- nrow(unlabeld)
@@ -346,7 +293,7 @@ M_MaxiMax_SSL <- function(prioris, train, unlabeld, test, alpha) {
     confusion <- test_confiusion(priori = best_modell$prior, train, test)
     for(w in 1:(length(M_MaxiMax))) {
       
-      result <- c(result, confusion$overall[1])   ##### wird list mir allen möglichen wert
+      result <- c(result, list(confusion))   ##### wird list mir allen möglichen wert
       z = z + 1
     }
     #print(result)
@@ -354,6 +301,6 @@ M_MaxiMax_SSL <- function(prioris, train, unlabeld, test, alpha) {
     
   }
   
-  return(as.numeric(result))
+  return(result)
   
 } 
