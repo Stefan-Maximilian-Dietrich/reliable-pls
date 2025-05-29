@@ -15,12 +15,12 @@ colnames(seeds) <- c(
   "class"
 )
 
-# Vorschau anzeigen
+# Vorschau anzeigen 
 
 data <- as.data.frame(seeds)
 data <- na.omit(data)[, c(8, 1:7)]
 names(data)[1] <- "target"
-
+data$target <- as.factor(data$target)
 vars <- c("target ~")
 for (v in 2:8) {
   vars <- c(vars, colnames(data)[v])
