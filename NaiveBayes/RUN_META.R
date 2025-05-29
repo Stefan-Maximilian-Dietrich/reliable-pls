@@ -16,3 +16,6 @@ methods <- list(SL = T,
 
 source(paste(getwd(),"/NaiveBayes/META_run_nb.R", sep = ""))   
 
+########### Analyse
+check_done()
+make_all_Graphics_new()
