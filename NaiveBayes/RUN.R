@@ -14,9 +14,9 @@ methods <- list(SL = T,
                 M_MaxiMax = T)
 # Methodee 1 (Zielstrukur)
 Experiments <- list( # All Experiments are define direct
-  list(data = "Simulated_A", L = 50, U = 300, alp = 0.9, prio_t = "grid", prio_r = 10),
-  list(data = "Banknote", L = 10, U = 100, alp = 0.9, prio_t = "grid", prio_r = 100),
-  list(data = "Wave", L = 20, U = 60, alp = 0.9, prio_t = "grid", prio_r = 20)
+  list(data = "Seeds", L = 6, U = 22, alp = 0.9, prio_t = "grid", prio_r = 20)
+  #,list(data = "Banknote", L = 10, U = 100, alp = 0.9, prio_t = "grid", prio_r = 100),
+ # list(data = "Wave", L = 20, U = 60, alp = 0.9, prio_t = "grid", prio_r = 20)
 )
 
 # Methode 2

@@ -1,6 +1,11 @@
+load("/Users/Stefan/Desktop/Studium/Forschung/CHECK")
+
 CHECK
 
-data_frame(data = rep("Seeds", 10),
+CHECK[CHECK$data == "Seeds" ,]$inProgress <- FALSE
+
+save(CHECK, file = "/Users/Stefan/Desktop/Studium/Forschung/CHECK")
+add <- data_frame(data = rep("Seeds", 10),
            L = c(6,6,6, 12, 12,6,6,6, 12, 12),
            U = c(12,48, 192, 48, 192, 12,48, 192, 48, 192), 
            alp = c(0.9, 0.9,0.9,0.9,0.9,0.3,0.3,0.3,0.3,0.3),
@@ -16,3 +21,7 @@ data_frame(data = rep("Seeds", 10),
            maximal = rep(FALSE, 10),
            M_MaxiMin = rep(FALSE, 10),
            M_MaxiMax = rep(FALSE, 10))
+
+CHECK <- rbind(CHECK, add)
+
+Seeds

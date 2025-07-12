@@ -1,51 +1,66 @@
-install.packages("brms")
-library(brms)
+# --- Pakete installieren (falls noch nicht installiert) ---
+# greta benötigt TensorFlow im Hintergrund
+install.packages("greta")
+install.packages("gretaExtras")  # Hilfsfunktionen
+# Falls Probleme mit greta: https://greta-stats.org
 
+# --- Pakete laden ---
+library(greta)
+library(gretaExtras)
 
-library(brms)
+# --- Daten vorbereiten ---
+data(iris)
+# Inputs
+x <- as.matrix(iris[, 1:4])
+# One-hot Encoding der Zielvariable
+y <- to_categorical(as.integer(iris$Species) - 1)
 
-# Neuronales Netz manuell als nichtlineares Modell
-# 2 Inputs → 2 Hidden Neuronen → Output
-nn_formula <- bf(
-  y ~ inv_logit(b3 +
-                  w31 * tanh(b1 + w11*x1 + w12*x2) +
-                  w32 * tanh(b2 + w21*x1 + w22*x2)),
-  
-  b1 + b2 + b3 + 
-    w11 + w12 + w21 + w22 + w31 + w32 ~ 1,  # Alle Parameter sind frei
-  nl = TRUE
+# --- Netzwerk-Architektur festlegen ---
+n_input  <- ncol(x)       # 4
+n_hidden <- 5             # Anzahl Hidden Units (kann variiert werden)
+n_output <- ncol(y)       # 3 Klassen
+
+# --- Priors für Gewichte und Biases ---
+W1 <- greta::normal(0, 1, dim = c(n_input,  n_hidden))
+b1 <- greta::normal(0, 1, dim = c(1,         n_hidden))
+W2 <- greta::normal(0, 1, dim = c(n_hidden,   n_output))
+b2 <- greta::normal(0, 1, dim = c(1,         n_output))
+
+# --- Vorwärtsdurchlauf ---
+hidden_lin  <- x %*% W1 + b1        # lineare Hidden Units
+hidden_act  <- greta::tanh(hidden_lin)  # Aktivierung (tanh)
+
+logits      <- hidden_act %*% W2 + b2   # Ausgabeschicht (logits)
+p           <- greta::softmax(logits)   # Klassenwahrscheinlichkeiten
+
+# --- Likelihood ---
+distribution(y) <- categorical(p)
+
+# --- Modell zusammenstellen ---
+model <- greta::model(W1, b1, W2, b2)
+
+# --- MCMC konfigurieren & starten ---
+draws <- greta::mcmc(
+  model,
+  n_samples   = 2000,
+  warmup      = 1000,
+  chains      = 4,
+  verbose     = TRUE
 )
 
-# Prior-Verteilungen für die Gewichte
-nn_priors <- c(
-  prior(normal(0, 1), nlpar = "b1"),
-  prior(normal(0, 1), nlpar = "b2"),
-  prior(normal(0, 1), nlpar = "b3"),
-  prior(normal(0, 1), nlpar = "w11"),
-  prior(normal(0, 1), nlpar = "w12"),
-  prior(normal(0, 1), nlpar = "w21"),
-  prior(normal(0, 1), nlpar = "w22"),
-  prior(normal(0, 1), nlpar = "w31"),
-  prior(normal(0, 1), nlpar = "w32")
-)
-xor_data <- data.frame(
-  x1 = c(0, 0, 1, 1),
-  x2 = c(0, 1, 0, 1),
-  y  = c(0, 1, 1, 0)
-)
-# Modell fitten
-fit <- brm(
-  formula = nn_formula,
-  data = xor_data,
-  family = bernoulli(),
-  prior = nn_priors,
-  chains = 4,
-  cores = 4,
-  iter = 4000,
-  seed = 123
-)
+# --- Posterior-Vorhersagen ---
+post_probs <- calculate(p, draws = draws)
 
-# Ergebnisse anschauen
-summary(fit)
-preds <- fitted(fit, newdata = xor_data, summary = TRUE)
-preds
+# Für jede Beobachtung Mittelwert der Posterior-p-Werte
+mean_probs <- apply(post_probs, c(1,2), mean)
+
+# Predicted class = Index des Maximums
+pred_class <- max.col(mean_probs)  # 1,2,3
+true_class <- as.integer(iris$Species)
+
+# --- Performance berechnen ---
+conf_matrix <- table(Predicted = pred_class, Actual = true_class)
+print(conf_matrix)
+
+accuracy <- sum(pred_class == true_class) / nrow(iris)
+print(sprintf("Accuracy: %.3f", accuracy))

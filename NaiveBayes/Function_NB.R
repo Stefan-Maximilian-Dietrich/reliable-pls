@@ -74,7 +74,7 @@ sampler_NB_up <- function(n_labled, n_unlabled, data, formula) {
     #x <- data_temp[1,]
     indicator <- !apply(data_temp, 1, function(x) {as.numeric(first[col_to_check]) == as.numeric(x)[-1]})
     
-    witch_diff <- apply(indicator, 2, all)
+    witch_diff <- apply(indicator, 2, function(x) all(x))
     if(!any(witch_diff)) {
       stop(paste("Data set is not viable for GAUSIAN Naive Bayes. Problem in", cat))
     }
@@ -480,7 +480,7 @@ test_confiusion <- function(priori, train, test) {
   }
   
   predictions <- predict(model, newdata = as.matrix(test[, -1]), type = "class")
-  ground_truth <- test$target
+  ground_truth <- as.factor(test$target)
   confiusion <- caret::confusionMatrix(predictions, ground_truth)
   return(confiusion)
 }
@@ -727,7 +727,7 @@ make_all_Graphics <- function(online, legende = FALSE, methods = c("SL","SSL_ent
     load(path)
     mathods <- unique(names(gamma))
     
-    gruppen <- (split(gamma, mathods)[methods])
+    #gruppen <- (split(gamma, mathods)[methods])
     gruppen <- Filter(is.list, gruppen)
     
     matrizen <- lapply(gruppen, function(x) do.call(rbind, x))
@@ -1206,3 +1206,76 @@ get_experiment <- function() {
   return(return_exp)
 }
 
+#######
+check_done <-  function() {
+  path <-  "/Users/Stefan/Desktop/Studium/Forschung/CHECK"
+  load(path)
+  df <- CHECK
+  check_df <- NULL
+  for(i in 1:nrow(df)) {
+    flags <- setNames(rep(FALSE, length(names(methods))), names(methods))
+    for(meth in names(methods)) {
+      adr <- paste0(results_adress,"/", experiment_to_adress(df[i,]),"/", meth )
+      number <- length(list.files(adr, full.names = TRUE))
+      if(number >= 60) {
+        flags[meth] <- TRUE
+      } else {
+        flags[meth] <- FALSE
+      }
+      
+    }
+    check_df <- rbind(check_df, flags)
+  }
+  names(check_df) <- names(methods)
+  inProgress <- FALSE
+  overall <- apply(check_df, 1, function(x) all(x))
+  result <- cbind(df[, 1:6], inProgress,overall, check_df)
+  path <-  "/Users/Stefan/Desktop/Studium/Forschung/CHECK"
+  CHECK <- result
+  save(CHECK, file = path)
+}
+
+## Ananyse neu
+make_all_Graphics_new <- function() {
+  load("/Users/Stefan/Desktop/Studium/Forschung/CHECK")
+  done_experiments <- CHECK[CHECK$overall, c(1:6)]
+  Experiments_adress <- NULL
+  for(i in 1:nrow(done_experiments)) {
+    Experiments_adress <- c(Experiments_adress, experiment_to_adress(done_experiments[i,]))
+  }
+  for(exp_ad in Experiments_adress) {
+    means_df <- NULL
+    for(meth in names(methods)) {
+      all_a <- NULL
+      for(i in 1:60) {
+        load(paste0("/Users/Stefan/Desktop/Studium/Forschung/results/", exp_ad, "/", meth ,"/ID_", i))
+        confusion_list <- get(meth)
+        vec <- unlist(lapply(confusion_list, function(x) {x$overall[1]})) #hier entscheidet sich welcher richtwert benutzt wird
+        all_a <- rbind(all_a,vec )
+      }
+      means_df <- rbind(means_df, colMeans(all_a))
+    }
+    rownames(means_df) <- names(methods)
+    colnames(means_df) <- as.character(0:(ncol(means_df)-1))
+    means_df <- as.data.frame(t(means_df))
+    
+    means_df$Pseudolabel <- 0:(nrow(means_df) - 1)
+    
+    # Long Format erzeugen
+    df_long <- pivot_longer(
+      means_df,
+      cols = -Pseudolabel,
+      names_to = "Methode",
+      values_to = "Accuracy"
+    )
+    
+    plot <- ggplot(df_long, aes(x = Pseudolabel, y = Accuracy, color = Methode, group = Methode)) +
+      geom_line(linewidth = 1.2) +
+      geom_point(size = 2) +
+      labs(title = exp_ad, x = "pseudolabeld Data", y = "Accuracy")
+    ggsave(paste("/Users/Stefan/Desktop/Studium/Forschung/Grafiken/", exp_ad, ".png", sep = ""), width = 20, height = 20, units = "cm", dpi = 300,plot = plot)
+    
+  }
+  
+  
+}
