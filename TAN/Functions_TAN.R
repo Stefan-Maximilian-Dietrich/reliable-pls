@@ -315,6 +315,7 @@ give_pseudo_label <- function(structure = "TAN",priori, dt_train, dt_unlabled){
   colnames(predictions_pre) <- c("target")
   return(cbind(predictions_pre, dt_unlabled))
 }
+
 give_pseudo_label_all <- function(structure = "TAN",priori, dt_train, dt_unlabled){
   P <- get_cond_prob(dt_train[, datID := NULL])[, N:=NULL]
   modell <- get_modell(structure = structure,dt_train[, datID := NULL][, ID := NULL])

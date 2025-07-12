@@ -3,19 +3,19 @@ source(paste(getwd(),"/TAN/_setup_TAN_session.R", sep = ""))
 
 ### run Experiments
 workers = 3
-N = 9
+N = 25
 structure = "NB"
 methods <- list(SL = T, 
                 SSL = T,
                 e_admissible= T, 
-                SSL_variance = T,
-                SSL_entropy = T,
-                maximal = T, 
-                M_MaxiMin = T, 
-                M_MaxiMax = T)
+                SSL_variance = F,
+                SSL_entropy = F,
+                maximal = F, 
+                M_MaxiMin = F, 
+                M_MaxiMax = F)
 # Methodee 1 (Zielstrukur)
 Experiments <- list( # All Experiments are define direct
-  list(data = "Banknote", L = 10, U = 100, alp = 0.9, prio_t = "grid", prio_r = 100),
+  list(data = "Banknote", L = 8, U = 32, alp = 0.9, prio_t = "grid", prio_r = 100),
   list(data = "Wave", L = 20, U = 60, alp = 0.9, prio_t = "grid", prio_r = 20)
 )
 
