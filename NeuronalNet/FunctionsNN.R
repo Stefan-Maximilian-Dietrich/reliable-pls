@@ -1,45 +1,94 @@
 ###### Sampler 
-sampler_NN_up <- function(n_labled, n_unlabled, data, formula) {
+sampleNN <- function(data, formula, n_labled, n_unlabled) {
+  include_na = FALSE
+  seed = NULL
   variables <- all.vars(formula) 
-  target <- variables[1]
-  data_used <- data[, variables]
+  x <- variables[1]
+  df <- data[, variables]
   
-  categories <- unique(data_used[, target])
-  if(length(categories)  > n_labled) {
-    stop("at least one instance cant be represented ")
+  
+  stopifnot(is.data.frame(df), x %in% names(df))
+  if (!include_na) df <- df[!is.na(df[[x]]), , drop = FALSE]
+  if (nrow(df) == 0L) stop("Keine Daten (nach NA-Filter).")
+  if (!is.null(seed)) set.seed(seed)
+  
+  k <- length(unique(df[[x]]))
+  if (target < k) stop(sprintf("target (%d) < Anzahl Kategorien (%d).", target, k))
+  if (target > nrow(df)) stop(sprintf("target (%d) > Zeilenanzahl (%d).", target, nrow(df)))
+  
+  # --- Set 1: jede Kategorie mindestens 1x ---
+  idx_one_each <- unlist(lapply(split(seq_len(nrow(df)), df[[x]]),
+                                function(ix) sample(ix, 1L)))
+  rest_needed <- target - length(idx_one_each)
+  idx_rest1 <- if (rest_needed > 0L) {
+    sample(setdiff(seq_len(nrow(df)), idx_one_each), rest_needed)
+  } else integer(0)
+  idx_set1 <- sample(c(idx_one_each, idx_rest1))
+  
+  # Rest nach Set 1
+  remaining_after_1 <- setdiff(seq_len(nrow(df)), idx_set1)
+  
+  # --- Set 2: Zufall aus Rest ---
+  if (n_unlabled < 0) stop("n_unlabled muss >= 0 sein.")
+  if (n_unlabled > length(remaining_after_1)) {
+    stop(sprintf("n_unlabled (%d) > verbleibende Zeilen nach Set 1 (%d).",
+                 n_unlabled, length(remaining_after_1)))
   }
+  idx_set2 <- if (n_unlabled > 0L) sample(remaining_after_1, n_unlabled) else integer(0)
   
-  train <- NULL
-  for(cat in categories){
-    data_temp <- data_used[data_used[,target]==cat, ]
-    first <- data_temp[sample(1:nrow(data_temp), 1), , drop=FALSE]
-    train <- rbind(train, first)
+  # --- Set 3: alle übrigen ---
+  idx_set3 <- setdiff(remaining_after_1, idx_set2)
+  
+  set1 <- df[idx_set1, , drop = FALSE]
+  set2 <- df[idx_set2, , drop = FALSE]
+  set3 <- df[idx_set3, , drop = FALSE]
+  
+  # --------- Standardisierung ---------
+  num_cols <- names(df)[vapply(df, is.numeric, logical(1))]
+  if (length(num_cols) > 0) {
+    # Gemeinsame Stats für Set1+Set2
+    comb <- rbind(set1[num_cols], set2[num_cols])
+    m12 <- vapply(comb, mean, numeric(1), na.rm = TRUE)
+    s12 <- vapply(comb, sd,   numeric(1), na.rm = TRUE)
+    s12[s12 == 0 | is.na(s12)] <- 1
     
+    scale_fun <- function(d, m, s) {
+      for (nm in names(m)) d[[nm]] <- (d[[nm]] - m[[nm]]) / s[[nm]]
+      d
+    }
+    
+    set1 <- scale_fun(set1, m12, s12)
+    set2 <- scale_fun(set2, m12, s12)
+    
+    # Separate Stats für Set3
+    m3 <- vapply(set3[num_cols], mean, numeric(1), na.rm = TRUE)
+    s3 <- vapply(set3[num_cols], sd,   numeric(1), na.rm = TRUE)
+    s3[s3 == 0 | is.na(s3)] <- 1
+    set3 <- scale_fun(set3, m3, s3)
   }
   
-  filterd <- data_used[!apply(data_used, 1, function(x) any(apply(train, 1, function(y) all(x == y)))), , drop=FALSE]
-  n <- nrow(filterd)
-  k <- nrow(train)
-  
-  train_idx <- sample(1:n, size = n_labled-k)  
-  remaining_idx <- setdiff(1:n, train_idx)
-  unlabeld_idx <- sample(remaining_idx, size = n_unlabled) 
-  test_idx <- setdiff(remaining_idx, unlabeld_idx)  
-  
-  train_rest <- filterd[train_idx, ]
-  train <- rbind(train, train_rest)
-  unlabed <- filterd[unlabeld_idx,]
-  test <- filterd[test_idx,]
-  
-  
-  return(list(train, unlabed, test))
-  
-} # ToDo!
+  list(
+    set1_cover = set1,
+    set2_random = set2,
+    set3_rest   = set3
+  )
+}
 
+data_loader <- function(data_name) {
+  source(paste(getwd(),"/NeuronalNet/data/in_use/", data_name, ".R", sep = ""))
+}
 
+#Gererate Prioris 
+gerate_normal_priori <- function(n_param, refinement) {
+  priors <- list()
+  for(i in 1:refinement) {
+    priors[[i]] <- list(ID = i,  mu = rnorm(theta_length, mean = 0, sd = 1),  tau2 = rexp(1, rate = 1))
+  }
+ return(priors)
+}
 
 ####### Marginal Likelihood
-pack_theta <- function(W1, b1, W2, b2) {
+pack_theta <- function(W1, b1, W2, b2 ) {
   c(as.vector(W1), as.vector(b1), as.vector(W2), as.vector(b2))
 }
 
@@ -63,20 +112,57 @@ forward_probs_theta <- function(X, theta) {
 }
 
 loglik_theta <- function(theta, data_scaled) {
-    X <- as.matrix(data_scaled[, 1:d, drop = FALSE])
-    y <- factor(data_scaled$Species, levels = classes)
-    P <- forward_probs_theta(X, theta)        # n x K
-    colnames(P) <- classes
-    eps <- .Machine$double.eps
-    P <- pmax(pmin(P, 1 - eps), eps)
-    idx <- cbind(seq_len(nrow(X)), as.integer(y))
-    sum(log(P[idx]))
+  X <- as.matrix(data_scaled[, 1:d, drop = FALSE])
+  y <- factor(data_scaled$target, levels = classes)
+  P <- forward_probs_theta(X, theta)        # n x K
+  colnames(P) <- classes
+  eps <- .Machine$double.eps
+  P <- pmax(pmin(P, 1 - eps), eps)
+  idx <- cbind(seq_len(nrow(X)), as.integer(y))
+  sum(log(P[idx]))
 }
 
 log_prior_normal <- function(theta, mu, tau2) {
   p <- length(theta)
   r <- theta - mu
   -0.5 * (sum(r^2) / tau2) - 0.5 * p * (log(2*pi) + log(tau2))
+}
+
+loglik_data <- function(theta, data_scaled) {
+  X <- as.matrix(data_scaled[, 1:d, drop = FALSE])
+  y <- factor(data_scaled$target, levels = classes)
+  P <- forward_probs_theta(X, theta)
+  colnames(P) <- classes
+  eps <- .Machine$double.eps
+  P <- pmax(pmin(P, 1 - eps), eps)
+  idx <- cbind(seq_len(nrow(X)), as.integer(y))
+  sum(log(P[idx]))
+}
+
+grad_neg_loglik_data <- function(theta, data_scaled) {
+  pr <- unpack_theta(theta)
+  X <- as.matrix(data_scaled[, 1:d, drop = FALSE])
+  y <- factor(data_scaled$target, levels = classes)
+  n <- nrow(X)
+  
+  # One-hot
+  Y <- matrix(0, n, K)
+  Y[cbind(seq_len(n), as.integer(y))] <- 1
+  
+  fw <- forward_full(X, pr$W1, pr$b1, pr$W2, pr$b2)
+  P  <- fw$P; H <- fw$H
+  
+  dZ <- P - Y
+  gW2 <- t(dZ) %*% H
+  gb2 <- colSums(dZ)
+  
+  S  <- H * (1 - H)
+  dH <- dZ %*% pr$W2 * S
+  
+  gW1 <- t(dH) %*% X
+  gb1 <- colSums(dH)
+  
+  c(as.vector(gW1), as.vector(gb1), as.vector(gW2), as.vector(gb2))
 }
 
 neg_log_post <- function(theta, data_scaled, mu, tau2) {
@@ -87,7 +173,7 @@ grad_neg_log_post <- function(theta, data_scaled, mu, tau2) {
   # Grad der negativen Loglik
   pr <- unpack_theta(theta)
   X <- as.matrix(data_scaled[, 1:d, drop = FALSE])
-  y <- factor(data_scaled$Species, levels = classes)
+  y <- factor(data_scaled$target, levels = classes)
   n <- nrow(X)
   
   # One-hot
@@ -147,7 +233,7 @@ get_marginal_likelihood <- function(prior_name, mu, tau2, theta_init, data_scale
       factor(classes[max.col(P, ties.method = "first")], levels = classes)
     }
     pred <- predict_class_theta(theta_map, data_scaled_test)
-    cm   <- table(Truth = data_scaled_test$Species, Pred = pred)
+    cm   <- table(Truth = data_scaled_test$target, Pred = pred)
     acc_test <- sum(diag(cm)) / sum(cm)
   }
   
@@ -173,7 +259,7 @@ marginal_likelihoods <- function(train_scaled,  priors) {
     mu <- priors[[i]]$mu
     tau2 <- priors[[i]]$tau2
     theta_init <- rnorm(length(mu), sd = 0.3)
-      
+    
     marg_likelihood <- get_marginal_likelihood(prior_ID, mu, tau2, theta_init, train_scaled)
     
     marg_likelis <- c(marg_likelis, marg_likelihood$log_evidence)
@@ -185,9 +271,11 @@ marginal_likelihoods <- function(train_scaled,  priors) {
   return(marg_prioris)
 }
 
-alpha_cut <- function(marg_prioris, alpha) {
+alpha_cut <- function(marg_prioris, alpha, priors) {
   max <- max(marg_prioris[,1])
-  cut_prioris <- marg_prioris[exp(marg_prioris[,1]) >= alpha * exp(max),]
+  marg_prioris <- as.data.frame(marg_prioris)
+  cut <- marg_prioris[exp(marg_prioris[,1]) >= alpha * exp(max),]$IDs 
+  cut_prioris <- priors[as.numeric(cut)]
   return(cut_prioris)
 }
 
@@ -216,10 +304,18 @@ forward_full <- function(X, W1, b1, W2, b2) {
   list(Hlin = Hlin, H = H, Z = Z, P = P)
 }
 
+one_hot <- function(y, class_levels) {
+  y <- factor(y, levels = class_levels)
+  Y <- matrix(0, nrow = length(y), ncol = length(class_levels))
+  Y[cbind(seq_along(y), as.integer(y))] <- 1
+  colnames(Y) <- class_levels
+  Y
+}
+
 gradient_decent <- function(train_scaled, lr = 0.05, epochs = 400, lambda = 1e-3 ) {
   d <- ncol(train_scaled) - 1
   Xtr <- as.matrix(train_scaled[, 1:d, drop = FALSE])
-  Ytr <- one_hot(train_scaled$Species, classes)
+  Ytr <- one_hot(train_scaled$target, classes)
   
   # Initialisierung
   W1 <- matrix(rnorm(h * d, sd = 0.3), nrow = h, ncol = d)
@@ -275,7 +371,6 @@ gradient_decent <- function(train_scaled, lr = 0.05, epochs = 400, lambda = 1e-3
   
 }
 #
-
 forward_probs_theta <- function(X, theta) {
   pr <- unpack_theta(theta)
   Hlin <- X %*% t(pr$W1) + matrix(pr$b1, nrow(X), h, byrow = TRUE)
@@ -293,8 +388,8 @@ predict_class_theta <- function(theta, data_scaled) {
 test_confiusion <- function(train_scaled, test_scaled) {
   theta_hat <- gradient_decent(train_scaled)
   predictions <- predict_class_theta(theta_hat, test_scaled)
-
-  ground_truth <- as.factor(test_scaled$Species)
+  
+  ground_truth <- as.factor(test_scaled$target)
   confiusion <- caret::confusionMatrix(predictions, ground_truth)
   return(confiusion)
 }
@@ -303,11 +398,11 @@ test_confiusion <- function(train_scaled, test_scaled) {
 ##### Predict 
 predict_pseudo_labels <- function(train_scaled, unlabeled_scaled) {
   pseudolabeled_scaled <- unlabeled_scaled
-  pseudolabeled_scaled$Species <- NULL
+  pseudolabeled_scaled$target <- NULL
   
   theta_hat <- gradient_decent(train_scaled)
   predictions <- predict_class_theta(theta_hat, unlabeled_scaled)
-  pseudolabeled_scaled$Species <- predictions
+  pseudolabeled_scaled$target <- predictions
   return(pseudolabeled_scaled)
 }
 
@@ -334,9 +429,36 @@ neg_log_joint_D <- function(theta, data_scaled_train, mu, tau2) {
   -(loglik_data(theta, data_scaled_train) + log_prior_normal(theta, mu, tau2))
 }
 
+make_single_df <- function(x_vec, yhat_label) {
+  stopifnot(length(x_vec) == d)
+  df <- as.data.frame(matrix(x_vec, nrow = 1))
+  names(df) <- num_cols
+  df$target <- factor(yhat_label, levels = classes)
+  df
+}
+
 grad_neg_log_joint_D <- function(theta, data_scaled_train, mu, tau2) {
   # ∇(−log p(D|θ)) + ∇(−log π(θ)) = grad_nll + (θ−μ)/τ²
   grad_neg_loglik_data(theta, data_scaled_train) + (theta - mu)/tau2
+}
+
+loglik_pseudo <- function(theta, x_vec, yhat_label) {
+  df1 <- make_single_df(x_vec, yhat_label)
+  loglik_data(theta, df1)
+}
+
+robust_logdet_pd <- function(H) {
+  jit_vals <- c(0, 1e-8, 1e-6, 1e-4, 1e-3)
+  for (jit in jit_vals) {
+    Hjit <- if (jit > 0) H + diag(jit, nrow(H)) else H
+    ok <- TRUE
+    ch <- tryCatch(chol(Hjit), error = function(e) { ok <<- FALSE; NULL })
+    if (ok) return(list(logdet = 2*sum(log(diag(ch))), jitter = jit))
+  }
+  # Fallback über Eigenwerte (clamp)
+  ev <- eigen(H, symmetric = TRUE, only.values = TRUE)$values
+  ev_pos <- pmax(ev, 1e-12)
+  list(logdet = sum(log(ev_pos)), jitter = NA_real_)
 }
 
 laplace_evidence_D <- function(mu, tau2, theta_start, data_scaled_train, control = list(maxit = 1000, reltol = 1e-8)) {
@@ -347,6 +469,7 @@ laplace_evidence_D <- function(mu, tau2, theta_start, data_scaled_train, control
     method = "BFGS",
     control = control
   )
+  p_dim <-length(theta_start)
   theta_mapD <- opt$par
   H_D <- hessian(function(th) neg_log_joint_D(th, data_scaled_train, mu, tau2), theta_mapD)
   ld  <- robust_logdet_pd(H_D)
@@ -395,11 +518,11 @@ ppp_laplace_single <- function(mu, tau2, x_vec, yhat_label, data_scaled_train, t
 
 PPP_matrix <- function(priors, train_scaled, pseudolabeled_scaled) { #ToDo
   results <- list()
-  predictors <- setdiff(names(pseudolabeled_scaled), "Species")
+  predictors <- setdiff(names(pseudolabeled_scaled), "target")
   pseudo_points <- apply(pseudolabeled_scaled, 1, function(row) {
     list(
       x = as.numeric(row[predictors]),
-      yhat = row[["Species"]]
+      yhat = row[["target"]]
     )
   })
   for (pr in priors) {
@@ -411,7 +534,6 @@ PPP_matrix <- function(priors, train_scaled, pseudolabeled_scaled) { #ToDo
     for (ps in pseudo_points) {
       i = i + 1 
       # \tilde{\theta} für diesen (x_i, yhat_i); start sinnvoll (z.B. theta_pre_map)
-      print(ps$x)
       theta_pre_map <- rnorm(length(pr$mu), sd = 0.3)
       
       ppp_parts <- ppp_laplace_single(
@@ -420,10 +542,11 @@ PPP_matrix <- function(priors, train_scaled, pseudolabeled_scaled) { #ToDo
         data_scaled_train = train_scaled,
         theta_start_for_tilde = theta_pre_map
       )
+      p_dim <-length(pr$mu)
       
       # Log-PPP gemäß deiner Approximation
       log_PPP <- ppp_parts$log_ltilde + ppp_parts$log_prior_tilde - log_pD + 0.5 * p_dim * log(2*pi) - 0.5 * ppp_parts$logdetH_tilde
-      
+      print(log_PPP)
       results[[length(results)+1]] <- data.frame(
         priorID      = pr$ID,
         tau2       = pr$tau2,
@@ -486,5 +609,40 @@ e_admissible_creterion <- function(matrix) {
   
 }
 
-#########
+######### RUN 
+check_semaphor <- function() {
+  load("/dss/dsshome1/03/di35lox/MASTER/SEMAPHOR")
+  return(SEMAPHOR)
+}
 
+change_semaphor <- function(bool) {
+  SEMAPHOR = bool
+  save(SEMAPHOR, file = "/dss/dsshome1/03/di35lox/MASTER/SEMAPHOR")
+}
+
+wait <- function() {
+  for(i in 1:15) {
+    if(check_semaphor()) {
+      change_semaphor(FALSE)
+      break
+    } else{
+      Sys.sleep(1)
+    } 
+    if(i == 15) {
+      stop("Zeitüberschreitung in der Semaphore")
+      
+    }
+  }
+}
+
+get_experiment <- function() {
+  load("/dss/dsshome1/03/di35lox/MASTER/experiments/NeuronalNet")
+  return_exp <- NeuronalNet[!NeuronalNet$overall & !NeuronalNet$inProgress, ][1, ]
+  if(nrow(return_exp) == 0) {
+    stop("all Experiments done or in Progress")
+  }
+  NeuronalNet[!NeuronalNet$overall & !NeuronalNet$inProgress, ][1, ]$inProgress <- TRUE
+  save(NeuronalNet, file = "/dss/dsshome1/03/di35lox/MASTER/experiments/NeuronalNet")
+  
+  return(return_exp)
+}
