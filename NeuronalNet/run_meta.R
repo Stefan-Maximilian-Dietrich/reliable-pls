@@ -20,7 +20,7 @@ while(TRUE){
   priors <- gerate_normal_priori(n_param = 43, refinement) # n_param abhänig von der netz struktur 
   
   
-  n_prioris <-  length(prioris)
+  n_prioris <-  length(priors)
   print(paste("RUNNING on ",workers, " workers: data ", dat, " n_labled: ", n_labled, " n_unlabled: ", n_unlabled, " alpha: ", alpha, " prioris: ",n_prioris , sep= "")) 
   time_a <- Sys.time()
   
