@@ -41,3 +41,36 @@ e_admissible_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled
   return(result)
   
 } 
+
+refernce_SL <- function(train_scaled, unlabeled_scaled, test_scaled) {
+  confusion <- test_confiusion(train_scaled, test_scaled)
+  result <- rep(list(confusion), nrow(unlabeled_scaled) +1)
+  return(result)
+}
+
+refernce_SSL <- function(train_scaled, unlabeled_scaled, test_scaled) {
+  
+  
+  confusion <- test_confiusion(train_scaled, test_scaled)
+  result <- list(confusion)
+  
+  
+  for(i in 1:nrow(unlabeld)) {
+    
+    prob_prediction <- predict_pseudo_labels_prob(train_scaled, unlabeled_scaled)
+    max_prob <- which.max(apply(prob_prediction, 1, max))
+    pseudolabeled_scaled <- predict_pseudo_labels(train_scaled, unlabeled_scaled)
+    
+    
+    train_scaled <- rbind(train_scaled, pseudolabeled_scaled[max_prob, ])
+    unlabeled_scaled <- pseudolabeled_scaled[-max_prob, ]
+    
+    confusion <- test_confiusion(train_scaled, test_scaled)
+    result[[i+1]] <- confusion
+    
+  }
+  return(result)
+  
+}
+
+

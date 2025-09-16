@@ -313,7 +313,7 @@ one_hot <- function(y, class_levels) {
 }
 
 gradient_decent <- function(train_scaled, lr = 0.05, epochs = 400, lambda = 1e-3 ) {
-  #classes <- unique(train_scaled$target)
+  classes <- c("setosa", "versicolor" ,   "virginica")
   d <- ncol(train_scaled) - 1
   Xtr <- as.matrix(train_scaled[, 2:(1+d), drop = FALSE])
   Ytr <- one_hot(train_scaled$target, classes)
@@ -402,6 +402,22 @@ test_confiusion <- function(train_scaled, test_scaled) {
   return(confiusion)
 }
 
+predict_class_theta_prob <- function(theta_hat, data_scaled) { 
+  X <- as.matrix(data_scaled[, c(2:(d+1)), drop = FALSE])
+  P <- forward_probs_theta(X, theta_hat)
+  colnames(P) <-   levels(data_scaled$target)
+  return(P)
+}
+
+predict_pseudo_labels_prob <- function(train_scaled, unlabeled_scaled) { 
+  pseudolabeled_scaled <- unlabeled_scaled
+  pseudolabeled_scaled$target <- NULL
+  
+  
+  theta_hat <- gradient_decent(train_scaled)
+  predictions <- predict_class_theta_prob(theta_hat, unlabeled_scaled)
+  return(predictions)
+}
 
 ##### Predict 
 predict_pseudo_labels <- function(train_scaled, unlabeled_scaled) {

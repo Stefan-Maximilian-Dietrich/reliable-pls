@@ -21,3 +21,4 @@ source(paste(getwd(),"/NeuronalNet/Methods_NN.R", sep = ""))
 
 cat("Session ready")
 
+

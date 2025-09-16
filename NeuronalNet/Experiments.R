@@ -11,3 +11,7 @@ NeuronalNet <- data.frame(data = c("Iris","Iris","Iris","Iris","Iris","Iris","Ir
                   e_admissible= F
 )
 save(NeuronalNet, file = "/Users/Stefan/Desktop/NeuronalNet")
+
+#RESET EXPERIMENTS
+save(NeuronalNet, file = "/dss/dsshome1/03/di35lox/MASTER/experiments/NeuronalNet")
+
