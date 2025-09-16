@@ -1,7 +1,7 @@
-e_admissible_SSL <- function(prioris, train_scaled, unlabeled_scaled, test_scaled, alpha) {
+e_admissible_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled, alpha) {
   
   confusion <- test_confiusion(train_scaled, test_scaled)
-  
+  print(confusion)
   result <- list(confusion)
   
   
@@ -18,12 +18,18 @@ e_admissible_SSL <- function(prioris, train_scaled, unlabeled_scaled, test_scale
     e_admissible <- e_admissible_creterion(matrix)
     
     ###########
+    print(pseudolabeled_scaled[e_admissible, ])
+    print(unlabeled_scaled[e_admissible, ])
+    
+    
     train_scaled <- rbind(train_scaled, pseudolabeled_scaled[e_admissible, ])
     unlabeled_scaled <- pseudolabeled_scaled[-e_admissible, ]
     
     ########### Evaluation
     confusion <- test_confiusion(train_scaled, test_scaled)
     print(confusion)
+    
+    
     for(w in 1:(length(e_admissible))) {
       result <- c(result, list(confusion))  
       z = z + 1

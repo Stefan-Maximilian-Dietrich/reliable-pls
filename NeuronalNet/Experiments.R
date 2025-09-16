@@ -1,4 +1,4 @@
-NeuronalNet <- data.frame(data = c("iris","iris","iris","iris","iris","iris","iris","iris","iris","iris" ),
+NeuronalNet <- data.frame(data = c("Iris","Iris","Iris","Iris","Iris","Iris","Iris","Iris","Iris","Iris" ),
                   L = c(6, 6, 6, 12, 12, 12, 18, 18, 24, 24),
                   U = c(10, 40, 80, 10, 40, 80, 40, 80, 40, 80),
                   alpha = c(0.5,0.8,0.5,0.8,0.5,0.8,0.5,0.8,0.5,0.8),

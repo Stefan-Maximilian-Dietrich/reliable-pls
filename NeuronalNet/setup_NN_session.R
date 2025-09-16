@@ -1,6 +1,9 @@
 # Liste der Pakete zum Installieren und Laden
 pakete <- c(
-  "numDeriv"
+  "numDeriv",
+  "progressr",    # Paket zur Verfolgung des Fortschritts von langen Berechnungen
+  "furrr"        # Paket für parallele Ausführung von purrr-Operationen
+  
 )
 
 # Schleife, um Pakete zu installieren und zu laden

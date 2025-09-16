@@ -2,27 +2,6 @@ set.seed(123)
 data(iris)
 
 # Indizes je Klasse
-sampler_NN <- function(n_labled, n_unlabled, data, formula) {
-  ## 
-  variables <- all.vars(formula) 
-  target <- variables[1]
-  data_used <- data[, variables]
-  
-  n <- nrow(data_used)
-  
-  categories <- unique(data_used[, target])
-  if(length(categories)  > n_labled) {
-    stop("Labeld date less than reqiert to fit a NN")
-  }
-  
-  for(cat in categories){
-    data_temp <- data_used[data_used[,target]==cat, ]
-    first <- data_temp[sample(1:nrow(data_temp), 1), , drop=FALSE]
-    train <- rbind(train, first)
-  }
-  
-  
-}
 
 
 idx_by_class <- split(seq_len(nrow(iris)), iris$Species)
@@ -169,8 +148,7 @@ sample_three_df <- function(data, formula, size1, size2) {
   )
 }
 
-df <- iris
-out <- sample_three_df(df, x = "Species", size1 = 15, size2 = 20, seed = 42)
+sample_three_df(data, formula, 8, 40)
 
 # Kontrolle: in Set1+Set2 ~ z-standardisiert
 colMeans(rbind(out$set1_cover[,1:4], out$set2_random[,1:4]))

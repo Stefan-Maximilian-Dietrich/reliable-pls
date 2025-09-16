@@ -17,7 +17,7 @@ while(TRUE){
   
   levels_present <- levels(data[,c(all.vars(formula)[1])]) 
   
-  prioris <- gerate_normal_priori(n_param = 43, refinement) # n_param abhänig von der netz struktur 
+  priors <- gerate_normal_priori(n_param = 43, refinement) # n_param abhänig von der netz struktur 
   
   
   n_prioris <-  length(prioris)
@@ -36,14 +36,15 @@ while(TRUE){
     
     future_map(1:N, function(i) {
       set.seed(i+n_labled*100+n_unlabled*10000)
-      
       sample <- sampleNN(data, formula, n_labled, n_unlabled)
-      train <- sample[[1]]
-      unlabeld <- sample[[2]]
-      test <-sample[[3]]
+      train_scaled <- sample[[1]]
+      unlabeled_scaled <- sample[[2]]
+      test_scaled <-sample[[3]]
       
       if(methods$e_admissible){
-        e_admissible <- e_admissible_SSL(prioris, train, unlabeld, test, alpha)
+        e_admissible <- e_admissible_SSL(priors, train_scaled, unlabeled_scaled, test_scaled, alpha)
+        
+        
         titel <- paste0(save_path, "/MASTER/results/" ,experiemnt$data, "_L_", experiemnt$L, "_U_",  experiemnt$U, "_alp_", experiemnt$alp, "_", experiemnt$prio_t, "_", experiemnt$prio_r, "/e_admissible/", "ID_", i)
         save(e_admissible, file = titel)
       } 
