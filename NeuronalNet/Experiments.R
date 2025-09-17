@@ -10,14 +10,17 @@ NeuronalNet <- data.frame(data = c("Iris", "Iris","Iris","Iris","Iris","Iris","I
                           SSL = F,
                           e_admissible= F
 )
-save(NeuronalNet, file = "/Users/Stefan/Desktop/NeuronalNet")
+
+NeuronalNet_test <- NeuronalNet[c(1,2), ]
 
 #RESET EXPERIMENTS
 save(NeuronalNet, file = "/dss/dsshome1/03/di35lox/MASTER/experiments/NeuronalNet")
 
+#RESET TEST
+save(NeuronalNet, file = "/dss/dsshome1/03/di35lox/MASTER/experiments/NeuronalNet_test")
 
 # ADD all Directorys
-update_directory_strucutre()
+update_directory_strucutre(dir = NeuronalNet_test)
 
 
 mat <- matrix(nrow =11, ncol = 0)

@@ -2,6 +2,7 @@
 source(paste(getwd(),"/NeuronalNet/setup_NN_session.R", sep = ""))
 
 save_path <- "/dss/dsshome1/03/di35lox/"
+results_dir <- "NeuronalNet"
 ### run Experiments
 workers = 20
 N = 60

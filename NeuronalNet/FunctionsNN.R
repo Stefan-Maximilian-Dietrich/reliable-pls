@@ -712,11 +712,11 @@ experiment_to_adress <- function(exp) {
   return(adress)
 }
 
-update_directory_strucutre <- function(){
+update_directory_strucutre <- function(dir = "NeuronalNet"){
   load("/dss/dsshome1/03/di35lox/MASTER/experiments/NeuronalNet")
   for(i in 1:nrow(NeuronalNet)) {
     exp <- experiment_to_adress(NeuronalNet[i,])
-    ordner <- paste0("/dss/dsshome1/03/di35lox/MASTER/results/NeuronalNet/", exp )
+    ordner <- paste0("/dss/dsshome1/03/di35lox/MASTER/results/",dir,"/", exp )
     if (!dir.exists(ordner)) {
       dir.create(ordner, recursive = TRUE)
     }
