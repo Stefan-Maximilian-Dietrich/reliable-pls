@@ -7,9 +7,7 @@ workers = 20
 N = 60
 
 #Architecture
-K <- 3 #outbut (classes)
-h <- 5 #hidden
-d <- 4 #imput
+n_hidden <- 5 #hidden
 
 methods <- list(SL = T, 
                 SSL = T,

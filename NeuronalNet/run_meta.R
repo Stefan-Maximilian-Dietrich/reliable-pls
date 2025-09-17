@@ -17,7 +17,13 @@ while(TRUE){
   
   levels_present <- levels(data[,c(all.vars(formula)[1])]) 
   
-  priors <- gerate_normal_priori(n_param = 43, refinement) # n_param abhänig von der netz struktur 
+  #### NN-Achitecture 
+  d <- ncol(dat) - 1
+  h <- n_hidden 
+  K <- length(levels_present)
+  n_param <-  h*d + h + K*h + K
+  
+  priors <- gerate_normal_priori(n_param = n_param, refinement) # n_param abhänig von der netz struktur 
   
   
   n_prioris <-  length(priors)

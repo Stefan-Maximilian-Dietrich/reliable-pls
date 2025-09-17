@@ -91,7 +91,7 @@ pack_theta <- function(W1, b1, W2, b2 ) {
 }
 
 unpack_theta <- function(theta) {
-  stopifnot(length(theta) == 43)
+  stopifnot(length(theta) == n_param)
   ofs <- 0
   W1 <- matrix(theta[(ofs + 1):(ofs + h*d)], nrow = h, ncol = d); ofs <- ofs + h*d
   b1 <- theta[(ofs + 1):(ofs + h)]; ofs <- ofs + h
@@ -322,12 +322,12 @@ one_hot <- function(y, class_levels) {
 
 gradient_decent <- function(train_scaled, lr = 0.05, epochs = 400, lambda = 1e-3 ) {
   classes <- c("setosa", "versicolor" ,   "virginica")
-  d <- ncol(train_scaled) - 1
   Xtr <- as.matrix(train_scaled[, 2:(1+d), drop = FALSE])
   Ytr <- one_hot(train_scaled$target, classes)
   
-  h <- 5                  # Hidden Units (fix)
-  K <- length(classes) 
+  #d <- ncol(train_scaled) - 1
+  #h <- 5                  # Hidden Units (fix)
+  #K <- length(classes) 
   
   # Initialisierung
   W1 <- matrix(rnorm(h * d, sd = 0.3), nrow = h, ncol = d)

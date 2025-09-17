@@ -20,16 +20,16 @@ save(NeuronalNet, file = "/dss/dsshome1/03/di35lox/MASTER/experiments/NeuronalNe
 update_directory_strucutre()
 
 
-mat <- matrix(nrow = 6, ncol = 0)
+mat <- matrix(nrow =11, ncol = 0)
 
 for(k in 1:60) {
   vec <- c()
-  for(j in 1:6) {
-    adress <- paste0("/dss/dsshome1/03/di35lox/MASTER/results/NeuronalNet/Iris_L_3_U_5_alp_0.5_random_5/e_admissible/ID_", k)
+  for(j in 1:11) {
+    adress <- paste0("/Users/Stefan/Desktop/SL/ID_", k)
     load(adress)
-    vec <- c(vec, e_admissible[[j]]$overall[1])
+    vec <- c(vec, SL[[j]]$overall[1])
   }
   mat <- cbind(mat, vec)
 }
 
-rowMeans(mat)
+plot(rowMeans(mat))
