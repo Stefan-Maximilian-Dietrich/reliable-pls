@@ -5,6 +5,12 @@ save_path <- "/dss/dsshome1/03/di35lox/"
 ### run Experiments
 workers = 20
 N = 60
+
+#Architecture
+K <- 3 #outbut (classes)
+h <- 5 #hidden
+d <- 4 #imput
+
 methods <- list(SL = T, 
                 SSL = T,
                 e_admissible= T, 

@@ -110,6 +110,8 @@ forward_probs_theta <- function(X, theta) {
 }
 
 loglik_theta <- function(theta, data_scaled) {
+  classes <- c("setosa", "versicolor" ,   "virginica")
+  
   X <- as.matrix(data_scaled[, 2:(d+1), drop = FALSE])
   y <- factor(data_scaled$target)
   P <- forward_probs_theta(X, theta)        # n x K
@@ -127,6 +129,8 @@ log_prior_normal <- function(theta, mu, tau2) {
 }
 
 loglik_data <- function(theta, data_scaled) {
+  classes <- c("setosa", "versicolor" ,   "virginica")
+  
   X <- as.matrix(data_scaled[, 2:(d+1), drop = FALSE])
   y <- factor(data_scaled$target)
   P <- forward_probs_theta(X, theta)
@@ -199,6 +203,8 @@ grad_neg_log_post <- function(theta, data_scaled, mu, tau2) {
 
 get_marginal_likelihood <- function(prior_name, mu, tau2, theta_init, train_scaled, data_scaled_test = NULL, control = list(maxit = 1000, reltol = 1e-8)) {
   # MAP-Optimierung (BFGS)
+  classes <- c("setosa", "versicolor" ,   "virginica")
+  
   opt <- optim(
     par = theta_init,
     fn  = function(theta) neg_log_post(theta, train_scaled, mu, tau2),
@@ -226,6 +232,8 @@ get_marginal_likelihood <- function(prior_name, mu, tau2, theta_init, train_scal
   acc_test <- NA_real_
   if (!is.null(data_scaled_test)) {
     predict_class_theta <- function(theta, data_scaled) {
+      classes <- c("setosa", "versicolor" ,   "virginica")
+      
       X <- as.matrix(data_scaled[, 1:d, drop = FALSE])
       P <- forward_probs_theta(X, theta)
       factor(classes[max.col(P, ties.method = "first")], levels = classes)
@@ -384,19 +392,22 @@ forward_probs_theta <- function(X, theta) {
 }
 
 predict_class_theta <- function(theta_hat, data_scaled) {
+  classes <- c("setosa", "versicolor", "virginica")
+  
   X <- as.matrix(data_scaled[, c(2:(d+1)), drop = FALSE])
   P <- forward_probs_theta(X, theta_hat)
-  factor(classes[max.col(P, ties.method = "first")], levels = c("setosa", "versicolor", "virginica"))
+  colnames(P) <- classes
+  predicted <- colnames(P)[apply(P, 1, which.max)]
+  
 }
 
 test_confiusion <- function(train_scaled, test_scaled) {
+  classes <- c("setosa", "versicolor", "virginica")
   theta_hat <- gradient_decent(train_scaled)
-  
-  predictions <- predict_class_theta(theta_hat, train_scaled)
   predictions <- predict_class_theta(theta_hat, test_scaled)
   
-  
-  ground_truth <- as.factor(test_scaled$target)
+  ground_truth <- factor(test_scaled$target, levels = classes)
+  predictions <- factor(predictions, levels = classes)
   
   confiusion <- caret::confusionMatrix(predictions, ground_truth)
   return(confiusion)
@@ -454,7 +465,7 @@ neg_log_joint_D <- function(theta, data_scaled_train, mu, tau2) {
   -(loglik_data(theta, data_scaled_train) + log_prior_normal(theta, mu, tau2))
 }
 
-make_single_df <- function(x_vec, yhat_label) {
+make_single_df <- function(x_vec, yhat_label, num_cols) {
   stopifnot(length(x_vec) == d)
   df <- as.data.frame(matrix(x_vec, nrow = 1))
   names(df) <- num_cols
@@ -470,8 +481,8 @@ grad_neg_log_joint_D <- function(theta, data_scaled_train, mu, tau2) {
   grad_neg_loglik_data(theta, data_scaled_train) + (theta - mu)/tau2
 }
 
-loglik_pseudo <- function(theta, x_vec, yhat_label) {
-  df1 <- make_single_df(x_vec, yhat_label)
+loglik_pseudo <- function(theta, x_vec, yhat_label,num_cols ) {
+  df1 <- make_single_df(x_vec, yhat_label, num_cols)
   loglik_data(theta, df1)
 }
 
@@ -508,28 +519,28 @@ laplace_evidence_D <- function(mu, tau2, theta_start, data_scaled_train, control
 }
 
 # Grad der negativen \tilde{l} (für BFGS)
-grad_neg_ltilde <- function(theta, data_scaled_train, x_vec, yhat_label) {
-  df1 <- make_single_df(x_vec, yhat_label)
+grad_neg_ltilde <- function(theta, data_scaled_train, x_vec, yhat_label, num_cols) {
+  df1 <- make_single_df(x_vec, yhat_label, num_cols)
   2 * grad_neg_loglik_data(theta, data_scaled_train) + grad_neg_loglik_data(theta, df1)
 }
 
-ltilde <- function(theta, data_scaled_train, x_vec, yhat_label) {
-  2 * loglik_data(theta, data_scaled_train) + loglik_pseudo(theta, x_vec, yhat_label)
+ltilde <- function(theta, data_scaled_train, x_vec, yhat_label, num_cols) {
+  2 * loglik_data(theta, data_scaled_train) + loglik_pseudo(theta, x_vec, yhat_label, num_cols)
 }
 
-ppp_laplace_single <- function(mu, tau2, x_vec, yhat_label, data_scaled_train, theta_start_for_tilde, control = list(maxit = 1000, reltol = 1e-8)) {
+ppp_laplace_single <- function(mu, tau2, x_vec, yhat_label, data_scaled_train, theta_start_for_tilde,num_cols, control = list(maxit = 1000, reltol = 1e-8)) {
   # Optimum \tilde{\theta} = argmax \tilde{l} (ohne Prior, gemäß deiner Approximation)
   opt_tilde <- optim(
     par = theta_start_for_tilde,
-    fn  = function(th) -ltilde(th, data_scaled_train, x_vec, yhat_label),         # negative \tilde{l}
-    gr  = function(th)  grad_neg_ltilde(th, data_scaled_train, x_vec, yhat_label),# Grad der negativen \tilde{l}
+    fn  = function(th) -ltilde(th, data_scaled_train, x_vec, yhat_label, num_cols),         # negative \tilde{l}
+    gr  = function(th)  grad_neg_ltilde(th, data_scaled_train, x_vec, yhat_label, num_cols),# Grad der negativen \tilde{l}
     method = "BFGS",
     control = control
   )
   theta_tilde <- opt_tilde$par
-  lt_val      <- ltilde(theta_tilde, data_scaled_train, x_vec, yhat_label)
+  lt_val      <- ltilde(theta_tilde, data_scaled_train, x_vec, yhat_label, num_cols)
   # Hesse der negativen \tilde{l} am Optimum (≈ observed Fisher des Integranden ohne Prior)
-  H_tilde <- hessian(function(th) -ltilde(th, data_scaled_train, x_vec, yhat_label), theta_tilde)
+  H_tilde <- hessian(function(th) -ltilde(th, data_scaled_train, x_vec, yhat_label, num_cols), theta_tilde)
   ld_tilde <- robust_logdet_pd(H_tilde)
   
   # Prior-Dichte am \tilde{\theta}
@@ -558,7 +569,9 @@ PPP_matrix <- function(priors, train_scaled, pseudolabeled_scaled) {
     evD <- laplace_evidence_D(mu = pr$mu, tau2 = pr$tau2, theta_start = pr$mu, data_scaled_train = train_scaled)
     log_pD <- evD$log_evidence
     i = 0
-    for (ps in pseudo_points) {
+    for (pp in 1:length(pseudo_points)) {
+      num_cols <- as.numeric(names(pseudo_points[pp]))
+      ps <- pseudo_points[[pp]]
       i = i + 1 
       # \tilde{\theta} für diesen (x_i, yhat_i); start sinnvoll (z.B. theta_pre_map)
       theta_pre_map <- rnorm(length(pr$mu), sd = 0.3)
@@ -567,7 +580,7 @@ PPP_matrix <- function(priors, train_scaled, pseudolabeled_scaled) {
         mu = pr$mu, tau2 = pr$tau2,
         x_vec = ps$x, yhat_label = ps$yhat,
         data_scaled_train = train_scaled,
-        theta_start_for_tilde = theta_pre_map
+        theta_start_for_tilde = theta_pre_map, num_cols
       )
       p_dim <-length(pr$mu)
       
