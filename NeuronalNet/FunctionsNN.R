@@ -685,3 +685,47 @@ get_experiment <- function() {
   
   return(return_exp)
 }
+
+duration_function <- function(time_a, time_b) {
+  duration <- as.numeric(difftime(time_b, time_a, units = "secs"))
+  
+  # Intelligente Formatierung
+  if (duration < 60) {
+    out <- sprintf("DONE in %.2f seconds", duration)
+  } else if (duration < 3600) {
+    minutes <- duration / 60
+    out <- sprintf("DONE in %.2f minutes", minutes)
+  } else if (duration < 86400) {
+    hours <- duration / 3600
+    out <- sprintf("DONE in %.2f hours", hours)
+  } else {
+    days <- duration / 86400
+    out <- sprintf("DONE in %.2f days", days)
+  }
+  
+  print(out)
+}
+
+
+experiment_to_adress <- function(exp) {
+  adress <- paste0(exp$data, "_L_", exp$L, "_U_", exp$U, "_alp_", exp$alp, "_", exp$prio_t, "_", exp$prio_r)
+  return(adress)
+}
+
+update_directory_strucutre <- function(){
+  load("/dss/dsshome1/03/di35lox/MASTER/experiments/NeuronalNet")
+  for(i in 1:nrow(NeuronalNet)) {
+    exp <- experiment_to_adress(NeuronalNet[i,])
+    ordner <- paste0("/dss/dsshome1/03/di35lox/MASTER/results/NeuronalNet/", exp )
+    if (!dir.exists(ordner)) {
+      dir.create(ordner, recursive = TRUE)
+    }
+    methods <- c("SL","SSL_entropy", "SSL_variance" ,"SSL", "e_admissible", "maximal","M_MaxiMin", "M_MaxiMax")
+    for(method in methods) {
+      sub_ordner <-  paste0(ordner, "/", method)
+      if (!dir.exists(sub_ordner)) {
+        dir.create(sub_ordner, recursive = TRUE)
+      }
+    }
+  }
+}

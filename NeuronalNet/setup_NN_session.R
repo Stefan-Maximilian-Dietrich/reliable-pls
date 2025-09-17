@@ -2,8 +2,8 @@
 pakete <- c(
   "numDeriv",
   "progressr",    # Paket zur Verfolgung des Fortschritts von langen Berechnungen
-  "furrr"        # Paket für parallele Ausführung von purrr-Operationen
-  
+  "furrr",        # Paket für parallele Ausführung von purrr-Operationen
+  "caret"
 )
 
 # Schleife, um Pakete zu installieren und zu laden
