@@ -67,4 +67,4 @@ save(NeuronalNet, file = "/dss/dsshome1/03/di35lox/MASTER/experiments/NeuronalNe
 save(NeuronalNet, file = "/dss/dsshome1/03/di35lox/MASTER/experiments/NeuronalNet_test")
 
 # ADD all Directorys
-update_directory_strucutre(dir = NeuronalNet_test)
+update_directory_strucutre(dir = "NeuronalNet")
