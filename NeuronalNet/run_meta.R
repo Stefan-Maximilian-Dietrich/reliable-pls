@@ -45,7 +45,7 @@ while(TRUE){
     p <- progressor(steps = N)  # Fortschritt explizit setzen
     
     future_map(1:N, function(i) {
-      set.seed(i+n_labled*100+n_unlabled*10000)
+      set.seed(i*100)
       sample <- sampleNN(data, formula, n_labled, n_unlabled)
       train_scaled <- sample[[1]]
       unlabeled_scaled <- sample[[2]]
