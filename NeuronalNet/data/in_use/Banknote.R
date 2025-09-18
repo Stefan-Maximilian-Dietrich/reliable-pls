@@ -13,3 +13,4 @@ data = data_frame
 formula = target ~ Diagonal + Bottom + Length
 data_name <- "bank"
 #######
+data <- data[, all.vars(formula)]

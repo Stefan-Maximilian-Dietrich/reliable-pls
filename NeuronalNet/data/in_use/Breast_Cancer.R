@@ -43,3 +43,4 @@ levels_present <- levels(data_frame[c(target)] %>% unlist())
 # check whether labels are suited for replacement by 0,1
 levels_present
 data <- data_frame 
+data <- data[, all.vars(formula)]

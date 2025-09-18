@@ -8,7 +8,6 @@ workers = 20
 N = 60
 
 #Architecture
-n_hidden <- 5 #hidden
 
 methods <- list(SL = T, 
                 SSL = T,
@@ -16,10 +15,10 @@ methods <- list(SL = T,
                 SSL_variance = F,
                 SSL_entropy = F,
                 maximal = F, 
-                M_MaxiMin = F, 
+                M_MaxiMin = T, 
                 M_MaxiMax = F)
 
-source(paste(getwd(),"/NeuronalNet/run_meta.R", sep = ""))   
+source(paste(getwd(),"/NeuronalNet/run_meta.R", sep = ""))    
 
 ########### Analyse
 check_done()

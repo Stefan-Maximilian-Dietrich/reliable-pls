@@ -110,7 +110,7 @@ forward_probs_theta <- function(X, theta) {
 }
 
 loglik_theta <- function(theta, data_scaled) {
-  classes <- c("setosa", "versicolor" ,   "virginica")
+  #classes <- c("setosa", "versicolor" ,   "virginica")
   
   X <- as.matrix(data_scaled[, 2:(d+1), drop = FALSE])
   y <- factor(data_scaled$target)
@@ -129,7 +129,7 @@ log_prior_normal <- function(theta, mu, tau2) {
 }
 
 loglik_data <- function(theta, data_scaled) {
-  classes <- c("setosa", "versicolor" ,   "virginica")
+  #classes <- c("setosa", "versicolor" ,   "virginica")
   
   X <- as.matrix(data_scaled[, 2:(d+1), drop = FALSE])
   y <- factor(data_scaled$target)
@@ -203,7 +203,7 @@ grad_neg_log_post <- function(theta, data_scaled, mu, tau2) {
 
 get_marginal_likelihood <- function(prior_name, mu, tau2, theta_init, train_scaled, data_scaled_test = NULL, control = list(maxit = 1000, reltol = 1e-8)) {
   # MAP-Optimierung (BFGS)
-  classes <- c("setosa", "versicolor" ,   "virginica")
+  #classes <- c("setosa", "versicolor" ,   "virginica")
   
   opt <- optim(
     par = theta_init,
@@ -232,7 +232,7 @@ get_marginal_likelihood <- function(prior_name, mu, tau2, theta_init, train_scal
   acc_test <- NA_real_
   if (!is.null(data_scaled_test)) {
     predict_class_theta <- function(theta, data_scaled) {
-      classes <- c("setosa", "versicolor" ,   "virginica")
+      #classes <- c("setosa", "versicolor" ,   "virginica")
       
       X <- as.matrix(data_scaled[, 1:d, drop = FALSE])
       P <- forward_probs_theta(X, theta)
@@ -321,7 +321,7 @@ one_hot <- function(y, class_levels) {
 }
 
 gradient_decent <- function(train_scaled, lr = 0.05, epochs = 400, lambda = 1e-3 ) {
-  classes <- c("setosa", "versicolor" ,   "virginica")
+  #classes <- c("setosa", "versicolor" ,   "virginica")
   Xtr <- as.matrix(train_scaled[, 2:(1+d), drop = FALSE])
   Ytr <- one_hot(train_scaled$target, classes)
   
@@ -392,7 +392,7 @@ forward_probs_theta <- function(X, theta) {
 }
 
 predict_class_theta <- function(theta_hat, data_scaled) {
-  classes <- c("setosa", "versicolor", "virginica")
+  #classes <- c("setosa", "versicolor", "virginica")
   
   X <- as.matrix(data_scaled[, c(2:(d+1)), drop = FALSE])
   P <- forward_probs_theta(X, theta_hat)
@@ -402,7 +402,7 @@ predict_class_theta <- function(theta_hat, data_scaled) {
 }
 
 test_confiusion <- function(train_scaled, test_scaled) {
-  classes <- c("setosa", "versicolor", "virginica")
+  #classes <- c("setosa", "versicolor", "virginica")
   theta_hat <- gradient_decent(train_scaled)
   predictions <- predict_class_theta(theta_hat, test_scaled)
   
@@ -648,6 +648,72 @@ e_admissible_creterion <- function(matrix) {
   
 }
 
+M_MaxiMin_creterion <- function(matrix) {
+  a <- apply(matrix, 1, min)
+  a_s <- which.max(a)[1]
+  return(a_s)
+}
+######### Analyse 
+make_Result_df <- function(experiment_path) {
+  Methods_paths <- list.dirs(experiment_path, full.names = TRUE, recursive = FALSE)
+  Methods <- basename(Methods_paths)
+  experimet_result <- list()
+  for(j in 1:length(Methods)) {
+    run_adresses <- list.files(Methods_paths[j], full.names = TRUE)
+    if(length(run_adresses) > 0) {
+      all_accuracies <- list()
+      for(k in 1:length(run_adresses)) {
+        load(run_adresses[k])
+        run <- get(Methods[j])
+        accuracies <- sapply(run, function(x) x$overall["Accuracy"])
+        all_accuracies[[k]] <- accuracies
+      }
+      accuracy_matrix <- do.call(cbind, all_accuracies)
+      mean_result <- rowMeans(accuracy_matrix)
+      experimet_result[Methods[j]] <- list(mean_result)
+    }
+    df <- do.call(rbind, lapply(names(experimet_result), function(nm) {
+      data.frame(Method = nm, 
+                 Index = 0:(length(experimet_result[[nm]]) - 1),   # Start bei 0
+                 Accuracy = as.numeric(experimet_result[[nm]]))
+    }))
+  }
+  return(df)
+  
+}
+
+make_Result_matrix <- function(experiment_path) {
+  df <- make_Result_df(experiment_path)
+  
+  
+  accuracy_matrix <- pivot_wider(df,
+                                 id_cols = Index,
+                                 names_from = Method,
+                                 values_from = Accuracy) %>%
+    as.data.frame()
+  
+  # Index als rownames und aus den Daten entfernen
+  rownames(accuracy_matrix) <- accuracy_matrix$Index
+  accuracy_matrix$Index <- NULL
+  
+  # jetzt als Matrix
+  mat <- as.matrix(accuracy_matrix)
+  return(mat)
+}
+
+make_Result_Graph <- function(experiment_path) {
+  name <- basename(experiment_path)
+  
+  df <- make_Result_df(experiment_path)
+  G <- ggplot(df, aes(x = Index, y = Accuracy, color = Method)) +
+    geom_line(size = 1) +
+    theme_minimal() +
+    ggtitle(name)
+  
+  print(G)
+  return(G)
+}
+
 ######### RUN 
 check_semaphor <- function() {
   load("/dss/dsshome1/03/di35lox/MASTER/SEMAPHOR")
@@ -674,14 +740,15 @@ wait <- function() {
   }
 }
 
-get_experiment <- function() {
-  load("/dss/dsshome1/03/di35lox/MASTER/experiments/NeuronalNet")
+get_experiment <- function(dir = "NeuronalNet") {
+  adress <- paste0("/dss/dsshome1/03/di35lox/MASTER/experiments/", dir)
+  load(adress)
   return_exp <- NeuronalNet[!NeuronalNet$overall & !NeuronalNet$inProgress, ][1, ]
   if(nrow(return_exp) == 0) {
     stop("all Experiments done or in Progress")
   }
   NeuronalNet[!NeuronalNet$overall & !NeuronalNet$inProgress, ][1, ]$inProgress <- TRUE
-  save(NeuronalNet, file = "/dss/dsshome1/03/di35lox/MASTER/experiments/NeuronalNet")
+  save(NeuronalNet, file = adress)
   
   return(return_exp)
 }

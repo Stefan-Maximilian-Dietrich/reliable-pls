@@ -3,7 +3,10 @@ pakete <- c(
   "numDeriv",
   "progressr",    # Paket zur Verfolgung des Fortschritts von langen Berechnungen
   "furrr",        # Paket für parallele Ausführung von purrr-Operationen
-  "caret"
+  "caret",
+  "MixGHD",
+  "tidyverse", 
+  "mlr3"
 )
 
 # Schleife, um Pakete zu installieren und zu laden
