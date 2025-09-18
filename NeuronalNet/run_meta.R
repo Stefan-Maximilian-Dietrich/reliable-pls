@@ -110,6 +110,10 @@ while(TRUE){
   #### Plot 
   #Graphic_on_the_fly(path)
   #Geschützer Bereich
+  pa <-  paste0(save_path, "MASTER/results/",results_dir,"/" ,experiemnt$data, "_H_", h , "_L_", experiemnt$L, "_U_",  experiemnt$U, "_alp_", experiemnt$alp, "_", experiemnt$prio_t, "_", experiemnt$prio_r)
+  make_Result_Graph(pa)
+  
+  
   wait()
   experiemnt <- get_experiment()
   change_semaphor(TRUE)
