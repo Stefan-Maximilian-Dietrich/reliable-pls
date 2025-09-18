@@ -775,7 +775,7 @@ duration_function <- function(time_a, time_b) {
 
 
 experiment_to_adress <- function(exp) {
-  adress <- paste0(exp$data, "_L_", exp$L, "_U_", exp$U, "_alp_", exp$alp, "_", exp$prio_t, "_", exp$prio_r)
+  adress <- paste0(exp$data,"_H_", exp$n_hidden, "_L_", exp$L, "_U_", exp$U, "_alp_", exp$alp, "_", exp$prio_t, "_", exp$prio_r)
   return(adress)
 }
 
