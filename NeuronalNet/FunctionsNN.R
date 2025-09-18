@@ -575,6 +575,7 @@ PPP_matrix <- function(priors, train_scaled, pseudolabeled_scaled) {
       i = i + 1 
       # \tilde{\theta} für diesen (x_i, yhat_i); start sinnvoll (z.B. theta_pre_map)
       theta_pre_map <- rnorm(length(pr$mu), sd = 0.3)
+      #theta_pre_map <- rep(0, times = length(pr$mu))
       
       ppp_parts <- ppp_laplace_single(
         mu = pr$mu, tau2 = pr$tau2,

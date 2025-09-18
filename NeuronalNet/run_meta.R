@@ -25,7 +25,7 @@ while(TRUE){
   n_param <-  h*d + h + K*h + K
   classes <- unique(data$target)
   
-  
+  set.seed(06082000)
   priors <- gerate_normal_priori(n_param = n_param, refinement) # n_param abhänig von der netz struktur 
   
   n_prioris <-  length(priors)
