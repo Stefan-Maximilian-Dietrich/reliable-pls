@@ -76,7 +76,7 @@ M_MaxiMin_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled, a
     #print(confusion)
     
     
-    for(w in 1:(length(e_admissible))) {
+    for(w in 1:(length(M_MaxiMin))) {
       result <- c(result, list(confusion))  
       z = z + 1
     }
