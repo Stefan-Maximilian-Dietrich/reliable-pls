@@ -6,7 +6,8 @@ pakete <- c(
   "caret",
   "MixGHD",
   "tidyverse", 
-  "mlr3"
+  "mlr3",
+  "RCurl"
 )
 
 # Schleife, um Pakete zu installieren und zu laden
