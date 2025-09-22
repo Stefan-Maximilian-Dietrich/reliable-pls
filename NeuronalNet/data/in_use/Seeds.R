@@ -26,4 +26,4 @@ for (v in 2:8) {
   vars <- c(vars, colnames(data)[v])
 }
 formula = paste(vars, collapse=" + ") %>% as.formula()
-
+data <- data[, all.vars(formula)]

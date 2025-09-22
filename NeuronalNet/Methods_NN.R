@@ -119,4 +119,66 @@ refernce_SSL <- function(train_scaled, unlabeled_scaled, test_scaled) {
   
 }
 
+#untested
+refernce_SSL_variance <- function(train_scaled, unlabeled_scaled, test_scaled) { ####
+
+  confusion <- test_confiusion(train_scaled, test_scaled)
+  result <- list(confusion)
+  
+  
+  for(i in 1:nrow(unlabeled_scaled)) {
+   
+    prob_prediction <- predict_pseudo_labels_prob(train_scaled, unlabeled_scaled)
+    pseudolabeled_scaled <- predict_pseudo_labels(train_scaled, unlabeled_scaled)
+    
+    
+    second_largest <- apply(prob_prediction, 1, function(row) sort(row, decreasing = TRUE)[2])
+    first_largest <- apply(prob_prediction, 1, function(row) sort(row, decreasing = TRUE)[1])
+    max_variance <- which.max(log(first_largest) - log(second_largest))
+    
+    
+    train_scaled <- rbind(train_scaled, pseudolabeled_scaled[max_variance, ] )
+    unlabeled_scaled <- pseudolabeled_scaled[-c(max_variance), ]
+    
+    confusion <- test_confiusion(train_scaled, test_scaled)
+    result <- c(result, list(confusion))
+    
+  }
+  return(result)
+  
+}
+
+#untested
+refernce_SSL_entropy <- function(train_scaled, unlabeled_scaled, test_scaled) {
+  
+  confusion <- test_confiusion(train_scaled, test_scaled)
+  result <- list(confusion)
+  
+  
+  for(i in 1:nrow(unlabeled_scaled)) {
+    prob_prediction <- predict_pseudo_labels_prob(train_scaled, unlabeled_scaled)
+    pseudolabeled_scaled <- predict_pseudo_labels(train_scaled, unlabeled_scaled)
+    
+    
+
+    entropy_values <- apply(prob_prediction, 1, function(p) {
+      p <- p[p > 0]
+      return(-sum(p * log2(p)))
+    })
+    
+    
+    min_entropy <- which.min(entropy_values)
+    
+    
+    train_scaled <- rbind(train_scaled, pseudolabeled_scaled[min_entropy, ] )
+    unlabeled_scaled <- pseudolabeled_scaled[-c(min_entropy), ]
+    
+    confusion <- test_confiusion(train_scaled, test_scaled)
+    result <- c(result, list(confusion))
+    
+  }
+  return(result)
+  
+}
+
 

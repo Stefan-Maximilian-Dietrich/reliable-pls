@@ -654,6 +654,7 @@ M_MaxiMin_creterion <- function(matrix) {
   a_s <- which.max(a)[1]
   return(a_s)
 }
+
 ######### Analyse 
 make_Result_df <- function(experiment_path) {
   Methods_paths <- list.dirs(experiment_path, full.names = TRUE, recursive = FALSE)
@@ -713,6 +714,44 @@ make_Result_Graph <- function(experiment_path) {
   
   print(G)
   return(G)
+}
+
+
+make_all_Graphs <-function(ground_path, graph_path) {
+  progress <-  check_progress(ground_path) 
+  exp_agg <- aggregate(progress$number_runs, by = list(experiment = progress$experiment), FUN = sum)
+  experiment <- exp_agg[exp_agg$x >0, ]$experiment
+  
+  experiment_paths <- paste0(ground_path,"/", experiment )
+  for(l in 1:length(experiment_paths)) {
+    name <- basename(experiment_paths[l])
+    print(name)
+    graph <- make_Result_Graph(experiment_paths[l])
+    ggsave(paste(graph_path, "/", name, ".png", sep = ""), width = 20, height = 20, units = "cm", dpi = 300,plot = graph)
+    
+  }
+  
+}
+
+check_progress <- function(ground_path) {
+  df_list <- list()
+  n = 0
+  experiments_path <- list.dirs(ground_path, full.names = TRUE, recursive = FALSE)
+  experimetns <- basename(experiments_path)
+  for(i in 1:length(experimetns)) {
+    experiment_name <- experimetns[i]
+    methods_path <- list.dirs(experiments_path[i], full.names = TRUE, recursive = FALSE)
+    for(j in 1:length(methods_path)) {
+      n = n + 1
+      file_path <- list.files(methods_path[j], full.names = TRUE)
+      name_method <- basename(methods_path[j])
+      number_runs <- length(file_path)
+      df_part <- data.frame(experiment = experiment_name, method = name_method, number_runs)
+      df_list[[n]] <- df_part
+    }
+  }
+  df <- do.call(rbind, df_list)
+  return(df)
 }
 
 ######### RUN 
