@@ -133,8 +133,7 @@ log_prior_normal <- function(theta, mu, tau2) {
 }
 
 loglik_data <- function(theta, data_scaled) {
-  #classes <- c("setosa", "versicolor" ,   "virginica")
-  
+
   X <- as.matrix(data_scaled[, 2:(d+1), drop = FALSE])
   y <- factor(data_scaled$target)
   P <- forward_probs_theta(X, theta, h, d, K)
@@ -207,8 +206,7 @@ grad_neg_log_post <- function(theta, data_scaled, mu, tau2) {
 
 get_marginal_likelihood <- function(h, d, K, prior_name, mu, tau2, theta_init, train_scaled, data_scaled_test = NULL, control = list(maxit = 1000, reltol = 1e-8)) {
   # MAP-Optimierung (BFGS)
-  #classes <- c("setosa", "versicolor" ,   "virginica")
-  
+
   opt <- optim(
     par = theta_init,
     fn  = function(theta) neg_log_post(theta, train_scaled, mu, tau2),
@@ -326,6 +324,7 @@ one_hot <- function(y, class_levels) {
 
 gradient_decent <- function(train_scaled, i = NULL,h, d, K, lr = 0.05, epochs = 400, lambda = 1e-3 ) {
 
+  
   Xtr <- as.matrix(train_scaled[, 2:(1+d), drop = FALSE])
   Ytr <- one_hot(train_scaled$target, classes)
 
@@ -351,6 +350,7 @@ gradient_decent <- function(train_scaled, i = NULL,h, d, K, lr = 0.05, epochs = 
     eps <- .Machine$double.eps
     P <- pmax(pmin(P, 1 - eps), eps)
     
+   
     # Loss (sum) = -sum Y*log P + L2
     loss_ce <- -sum(Ytr * log(P))
     loss_reg <- (lambda/2) * (sum(W1^2) + sum(W2^2))
@@ -408,7 +408,10 @@ predict_class_theta <- function(theta_hat, data_scaled, h, d,K) {
 }
 
 test_confiusion <- function(train_scaled, test_scaled, i = NULL, h, d, K) {
-  #classes <- c("setosa", "versicolor", "virginica")
+
+  
+  
+  ###################################
   theta_hat <- gradient_decent(train_scaled, i = i, h = h,d= d, K=K)
   predictions <- predict_class_theta(theta_hat, test_scaled,h =  h, d= d, K=K)
   
@@ -866,7 +869,6 @@ duration_function <- function(time_a, time_b) {
   print(out)
 }
 
-
 experiment_to_adress <- function(exp) {
   adress <- paste0(exp$data,"_H_", exp$n_hidden, "_L_", exp$L, "_U_", exp$U, "_alp_", exp$alp, "_", exp$prio_t, "_", exp$prio_r)
   return(adress)
@@ -891,6 +893,7 @@ update_directory_strucutre <- function(dir = "NeuronalNet"){
 }
 
 ##### Possibility check 
+
 flatten_cm <- function(cm) {
   ov <- cm$overall
   bc <- cm$byClass
@@ -958,27 +961,36 @@ compare_cm_list <- function(lst) {
   df
 }
 
-accuracy_matrix <- function(labled, hidden, dat, i) {
+df_to_matrix <- function(df) {
+  rownames(df) <- df[[1]]       # 1. Spalte = Zeilennamen
+  mat <- as.matrix(df["accuracy"])  # nur accuracy-Spalte als Matrix
+  colnames(mat) <- df[[2]]      # 2. Spalte = Spaltennamen
+  return(mat)
+}
+
+accuracy_matrix <- function(labled, hidden, i) {
+  
+  
   lst <- list()
-  data_loader(dat)
   n = 0
+  
   for(lab in labled) {
     sample <- sampleNN(data, formula, n_labled = lab, n_unlabled = 2)
     train_scaled <- sample[[1]]
     unlabeled_scaled <- sample[[2]]
     test_scaled <-sample[[3]]
+
+    K <- length( unique(train_scaled$target))
+    d <- ncol(train_scaled) - 1
     
-    levels_present <- levels(data[,c(all.vars(formula)[1])]) 
-    d <- ncol(data) - 1
     
     for(hid in hidden) {
       n = n + 1
       h <- hid 
-      K <- length(levels_present)
       n_param <-  h*d + h + K*h + K
-      classes <- unique(data$target)
       
-      test <- test_confiusion(train_scaled, test_scaled, i = i, h = h, d= d, K = K) 
+      
+      test <- test_confiusion(train_scaled = train_scaled, test_scaled = test_scaled, i = i, h = h, d= d, K = K) 
       
       lst[[n]] <- list(cm = test, labled = lab, hidden = h)
     }
@@ -987,16 +999,15 @@ accuracy_matrix <- function(labled, hidden, dat, i) {
   return(out)
   
 }
+##############
 
-df_to_matrix <- function(df) {
-  rownames(df) <- df[[1]]       # 1. Spalte = Zeilennamen
-  mat <- as.matrix(df["accuracy"])  # nur accuracy-Spalte als Matrix
-  colnames(mat) <- df[[2]]      # 2. Spalte = Spaltennamen
-  return(mat)
-}
+#accuracy_matrix(labled = 3:6, hidden = 1:5, i=1, dat = "Iris")
 
+##############
 ave_accuracy_matrix <- function(labled, hidden, dat, N, workers = 4, metric = "Accuracy") {
   
+  data_loader(dat)
+  classes <<- unique(data$target)
   
   # 2. Parallelisierungsstrategie festlegen (plattformunabhängig)
   plan(multisession, workers = workers)
@@ -1009,16 +1020,14 @@ ave_accuracy_matrix <- function(labled, hidden, dat, N, workers = 4, metric = "A
   # 4. Verarbeitung mit Fortschrittsanzeige
   result_list <- with_progress({
     p <- progressor(steps = N)  # Fortschritt explizit setzen
-    
     future_map(1:N, function(i) {
       set.seed(i)
-      result<- accuracy_matrix(labled = labled, hidden = hidden, dat = dat, i = i)
+      result<- accuracy_matrix(labled = labled, hidden = hidden, i = i)
       
       
-      return(result)
       # Fortschritt updaten
       p(sprintf("Zeile %d bearbeitet", i))
-      
+      return(result)
     })
   })
   
@@ -1031,4 +1040,5 @@ ave_accuracy_matrix <- function(labled, hidden, dat, N, workers = 4, metric = "A
   
   return(mean_mat)
 }
+
 
