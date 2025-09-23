@@ -74,6 +74,21 @@ NeuronalNet_Seeds <- data.frame(data = c("Seeds", "Seeds","Seeds","Seeds","Seeds
                                e_admissible= F
 )
 
+NeuronalNet_Seeds <- data.frame(data = c("Seeds", "Seeds","Seeds","Seeds","Seeds","Seeds","Seeds","Seeds","Seeds","Seeds","Seeds","Seeds" ),
+                                L = c(2, 2, 2, 2, 4, 4, 4, 4, 8, 8 ,8 ,8),
+                                U = c(32, 32, 64, 64, 32, 32, 64, 64, 32, 32, 64, 64),
+                                alpha = c(0.5, 0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5, 0.5, 0.5),
+                                prio_t =c("random","random", "random", "random","random","random","random","random","random","random", "random", "random"),
+                                prio_r = c(60,  60, 60, 60, 60, 60, 60, 60, 60 ,60, 60, 60),
+                                n_hidden = c(1,  2, 3, 1, 2, 3, 1, 2, 3 ,1, 2,3),
+                                inProgress = F,
+                                overall = F,
+                                SL = F, 
+                                SSL = F,
+                                M_MaxiMin = F,
+                                e_admissible= F
+)
+
 NeuronalNet <- rbind(NeuronalNet_Bank, NeuronalNet_Breast_Cancer,NeuronalNet_Cassini, NeuronalNet_Wine )
 ###
 load(file = "/dss/dsshome1/03/di35lox/MASTER/experiments/NeuronalNet")

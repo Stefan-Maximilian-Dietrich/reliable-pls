@@ -45,57 +45,57 @@ while(TRUE){
     p <- progressor(steps = N)  # Fortschritt explizit setzen
     
     future_map(1:N, function(i) {
-      set.seed(i*100)
+      set.seed(i)
       sample <- sampleNN(data, formula, n_labled, n_unlabled)
       train_scaled <- sample[[1]]
       unlabeled_scaled <- sample[[2]]
       test_scaled <-sample[[3]]
       
       if(methods$e_admissible){
-        e_admissible <- e_admissible_SSL(priors, train_scaled, unlabeled_scaled, test_scaled, alpha)
+        e_admissible <- e_admissible_SSL(priors, train_scaled, unlabeled_scaled, test_scaled, alpha, i)
         
         titel <- paste0(save_path, "MASTER/results/",results_dir,"/" ,experiemnt$data, "_H_", h ,"_L_", experiemnt$L, "_U_",  experiemnt$U, "_alp_", experiemnt$alp, "_", experiemnt$prio_t, "_", experiemnt$prio_r, "/e_admissible/", "ID_", i)
         save(e_admissible, file = titel)
       } 
       
       if(methods$maximal){
-        maximal <- maximal_SSL(prioris, train, unlabeld, test, alpha)
+        maximal <- maximal_SSL(priors, train_scaled, unlabeled_scaled, test_scaled, alpha, i)
         titel <- paste0(save_path, "MASTER/results/",results_dir,"/" ,experiemnt$data, "_H_", h , "_L_", experiemnt$L, "_U_",  experiemnt$U, "_alp_", experiemnt$alp, "_", experiemnt$prio_t, "_", experiemnt$prio_r, "/maximal/", "ID_", i)
         save(maximal, file = titel)
       } 
       
       if(methods$SSL){
-        SSL <-refernce_SSL(train_scaled, unlabeled_scaled, test_scaled)
+        SSL <-refernce_SSL(train_scaled, unlabeled_scaled, test_scaled, i)
         titel <- paste0(save_path, "MASTER/results/",results_dir,"/" ,experiemnt$data, "_H_", h , "_L_", experiemnt$L, "_U_",  experiemnt$U, "_alp_", experiemnt$alp, "_", experiemnt$prio_t, "_", experiemnt$prio_r, "/SSL/", "ID_", i)
         save(SSL, file = titel)
       } 
       
       if(methods$SL){
-        SL <- refernce_SL(train_scaled, unlabeled_scaled, test_scaled) 
+        SL <- refernce_SL(train_scaled, unlabeled_scaled, test_scaled, i) 
         titel <- paste0(save_path, "MASTER/results/",results_dir,"/" ,experiemnt$data, "_H_", h , "_L_", experiemnt$L, "_U_",  experiemnt$U, "_alp_", experiemnt$alp, "_", experiemnt$prio_t, "_", experiemnt$prio_r, "/SL/", "ID_", i)
         save(SL, file = titel)
       }
       
       if(methods$SSL_variance){
-        SSL_variance <- refernce_SSL_variance(train, unlabeld, test, priori = NULL) 
+        SSL_variance <- refernce_SSL_variance(train_scaled, unlabeled_scaled, test_scaled, i) 
         titel <- paste0(save_path, "MASTER/results/",results_dir,"/" ,experiemnt$data, "_H_", h , "_L_", experiemnt$L, "_U_",  experiemnt$U, "_alp_", experiemnt$alp, "_", experiemnt$prio_t, "_", experiemnt$prio_r, "/SSL_variance/", "ID_", i)
         save(SSL_variance, file = titel)
       } 
       
       if(methods$SSL_entropy){
-        SSL_entropy <- refernce_SSL_entropy(train, unlabeld, test, priori = NULL) 
+        SSL_entropy <- refernce_SSL_entropy(train_scaled, unlabeled_scaled, test_scaled, i)
         titel <- paste0(save_path, "MASTER/results/",results_dir,"/" ,experiemnt$data, "_H_", h , "_L_", experiemnt$L, "_U_",  experiemnt$U, "_alp_", experiemnt$alp, "_", experiemnt$prio_t, "_", experiemnt$prio_r, "/SSL_entropy/", "ID_", i)
         save(SSL_entropy, file = titel)
       } 
       
       if(methods$M_MaxiMin){
-        M_MaxiMin <- M_MaxiMin_SSL(priors, train_scaled, unlabeled_scaled, test_scaled, alpha)
+        M_MaxiMin <- M_MaxiMin_SSL(priors, train_scaled, unlabeled_scaled, test_scaled, alpha, i)
         titel <- paste0(save_path, "MASTER/results/",results_dir,"/" ,experiemnt$data,  "_H_", h ,"_L_", experiemnt$L, "_U_",  experiemnt$U, "_alp_", experiemnt$alp, "_", experiemnt$prio_t, "_", experiemnt$prio_r, "/M_MaxiMin/", "ID_", i)
         save(M_MaxiMin, file = titel)
       } 
       
       if(methods$M_MaxiMax){
-        M_MaxiMax <- M_MaxiMax_SSL(prioris, train, unlabeld, test, alpha)
+        M_MaxiMax <- M_MaxiMax_SSL(priors, train_scaled, unlabeled_scaled, test_scaled, alpha, i)
         titel <- paste0(save_path, "MASTER/results/",results_dir,"/" ,experiemnt$data, "_H_", h , "_L_", experiemnt$L, "_U_",  experiemnt$U, "_alp_", experiemnt$alp, "_", experiemnt$prio_t, "_", experiemnt$prio_r, "/M_MaxiMax/", "ID_", i)
         save(M_MaxiMax, file = titel)
       } 

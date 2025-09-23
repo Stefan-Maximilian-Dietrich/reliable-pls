@@ -1,8 +1,9 @@
-d = 20 
+d = 2
 tg = mlr3::mlr_task_generators$get("circle")
 tg$param_set$values$d = d
 
 # 2. Dann Datensatz mit n Punkten erzeugen
+set.seed(06082000)
 task = tg$generate(2000)
 
 # 3. Daten extrahieren
@@ -19,3 +20,5 @@ for (v in 2:(d+1)) {
   vars <- c(vars, colnames(data)[v])
 }
 formula = paste(vars, collapse=" + ") %>% as.formula()
+
+data <- data[, all.vars(formula)]

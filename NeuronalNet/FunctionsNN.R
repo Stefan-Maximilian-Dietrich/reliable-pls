@@ -320,7 +320,7 @@ one_hot <- function(y, class_levels) {
   Y
 }
 
-gradient_decent <- function(train_scaled, lr = 0.05, epochs = 400, lambda = 1e-3 ) {
+gradient_decent <- function(train_scaled, i = NULL, lr = 0.05, epochs = 400, lambda = 1e-3 ) {
   #classes <- c("setosa", "versicolor" ,   "virginica")
   Xtr <- as.matrix(train_scaled[, 2:(1+d), drop = FALSE])
   Ytr <- one_hot(train_scaled$target, classes)
@@ -330,9 +330,16 @@ gradient_decent <- function(train_scaled, lr = 0.05, epochs = 400, lambda = 1e-3
   #K <- length(classes) 
   
   # Initialisierung
+  if(!is.null(i)) {set.seed(i*1000)}
   W1 <- matrix(rnorm(h * d, sd = 0.3), nrow = h, ncol = d)
+  
+  if(!is.null(i)) {set.seed(i*2000)}
   b1 <- rnorm(h, sd = 0.3)
+  
+  if(!is.null(i)) {set.seed(i*3000)}
   W2 <- matrix(rnorm(K * h, sd = 0.3), nrow = K, ncol = h)
+  
+  if(!is.null(i)) {set.seed(i*4000)}
   b2 <- rnorm(K, sd = 0.3)
   
   n       <- nrow(Xtr)
@@ -401,9 +408,10 @@ predict_class_theta <- function(theta_hat, data_scaled) {
   
 }
 
-test_confiusion <- function(train_scaled, test_scaled) {
+test_confiusion <- function(train_scaled, test_scaled, i = NULL) {
   #classes <- c("setosa", "versicolor", "virginica")
-  theta_hat <- gradient_decent(train_scaled)
+  
+  theta_hat <- gradient_decent(train_scaled, i)
   predictions <- predict_class_theta(theta_hat, test_scaled)
   
   ground_truth <- factor(test_scaled$target, levels = classes)
@@ -836,3 +844,145 @@ update_directory_strucutre <- function(dir = "NeuronalNet"){
     }
   }
 }
+
+##### Possibility check 
+flatten_cm <- function(cm) {
+  ov <- cm$overall
+  bc <- cm$byClass
+  
+  if (is.matrix(bc)) {
+    # Multiklassen: Sensitivity[Klasse], ...
+    out <- ov
+    rn <- rownames(bc); cn <- colnames(bc)
+    for (i in seq_len(nrow(bc))) {
+      for (j in seq_len(ncol(bc))) {
+        out[paste0(cn[j], "[", rn[i], "]")] <- bc[i, j]
+      }
+    }
+    out
+  } else {
+    c(ov, bc)
+  }
+}
+
+compare_cm_list <- function(lst) {
+  # Normiere Eingabe
+  norm <- lapply(lst, function(x) {
+    if (inherits(x, "confusionMatrix")) {
+      list(cm = x, labled = NA, hidden = NA)
+    } else if (is.list(x) && !is.null(x$cm)) {
+      list(
+        cm = x$cm,
+        labled = if (!is.null(x$labled)) x$labled else NA,
+        hidden = if (!is.null(x$hidden)) x$hidden else NA
+      )
+    } else {
+      stop("Jedes List-Element muss eine confusionMatrix sein oder eine Liste mit Feldern cm, labled, hidden.")
+    }
+  })
+  
+  # Alle möglichen Metriken sammeln
+  metric_sets <- lapply(norm, function(e) names(flatten_cm(e$cm)))
+  all_metrics <- Reduce(union, metric_sets)
+  
+  # Reihenfolge schöner machen (falls vorhanden)
+  metric_order <- c(
+    "Accuracy","Kappa","AccuracyLower","AccuracyUpper","AccuracyNull","AccuracyPValue",
+    "Sensitivity","Specificity","Pos Pred Value","Neg Pred Value","Precision","Recall","F1",
+    "Prevalence","Detection Rate","Detection Prevalence","Balanced Accuracy",
+    "Matthews Correlation Coefficient"
+  )
+  ordered_metrics <- unique(c(metric_order, setdiff(all_metrics, metric_order)))
+  
+  # Eine Zeile pro Modell
+  rows <- lapply(norm, function(e) {
+    v <- flatten_cm(e$cm)
+    # vollständiger Vektor aller Metriken in der richtigen Reihenfolge
+    vals <- setNames(rep(NA_real_, length(ordered_metrics)), ordered_metrics)
+    vals[names(v)] <- as.numeric(v)
+    data.frame(
+      labled = e$labled,
+      hidden = e$hidden,
+      as.list(vals),
+      check.names = FALSE
+    )
+  })
+  
+  df <- do.call(rbind, rows)
+  rownames(df) <- NULL
+  df
+}
+
+accuracy_matrix <- function(labled, hidden, data_name, i) {
+  lst <- list()
+  data_loader(data_name)
+  n = 0
+  for(lab in labled) {
+    sample <- sampleNN(data, formula, n_labled = lab, n_unlabled = 2)
+    train_scaled <- sample[[1]]
+    unlabeled_scaled <- sample[[2]]
+    test_scaled <-sample[[3]]
+    
+    levels_present <- levels(data[,c(all.vars(formula)[1])]) 
+    d <- ncol(data) - 1
+    
+    for(hid in hidden) {
+      n = n + 1
+      h <- hid 
+      K <- length(levels_present)
+      n_param <-  h*d + h + K*h + K
+      classes <- unique(data$target)
+      test <- test_confiusion(train_scaled, test_scaled, i = i) 
+      
+      lst[[n]] <- list(cm = test, labled = lab, hidden = hid)
+    }
+  }
+  out <- compare_cm_list(lst)
+  return(out)
+  
+}
+
+df_to_matrix <- function(df) {
+  rownames(df) <- df[[1]]       # 1. Spalte = Zeilennamen
+  mat <- as.matrix(df["accuracy"])  # nur accuracy-Spalte als Matrix
+  colnames(mat) <- df[[2]]      # 2. Spalte = Spaltennamen
+  return(mat)
+}
+
+ave_accuracy_matrix <- function(labled, hidden, data_name, N, workers = 4, metric = "Accuracy") {
+  
+  
+  # 2. Parallelisierungsstrategie festlegen (plattformunabhängig)
+  plan(multisession, workers = workers)
+  #plan(sequential)
+  
+  
+  # 3. Fortschrittsbalken aktivieren
+  handlers("txtprogressbar")  # andere möglich: "cli", "rstudio", "progress"
+  
+  # 4. Verarbeitung mit Fortschrittsanzeige
+  result_list <- with_progress({
+    p <- progressor(steps = N)  # Fortschritt explizit setzen
+    
+    future_map(1:N, function(i) {
+      set.seed(i)
+      result<- accuracy_matrix(labled = labled, hidden = hidden, data_name = data_name, i = i)
+      
+      
+      return(result)
+      # Fortschritt updaten
+      p(sprintf("Zeile %d bearbeitet", i))
+      
+    })
+  })
+  
+  subset_list <- lapply(result_list, function(df) {
+    df[, c("labled", "hidden", metric)]
+  })
+  
+  matrix_list <- lapply(subset_list, function(df) {m <- xtabs(Accuracy ~ labled + hidden, data = df)})
+  mean_mat <- Reduce("+", matrix_list) / length(matrix_list)
+  
+  return(mean_mat)
+}
+

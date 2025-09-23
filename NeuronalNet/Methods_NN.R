@@ -1,6 +1,6 @@
-e_admissible_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled, alpha) {
+e_admissible_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled, alpha, i) {
   
-  confusion <- test_confiusion(train_scaled, test_scaled)
+  confusion <- test_confiusion(train_scaled, test_scaled, i)
   #print(confusion)
   result <- list(confusion)
   
@@ -42,9 +42,9 @@ e_admissible_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled
   
 } 
 
-M_MaxiMin_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled, alpha) {
+M_MaxiMin_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled, alpha, i) {
   
-  confusion <- test_confiusion(train_scaled, test_scaled)
+  confusion <- test_confiusion(train_scaled, test_scaled, i)
   #print(confusion)
   result <- list(confusion)
   
@@ -88,16 +88,16 @@ M_MaxiMin_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled, a
   
 } 
 
-refernce_SL <- function(train_scaled, unlabeled_scaled, test_scaled) {
-  confusion <- test_confiusion(train_scaled, test_scaled)
+refernce_SL <- function(train_scaled, unlabeled_scaled, test_scaled, i) {
+  confusion <- test_confiusion(train_scaled, test_scaled, i)
   result <- rep(list(confusion), nrow(unlabeled_scaled) +1)
   return(result)
 }
 
-refernce_SSL <- function(train_scaled, unlabeled_scaled, test_scaled) {
+refernce_SSL <- function(train_scaled, unlabeled_scaled, test_scaled, i) {
   
   
-  confusion <- test_confiusion(train_scaled, test_scaled)
+  confusion <- test_confiusion(train_scaled, test_scaled, i)
   result <- list(confusion)
   
   
@@ -120,9 +120,9 @@ refernce_SSL <- function(train_scaled, unlabeled_scaled, test_scaled) {
 }
 
 #untested
-refernce_SSL_variance <- function(train_scaled, unlabeled_scaled, test_scaled) { ####
+refernce_SSL_variance <- function(train_scaled, unlabeled_scaled, test_scaled, i) { ####
 
-  confusion <- test_confiusion(train_scaled, test_scaled)
+  confusion <- test_confiusion(train_scaled, test_scaled, i)
   result <- list(confusion)
   
   
@@ -149,9 +149,9 @@ refernce_SSL_variance <- function(train_scaled, unlabeled_scaled, test_scaled) {
 }
 
 #untested
-refernce_SSL_entropy <- function(train_scaled, unlabeled_scaled, test_scaled) {
+refernce_SSL_entropy <- function(train_scaled, unlabeled_scaled, test_scaled, i) {
   
-  confusion <- test_confiusion(train_scaled, test_scaled)
+  confusion <- test_confiusion(train_scaled, test_scaled, i)
   result <- list(confusion)
   
   
@@ -181,4 +181,87 @@ refernce_SSL_entropy <- function(train_scaled, unlabeled_scaled, test_scaled) {
   
 }
 
+#untested
+maximal_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled, alpha, i) {
+  
+  confusion <- test_confiusion(train_scaled, test_scaled, i)
+  #print(confusion)
+  result <- list(confusion)
+  z = 1
+  end <- nrow(unlabeled_scaled)
+  
+  while(z <= end) {
+    marg_prioris <- marginal_likelihoods(train_scaled, priors)
+    cut_prioris <- alpha_cut(marg_prioris, alpha, priors)
+    pseudolabeled_scaled <- predict_pseudo_labels(train_scaled, unlabeled_scaled)
+    
+    ######
+    ppp_m <- PPP_matrix(cut_prioris, train_scaled, pseudolabeled_scaled) 
+    matrix <-  xtabs(log_PPP ~ psID+priorID, data = ppp_m)
+    
+    
+    maximal <- maximalitaetskriterium(matrix)
+    
+    ###########
+    train_scaled <- rbind(train_scaled, pseudolabeled_scaled[M_MaxiMin, ])
+    unlabeled_scaled <- pseudolabeled_scaled[-M_MaxiMin, ]
+    
+    ########### Evaluation
+    confusion <- test_confiusion(train_scaled, test_scaled)
+    #print(confusion)
+    
+    for(w in 1:(length(maximal))) {
+      
+      result <- c(result, list(confusion))   ##### wird list mir allen möglichen wert
+      z = z + 1
+    }
+    #print(result)
+    #plot(marg_prioris$genuine, marg_prioris$marg_likelis)
+    
+  }
+  
+  return(result)
+  
+} 
+
+#untested
+M_MaxiMax_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled, alpha, i) {
+  
+  confusion <- test_confiusion(train_scaled, test_scaled, i)
+  #print(confusion)
+  result <- list(confusion)
+  z = 1
+  end <- nrow(unlabeled_scaled)
+  while(z <= end) {
+    marg_prioris <- marginal_likelihoods(train_scaled, priors)
+    cut_prioris <- alpha_cut(marg_prioris, alpha, priors)
+    pseudolabeled_scaled <- predict_pseudo_labels(train_scaled, unlabeled_scaled)
+    
+    ######
+    ppp_m <- PPP_matrix(cut_prioris, train_scaled, pseudolabeled_scaled) 
+    matrix <-  xtabs(log_PPP ~ psID+priorID, data = ppp_m)
+    
+    
+    M_MaxiMax <- M_MaxiMax_creterion(matrix)
+    
+    train_scaled <- rbind(train_scaled, pseudolabeled_scaled[M_MaxiMin, ])
+    unlabeled_scaled <- pseudolabeled_scaled[-M_MaxiMin, ]
+    
+    ########### Evaluation
+    confusion <- test_confiusion(train_scaled, test_scaled)
+    #print(confusion)
+    
+    for(w in 1:(length(M_MaxiMax))) {
+      
+      result <- c(result, list(confusion))   ##### wird list mir allen möglichen wert
+      z = z + 1
+    }
+    #print(result)
+    #plot(marg_prioris$genuine, marg_prioris$marg_likelis)
+    
+  }
+  
+  return(result)
+  
+} 
 
