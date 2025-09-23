@@ -1,4 +1,3 @@
-library("MixGHD")
 data(banknote)
 data_frame <- banknote %>% as.data.frame()
 names(data_frame)[names(data_frame) == 'Status'] <- 'target'
