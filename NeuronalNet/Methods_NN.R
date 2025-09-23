@@ -1,6 +1,8 @@
-e_admissible_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled, alpha, i) {
+e_admissible_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled, alpha, i, h) {
+  d <- ncol(train_scaled) -1 
+  K <- length(unique(train_scaled$target))
   
-  confusion <- test_confiusion(train_scaled, test_scaled, i)
+  confusion <- test_confiusion(train_scaled, test_scaled, i, h, d, K)
   #print(confusion)
   result <- list(confusion)
   
@@ -8,12 +10,13 @@ e_admissible_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled
   z = 1
   end <- nrow(unlabeled_scaled)
   while(z <= end) {
-    marg_prioris <- marginal_likelihoods(train_scaled, priors)
+    marg_prioris <- marginal_likelihoods(train_scaled, priors, h, d, K)
     cut_prioris <- alpha_cut(marg_prioris, alpha, priors)
-    pseudolabeled_scaled <- predict_pseudo_labels(train_scaled, unlabeled_scaled)
+    pseudolabeled_scaled <- predict_pseudo_labels(train_scaled, unlabeled_scaled, h, d, K)
+
     
     ######
-    ppp_m <- PPP_matrix(cut_prioris, train_scaled, pseudolabeled_scaled) 
+    ppp_m <- PPP_matrix(cut_prioris, train_scaled, pseudolabeled_scaled,h,d,K) 
     matrix <-  xtabs(log_PPP ~ psID+priorID, data = ppp_m)
     e_admissible <- e_admissible_creterion(matrix)
     
@@ -26,7 +29,7 @@ e_admissible_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled
     unlabeled_scaled <- pseudolabeled_scaled[-e_admissible, ]
     
     ########### Evaluation
-    confusion <- test_confiusion(train_scaled, test_scaled)
+      confusion <- test_confiusion(train_scaled, test_scaled, i, h, d, K)
     #print(confusion)
     
     
@@ -42,9 +45,11 @@ e_admissible_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled
   
 } 
 
-M_MaxiMin_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled, alpha, i) {
+M_MaxiMin_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled, alpha, i, h) {
+  d <- ncol(train_scaled) -1 
+  K <- length(unique(train_scaled$target))
   
-  confusion <- test_confiusion(train_scaled, test_scaled, i)
+  confusion <- test_confiusion(train_scaled, test_scaled, i, h, d, K)
   #print(confusion)
   result <- list(confusion)
   
@@ -52,12 +57,12 @@ M_MaxiMin_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled, a
   z = 1
   end <- nrow(unlabeled_scaled)
   while(z <= end) {
-    marg_prioris <- marginal_likelihoods(train_scaled, priors)
+    marg_prioris <- marginal_likelihoods(train_scaled, priors, h, d, K)
     cut_prioris <- alpha_cut(marg_prioris, alpha, priors)
-    pseudolabeled_scaled <- predict_pseudo_labels(train_scaled, unlabeled_scaled)
+    pseudolabeled_scaled <- predict_pseudo_labels(train_scaled, unlabeled_scaled, h, d, K)
     
     ######
-    ppp_m <- PPP_matrix(cut_prioris, train_scaled, pseudolabeled_scaled) 
+    ppp_m <- PPP_matrix(cut_prioris, train_scaled, pseudolabeled_scaled,h,d,K) 
     matrix <-  xtabs(log_PPP ~ psID+priorID, data = ppp_m)
     
     M_MaxiMin <- M_MaxiMin_creterion(matrix)
@@ -72,7 +77,7 @@ M_MaxiMin_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled, a
     unlabeled_scaled <- pseudolabeled_scaled[-M_MaxiMin, ]
     
     ########### Evaluation
-    confusion <- test_confiusion(train_scaled, test_scaled)
+      confusion <- test_confiusion(train_scaled, test_scaled, i, h, d, K)
     #print(confusion)
     
     
@@ -88,30 +93,35 @@ M_MaxiMin_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled, a
   
 } 
 
-refernce_SL <- function(train_scaled, unlabeled_scaled, test_scaled, i) {
-  confusion <- test_confiusion(train_scaled, test_scaled, i)
+refernce_SL <- function(train_scaled, unlabeled_scaled, test_scaled, i, h) {
+  d <- ncol(train_scaled) -1 
+  K <- length(unique(train_scaled$target))
+  
+  confusion <- test_confiusion(train_scaled, test_scaled, i, h, d, K)
   result <- rep(list(confusion), nrow(unlabeled_scaled) +1)
   return(result)
 }
 
-refernce_SSL <- function(train_scaled, unlabeled_scaled, test_scaled, i) {
+refernce_SSL <- function(train_scaled, unlabeled_scaled, test_scaled, i, h) {
   
+  d <- ncol(train_scaled) -1 
+  K <- length(unique(train_scaled$target))
   
-  confusion <- test_confiusion(train_scaled, test_scaled, i)
+  confusion <- test_confiusion(train_scaled, test_scaled, i, h, d, K)
   result <- list(confusion)
   
   
   for(i in 1:nrow(unlabeled_scaled)) {
     
-    prob_prediction <- predict_pseudo_labels_prob(train_scaled, unlabeled_scaled)
+    prob_prediction <- predict_pseudo_labels_prob(train_scaled, unlabeled_scaled, h,d,K)
     max_prob <- which.max(apply(prob_prediction, 1, max))
-    pseudolabeled_scaled <- predict_pseudo_labels(train_scaled, unlabeled_scaled)
+    pseudolabeled_scaled <- predict_pseudo_labels(train_scaled, unlabeled_scaled, h,d,K)
     
     
     train_scaled <- rbind(train_scaled, pseudolabeled_scaled[max_prob, ])
     unlabeled_scaled <- pseudolabeled_scaled[-max_prob, ]
     
-    confusion <- test_confiusion(train_scaled, test_scaled)
+      confusion <- test_confiusion(train_scaled, test_scaled, i, h, d, K)
     result[[i+1]] <- confusion
     
   }
@@ -120,16 +130,18 @@ refernce_SSL <- function(train_scaled, unlabeled_scaled, test_scaled, i) {
 }
 
 #untested
-refernce_SSL_variance <- function(train_scaled, unlabeled_scaled, test_scaled, i) { ####
-
-  confusion <- test_confiusion(train_scaled, test_scaled, i)
+refernce_SSL_variance <- function(train_scaled, unlabeled_scaled, test_scaled, i, h) { ####
+  d <- ncol(train_scaled) -1 
+  K <- length(unique(train_scaled$target))
+  
+  confusion <- test_confiusion(train_scaled, test_scaled, i, h, d, K)
   result <- list(confusion)
   
   
   for(i in 1:nrow(unlabeled_scaled)) {
    
-    prob_prediction <- predict_pseudo_labels_prob(train_scaled, unlabeled_scaled)
-    pseudolabeled_scaled <- predict_pseudo_labels(train_scaled, unlabeled_scaled)
+    prob_prediction <- predict_pseudo_labels_prob(train_scaled, unlabeled_scaled,  h,d,K)
+    pseudolabeled_scaled <- predict_pseudo_labels(train_scaled, unlabeled_scaled, h,d,K)
     
     
     second_largest <- apply(prob_prediction, 1, function(row) sort(row, decreasing = TRUE)[2])
@@ -140,7 +152,7 @@ refernce_SSL_variance <- function(train_scaled, unlabeled_scaled, test_scaled, i
     train_scaled <- rbind(train_scaled, pseudolabeled_scaled[max_variance, ] )
     unlabeled_scaled <- pseudolabeled_scaled[-c(max_variance), ]
     
-    confusion <- test_confiusion(train_scaled, test_scaled)
+      confusion <- test_confiusion(train_scaled, test_scaled, i, h, d, K)
     result <- c(result, list(confusion))
     
   }
@@ -149,15 +161,17 @@ refernce_SSL_variance <- function(train_scaled, unlabeled_scaled, test_scaled, i
 }
 
 #untested
-refernce_SSL_entropy <- function(train_scaled, unlabeled_scaled, test_scaled, i) {
+refernce_SSL_entropy <- function(train_scaled, unlabeled_scaled, test_scaled, i, h) {
+  d <- ncol(train_scaled) -1 
+  K <- length(unique(train_scaled$target))
   
-  confusion <- test_confiusion(train_scaled, test_scaled, i)
+  confusion <- test_confiusion(train_scaled, test_scaled, i, h, d, K)
   result <- list(confusion)
   
   
   for(i in 1:nrow(unlabeled_scaled)) {
-    prob_prediction <- predict_pseudo_labels_prob(train_scaled, unlabeled_scaled)
-    pseudolabeled_scaled <- predict_pseudo_labels(train_scaled, unlabeled_scaled)
+    prob_prediction <- predict_pseudo_labels_prob(train_scaled, unlabeled_scaled,  h,d,K)
+    pseudolabeled_scaled <- predict_pseudo_labels(train_scaled, unlabeled_scaled, h,d,K)
     
     
 
@@ -173,7 +187,7 @@ refernce_SSL_entropy <- function(train_scaled, unlabeled_scaled, test_scaled, i)
     train_scaled <- rbind(train_scaled, pseudolabeled_scaled[min_entropy, ] )
     unlabeled_scaled <- pseudolabeled_scaled[-c(min_entropy), ]
     
-    confusion <- test_confiusion(train_scaled, test_scaled)
+      confusion <- test_confiusion(train_scaled, test_scaled, i, h, d, K)
     result <- c(result, list(confusion))
     
   }
@@ -182,32 +196,34 @@ refernce_SSL_entropy <- function(train_scaled, unlabeled_scaled, test_scaled, i)
 }
 
 #untested
-maximal_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled, alpha, i) {
+maximal_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled, alpha, i, h) {
+  d <- ncol(train_scaled) -1 
+  K <- length(unique(train_scaled$target))
   
-  confusion <- test_confiusion(train_scaled, test_scaled, i)
+  confusion <- test_confiusion(train_scaled, test_scaled, i, h, d, K)
   #print(confusion)
   result <- list(confusion)
   z = 1
   end <- nrow(unlabeled_scaled)
   
   while(z <= end) {
-    marg_prioris <- marginal_likelihoods(train_scaled, priors)
+    marg_prioris <- marginal_likelihoods(train_scaled, priors, h, d, K)
     cut_prioris <- alpha_cut(marg_prioris, alpha, priors)
-    pseudolabeled_scaled <- predict_pseudo_labels(train_scaled, unlabeled_scaled)
+    pseudolabeled_scaled <- predict_pseudo_labels(train_scaled, unlabeled_scaled, h,d,K)
     
     ######
-    ppp_m <- PPP_matrix(cut_prioris, train_scaled, pseudolabeled_scaled) 
+    ppp_m <- PPP_matrix(cut_prioris, train_scaled, pseudolabeled_scaled,h,d,K) 
     matrix <-  xtabs(log_PPP ~ psID+priorID, data = ppp_m)
     
     
     maximal <- maximalitaetskriterium(matrix)
     
     ###########
-    train_scaled <- rbind(train_scaled, pseudolabeled_scaled[M_MaxiMin, ])
-    unlabeled_scaled <- pseudolabeled_scaled[-M_MaxiMin, ]
+    train_scaled <- rbind(train_scaled, pseudolabeled_scaled[maximal, ])
+    unlabeled_scaled <- pseudolabeled_scaled[-maximal, ]
     
     ########### Evaluation
-    confusion <- test_confiusion(train_scaled, test_scaled)
+      confusion <- test_confiusion(train_scaled, test_scaled, i, h, d, K)
     #print(confusion)
     
     for(w in 1:(length(maximal))) {
@@ -225,30 +241,32 @@ maximal_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled, alp
 } 
 
 #untested
-M_MaxiMax_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled, alpha, i) {
+M_MaxiMax_SSL <- function(priors, train_scaled, unlabeled_scaled, test_scaled, alpha, i, h) {
+  d <- ncol(train_scaled) -1 
+  K <- length(unique(train_scaled$target))
   
-  confusion <- test_confiusion(train_scaled, test_scaled, i)
+  confusion <- test_confiusion(train_scaled, test_scaled, i, h, d, K)
   #print(confusion)
   result <- list(confusion)
   z = 1
   end <- nrow(unlabeled_scaled)
   while(z <= end) {
-    marg_prioris <- marginal_likelihoods(train_scaled, priors)
+    marg_prioris <- marginal_likelihoods(train_scaled, priors, h, d, K)
     cut_prioris <- alpha_cut(marg_prioris, alpha, priors)
-    pseudolabeled_scaled <- predict_pseudo_labels(train_scaled, unlabeled_scaled)
+    pseudolabeled_scaled <- predict_pseudo_labels(train_scaled, unlabeled_scaled, h,d,K)
     
     ######
-    ppp_m <- PPP_matrix(cut_prioris, train_scaled, pseudolabeled_scaled) 
+    ppp_m <- PPP_matrix(cut_prioris, train_scaled, pseudolabeled_scaled,h,d,K) 
     matrix <-  xtabs(log_PPP ~ psID+priorID, data = ppp_m)
     
     
     M_MaxiMax <- M_MaxiMax_creterion(matrix)
     
-    train_scaled <- rbind(train_scaled, pseudolabeled_scaled[M_MaxiMin, ])
-    unlabeled_scaled <- pseudolabeled_scaled[-M_MaxiMin, ]
+    train_scaled <- rbind(train_scaled, pseudolabeled_scaled[M_MaxiMax, ])
+    unlabeled_scaled <- pseudolabeled_scaled[-M_MaxiMax, ]
     
     ########### Evaluation
-    confusion <- test_confiusion(train_scaled, test_scaled)
+      confusion <- test_confiusion(train_scaled, test_scaled, i, h, d, K)
     #print(confusion)
     
     for(w in 1:(length(M_MaxiMax))) {

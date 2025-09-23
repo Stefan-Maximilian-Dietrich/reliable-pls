@@ -72,8 +72,8 @@ sampleNN <- function(data, formula, n_labled, n_unlabled) {
   )
 }
 
-data_loader <- function(data_name) {
-  source(paste(getwd(),"/NeuronalNet/data/in_use/", data_name, ".R", sep = ""))
+data_loader <- function(dat) {
+  source(paste(getwd(),"/NeuronalNet/data/in_use/", dat, ".R", sep = ""))
 }
 
 #Gererate Prioris 
@@ -90,7 +90,10 @@ pack_theta <- function(W1, b1, W2, b2 ) {
   c(as.vector(W1), as.vector(b1), as.vector(W2), as.vector(b2))
 }
 
-unpack_theta <- function(theta) {
+unpack_theta <- function(theta, h, d, K) {
+  
+  n_param <-  h*d + h + K*h + K
+  
   stopifnot(length(theta) == n_param)
   ofs <- 0
   W1 <- matrix(theta[(ofs + 1):(ofs + h*d)], nrow = h, ncol = d); ofs <- ofs + h*d
@@ -100,8 +103,8 @@ unpack_theta <- function(theta) {
   list(W1 = W1, b1 = b1, W2 = W2, b2 = b2)
 }
 
-forward_probs_theta <- function(X, theta) {
-  pr <- unpack_theta(theta)
+forward_probs_theta <- function(X, theta,h, d, K) {
+  pr <- unpack_theta(theta, h, d, K)
   n <- nrow(X)
   Hlin <- X %*% t(pr$W1) + matrix(pr$b1, n, h, byrow = TRUE)
   H    <- sigmoid(Hlin)
@@ -109,12 +112,13 @@ forward_probs_theta <- function(X, theta) {
   softmax_rows(Z)
 }
 
-loglik_theta <- function(theta, data_scaled) {
-  #classes <- c("setosa", "versicolor" ,   "virginica")
-  
+loglik_theta <- function(theta, data_scaled, h, d,K) {
+
   X <- as.matrix(data_scaled[, 2:(d+1), drop = FALSE])
   y <- factor(data_scaled$target)
-  P <- forward_probs_theta(X, theta)        # n x K
+  
+  
+  P <- forward_probs_theta(X, theta,h, d, K)        # n x K
   colnames(P) <- classes
   eps <- .Machine$double.eps
   P <- pmax(pmin(P, 1 - eps), eps)
@@ -133,7 +137,7 @@ loglik_data <- function(theta, data_scaled) {
   
   X <- as.matrix(data_scaled[, 2:(d+1), drop = FALSE])
   y <- factor(data_scaled$target)
-  P <- forward_probs_theta(X, theta)
+  P <- forward_probs_theta(X, theta, h, d, K)
   colnames(P) <- classes
   eps <- .Machine$double.eps
   P <- pmax(pmin(P, 1 - eps), eps)
@@ -141,8 +145,8 @@ loglik_data <- function(theta, data_scaled) {
   sum(log(P[idx]))
 }
 
-grad_neg_loglik_data <- function(theta, data_scaled) {
-  pr <- unpack_theta(theta)
+grad_neg_loglik_data <- function(theta, data_scaled, h,d,K) {
+  pr <- unpack_theta(theta, h, d,K)
   X <- as.matrix(data_scaled[, 2:(d+1), drop = FALSE])
   y <- factor(data_scaled$target)
   n <- nrow(X)
@@ -151,7 +155,7 @@ grad_neg_loglik_data <- function(theta, data_scaled) {
   Y <- matrix(0, n, K)
   Y[cbind(seq_len(n), as.integer(y))] <- 1
   
-  fw <- forward_full(X, pr$W1, pr$b1, pr$W2, pr$b2)
+  fw <- forward_full(X, pr$W1, pr$b1, pr$W2, pr$b2, h, d, K)
   P  <- fw$P; H <- fw$H
   
   dZ <- P - Y
@@ -168,12 +172,12 @@ grad_neg_loglik_data <- function(theta, data_scaled) {
 }
 
 neg_log_post <- function(theta, data_scaled, mu, tau2) {
-  - (loglik_theta(theta, data_scaled) + log_prior_normal(theta, mu, tau2))
+  - (loglik_theta(theta, data_scaled, h, d,K) + log_prior_normal(theta, mu, tau2))
 }
 
 grad_neg_log_post <- function(theta, data_scaled, mu, tau2) {
   # Grad der negativen Loglik
-  pr <- unpack_theta(theta)
+  pr <- unpack_theta(theta, h, d, K)
   X <- as.matrix(data_scaled[, 2:(d+1), drop = FALSE])
   y <- factor(data_scaled$target)
   n <- nrow(X)
@@ -182,7 +186,7 @@ grad_neg_log_post <- function(theta, data_scaled, mu, tau2) {
   Y <- matrix(0, n, K)
   Y[cbind(seq_len(n), as.integer(y))] <- 1
   
-  fw <- forward_full(X, pr$W1, pr$b1, pr$W2, pr$b2)
+  fw <- forward_full(X, pr$W1, pr$b1, pr$W2, pr$b2, h, d, K)
   P  <- fw$P; H <- fw$H
   
   # dL/dZ = P - Y (für NLL)
@@ -201,7 +205,7 @@ grad_neg_log_post <- function(theta, data_scaled, mu, tau2) {
   g_nll + (theta - mu) / tau2
 }
 
-get_marginal_likelihood <- function(prior_name, mu, tau2, theta_init, train_scaled, data_scaled_test = NULL, control = list(maxit = 1000, reltol = 1e-8)) {
+get_marginal_likelihood <- function(h, d, K, prior_name, mu, tau2, theta_init, train_scaled, data_scaled_test = NULL, control = list(maxit = 1000, reltol = 1e-8)) {
   # MAP-Optimierung (BFGS)
   #classes <- c("setosa", "versicolor" ,   "virginica")
   
@@ -223,7 +227,7 @@ get_marginal_likelihood <- function(prior_name, mu, tau2, theta_init, train_scal
   ld <- robust_logdet_pd(H)
   
   p <- length(theta_map)
-  loglik_map  <- loglik_theta(theta_map, train_scaled)
+  loglik_map  <- loglik_theta(theta_map, train_scaled, h, d,K)
   logprior_map<- log_prior_normal(theta_map, mu, tau2)
   log_joint   <- loglik_map + logprior_map
   log_evid    <- log_joint + 0.5 * p * log(2*pi) - 0.5 * ld$logdet
@@ -231,11 +235,11 @@ get_marginal_likelihood <- function(prior_name, mu, tau2, theta_init, train_scal
   # Optional: Test-Accuracy (MAP)
   acc_test <- NA_real_
   if (!is.null(data_scaled_test)) {
-    predict_class_theta <- function(theta, data_scaled) {
+    predict_class_theta <- function(theta, data_scaled, h, d,K) {
       #classes <- c("setosa", "versicolor" ,   "virginica")
       
       X <- as.matrix(data_scaled[, 1:d, drop = FALSE])
-      P <- forward_probs_theta(X, theta)
+      P <- forward_probs_theta(X, theta, h, d, K)
       factor(classes[max.col(P, ties.method = "first")], levels = classes)
     }
     pred <- predict_class_theta(theta_map, data_scaled_test)
@@ -258,7 +262,7 @@ get_marginal_likelihood <- function(prior_name, mu, tau2, theta_init, train_scal
   )
 }
 
-marginal_likelihoods <- function(train_scaled,  priors) {
+marginal_likelihoods <- function(train_scaled,  priors, h, d, K) {
   marg_likelis <- NULL
   for(i in 1:length(priors)) {
     prior_ID <-  priors[[i]]$ID
@@ -266,7 +270,7 @@ marginal_likelihoods <- function(train_scaled,  priors) {
     tau2 <- priors[[i]]$tau2
     theta_init <- rnorm(length(mu), sd = 0.3)
     
-    marg_likelihood <- get_marginal_likelihood(prior_ID, mu, tau2, theta_init, train_scaled)
+    marg_likelihood <- get_marginal_likelihood(h, d, K, prior_ID, mu, tau2, theta_init, train_scaled)
     
     marg_likelis <- c(marg_likelis, marg_likelihood$log_evidence)
   }
@@ -302,7 +306,7 @@ softmax_rows <- function(Z) {
   sweep(EZ, 1, rowSums(EZ), "/")
 }
 
-forward_full <- function(Xtr, W1, b1, W2, b2) {
+forward_full <- function(Xtr, W1, b1, W2, b2, h, d, K) {
   # X: n x d
   n <- nrow(Xtr)
   Hlin <- Xtr %*% t(W1) + matrix(b1, n, h, byrow = TRUE)    # n x h
@@ -320,22 +324,17 @@ one_hot <- function(y, class_levels) {
   Y
 }
 
-gradient_decent <- function(train_scaled, i = NULL, lr = 0.05, epochs = 400, lambda = 1e-3 ) {
-  #classes <- c("setosa", "versicolor" ,   "virginica")
+gradient_decent <- function(train_scaled, i = NULL,h, d, K, lr = 0.05, epochs = 400, lambda = 1e-3 ) {
+
   Xtr <- as.matrix(train_scaled[, 2:(1+d), drop = FALSE])
   Ytr <- one_hot(train_scaled$target, classes)
-  
-  #d <- ncol(train_scaled) - 1
-  #h <- 5                  # Hidden Units (fix)
-  #K <- length(classes) 
-  
+
   # Initialisierung
   if(!is.null(i)) {set.seed(i*1000)}
   W1 <- matrix(rnorm(h * d, sd = 0.3), nrow = h, ncol = d)
   
   if(!is.null(i)) {set.seed(i*2000)}
   b1 <- rnorm(h, sd = 0.3)
-  
   if(!is.null(i)) {set.seed(i*3000)}
   W2 <- matrix(rnorm(K * h, sd = 0.3), nrow = K, ncol = h)
   
@@ -344,7 +343,7 @@ gradient_decent <- function(train_scaled, i = NULL, lr = 0.05, epochs = 400, lam
   
   n       <- nrow(Xtr)
   for (ep in seq_len(epochs)) {
-    fw <- forward_full(Xtr, W1, b1, W2, b2)
+    fw <- forward_full(Xtr, W1, b1, W2, b2, h, d, K)
     P  <- fw$P
     H  <- fw$H
     
@@ -390,29 +389,28 @@ gradient_decent <- function(train_scaled, i = NULL, lr = 0.05, epochs = 400, lam
   
 }
 #
-forward_probs_theta <- function(X, theta) {
-  pr <- unpack_theta(theta)
+forward_probs_theta <- function(X, theta, h, d, K) {
+  pr <- unpack_theta(theta, h, d, K)
   Hlin <- X %*% t(pr$W1) + matrix(pr$b1, nrow(X), h, byrow = TRUE)
   H    <- sigmoid(Hlin)
   Z    <- H %*% t(pr$W2) + matrix(pr$b2, nrow(X), K, byrow = TRUE)
   softmax_rows(Z)
 }
 
-predict_class_theta <- function(theta_hat, data_scaled) {
-  #classes <- c("setosa", "versicolor", "virginica")
+predict_class_theta <- function(theta_hat, data_scaled, h, d,K) { 
+
   
   X <- as.matrix(data_scaled[, c(2:(d+1)), drop = FALSE])
-  P <- forward_probs_theta(X, theta_hat)
+  P <- forward_probs_theta(X, theta_hat, h, d, K)
   colnames(P) <- classes
   predicted <- colnames(P)[apply(P, 1, which.max)]
   
 }
 
-test_confiusion <- function(train_scaled, test_scaled, i = NULL) {
+test_confiusion <- function(train_scaled, test_scaled, i = NULL, h, d, K) {
   #classes <- c("setosa", "versicolor", "virginica")
-  
-  theta_hat <- gradient_decent(train_scaled, i)
-  predictions <- predict_class_theta(theta_hat, test_scaled)
+  theta_hat <- gradient_decent(train_scaled, i = i, h = h,d= d, K=K)
+  predictions <- predict_class_theta(theta_hat, test_scaled,h =  h, d= d, K=K)
   
   ground_truth <- factor(test_scaled$target, levels = classes)
   predictions <- factor(predictions, levels = classes)
@@ -421,31 +419,30 @@ test_confiusion <- function(train_scaled, test_scaled, i = NULL) {
   return(confiusion)
 }
 
-predict_class_theta_prob <- function(theta_hat, data_scaled) { 
+predict_class_theta_prob <- function(theta_hat, data_scaled, h, d, K) { 
   X <- as.matrix(data_scaled[, c(2:(d+1)), drop = FALSE])
-  P <- forward_probs_theta(X, theta_hat)
+  P <- forward_probs_theta(X, theta_hat, h, d, K)
   colnames(P) <-   levels(data_scaled$target)
   return(P)
 }
 
-predict_pseudo_labels_prob <- function(train_scaled, unlabeled_scaled) { 
+predict_pseudo_labels_prob <- function(train_scaled, unlabeled_scaled, h,d,K) { 
   pseudolabeled_scaled <- unlabeled_scaled
   pseudolabeled_scaled$target <- NULL
   
   
-  theta_hat <- gradient_decent(train_scaled)
-  predictions <- predict_class_theta_prob(theta_hat, unlabeled_scaled)
+  theta_hat <- gradient_decent(train_scaled, h = h, d= d,K= K)
+  predictions <- predict_class_theta_prob(theta_hat, unlabeled_scaled, h, d,K)
   return(predictions)
 }
 
 ##### Predict 
-predict_pseudo_labels <- function(train_scaled, unlabeled_scaled) {
+predict_pseudo_labels <- function(train_scaled, unlabeled_scaled, h,d,K) {
   pseudolabeled_scaled <- unlabeled_scaled
   pseudolabeled_scaled$target <- NA
   
-  
-  theta_hat <- gradient_decent(train_scaled)
-  predictions <- predict_class_theta(theta_hat, unlabeled_scaled)
+  theta_hat <- gradient_decent(train_scaled, h = h, d = d, K= K)
+  predictions <- predict_class_theta(theta_hat, unlabeled_scaled, h = h, d= d,K= K)
   pseudolabeled_scaled$target <- predictions
   return(pseudolabeled_scaled)
 }
@@ -484,9 +481,9 @@ make_single_df <- function(x_vec, yhat_label, num_cols) {
   return(df)
 }
 
-grad_neg_log_joint_D <- function(theta, data_scaled_train, mu, tau2) {
+grad_neg_log_joint_D <- function(theta, data_scaled_train, mu, tau2, h,d,K) {
   # ∇(−log p(D|θ)) + ∇(−log π(θ)) = grad_nll + (θ−μ)/τ²
-  grad_neg_loglik_data(theta, data_scaled_train) + (theta - mu)/tau2
+  grad_neg_loglik_data(theta, data_scaled_train, h=h,d=d,K=K) + (theta - mu)/tau2
 }
 
 loglik_pseudo <- function(theta, x_vec, yhat_label,num_cols ) {
@@ -508,11 +505,11 @@ robust_logdet_pd <- function(H) {
   list(logdet = sum(log(ev_pos)), jitter = NA_real_)
 }
 
-laplace_evidence_D <- function(mu, tau2, theta_start, data_scaled_train, control = list(maxit = 1000, reltol = 1e-8)) {
+laplace_evidence_D <- function(mu, tau2, theta_start, data_scaled_train, h,d,K, control = list(maxit = 1000, reltol = 1e-8)) {
   opt <- optim(
     par = theta_start,
     fn  = function(theta) neg_log_joint_D(theta, data_scaled_train, mu, tau2),
-    gr  = function(theta) grad_neg_log_joint_D(theta, data_scaled_train, mu, tau2),
+    gr  = function(theta) grad_neg_log_joint_D(theta, data_scaled_train, mu, tau2, h,d,K),
     method = "BFGS",
     control = control
   )
@@ -527,21 +524,21 @@ laplace_evidence_D <- function(mu, tau2, theta_start, data_scaled_train, control
 }
 
 # Grad der negativen \tilde{l} (für BFGS)
-grad_neg_ltilde <- function(theta, data_scaled_train, x_vec, yhat_label, num_cols) {
+grad_neg_ltilde <- function(theta, data_scaled_train, x_vec, yhat_label, num_cols, h, d, K) {
   df1 <- make_single_df(x_vec, yhat_label, num_cols)
-  2 * grad_neg_loglik_data(theta, data_scaled_train) + grad_neg_loglik_data(theta, df1)
+  2 * grad_neg_loglik_data(theta, data_scaled_train, h=h, d=d, K=K) + grad_neg_loglik_data(theta, df1, h = h, d= d, K=K)
 }
 
 ltilde <- function(theta, data_scaled_train, x_vec, yhat_label, num_cols) {
   2 * loglik_data(theta, data_scaled_train) + loglik_pseudo(theta, x_vec, yhat_label, num_cols)
 }
 
-ppp_laplace_single <- function(mu, tau2, x_vec, yhat_label, data_scaled_train, theta_start_for_tilde,num_cols, control = list(maxit = 1000, reltol = 1e-8)) {
+ppp_laplace_single <- function(mu, tau2, x_vec, yhat_label, data_scaled_train, theta_start_for_tilde,num_cols, h, d, K, control = list(maxit = 1000, reltol = 1e-8)) {
   # Optimum \tilde{\theta} = argmax \tilde{l} (ohne Prior, gemäß deiner Approximation)
   opt_tilde <- optim(
     par = theta_start_for_tilde,
     fn  = function(th) -ltilde(th, data_scaled_train, x_vec, yhat_label, num_cols),         # negative \tilde{l}
-    gr  = function(th)  grad_neg_ltilde(th, data_scaled_train, x_vec, yhat_label, num_cols),# Grad der negativen \tilde{l}
+    gr  = function(th)  grad_neg_ltilde(th, data_scaled_train, x_vec, yhat_label, num_cols, h, d, K),# Grad der negativen \tilde{l}
     method = "BFGS",
     control = control
   )
@@ -563,7 +560,7 @@ ppp_laplace_single <- function(mu, tau2, x_vec, yhat_label, data_scaled_train, t
        converged = (opt_tilde$convergence == 0))
 }
 
-PPP_matrix <- function(priors, train_scaled, pseudolabeled_scaled) { 
+PPP_matrix <- function(priors, train_scaled, pseudolabeled_scaled, h, d, K) { 
   results <- list()
   predictors <- setdiff(names(pseudolabeled_scaled), "target")
   pseudo_points <- apply(pseudolabeled_scaled, 1, function(row) {
@@ -574,7 +571,7 @@ PPP_matrix <- function(priors, train_scaled, pseudolabeled_scaled) {
   })
   for (pr in priors) {
     # Evidence p(D) für diesen Prior (einmalig)
-    evD <- laplace_evidence_D(mu = pr$mu, tau2 = pr$tau2, theta_start = pr$mu, data_scaled_train = train_scaled)
+    evD <- laplace_evidence_D(mu = pr$mu, tau2 = pr$tau2, theta_start = pr$mu, data_scaled_train = train_scaled, h, d,K)
     log_pD <- evD$log_evidence
     i = 0
     for (pp in 1:length(pseudo_points)) {
@@ -589,7 +586,7 @@ PPP_matrix <- function(priors, train_scaled, pseudolabeled_scaled) {
         mu = pr$mu, tau2 = pr$tau2,
         x_vec = ps$x, yhat_label = ps$yhat,
         data_scaled_train = train_scaled,
-        theta_start_for_tilde = theta_pre_map, num_cols
+        theta_start_for_tilde = theta_pre_map, num_cols, h = h, d= d, K = K 
       )
       p_dim <-length(pr$mu)
       
@@ -661,6 +658,54 @@ M_MaxiMin_creterion <- function(matrix) {
   a <- apply(matrix, 1, min)
   a_s <- which.max(a)[1]
   return(a_s)
+}
+
+
+M_MaxiMax_creterion <- function(matrix) {
+  a <- apply(matrix, 1, max)
+  a_s <- which.max(a)[1]
+  return(a_s)
+  
+}
+
+maximalitaetskriterium <- function(matrix) {
+  n <- nrow(matrix)
+  return_vec <- NULL
+  for(i in 1:n) {
+    compare <- (1:n)[1:n != i]
+    bool_vec <- NULL
+    for(j in compare) {
+      if(any(matrix[i, ] > matrix[j, ])) {
+        bool_vec <- c(bool_vec, TRUE)
+      } else {
+        bool_vec <- c(bool_vec, FALSE)
+      }
+    }
+    if(all(bool_vec)) {
+      return_vec <- c(return_vec,i)
+      
+    }
+  }
+  
+  if(is.null(return_vec)) {
+    for(i in 1:n) {
+      compare <- (1:n)[1:n != i]
+      bool_vec <- NULL
+      for(j in compare) {
+        if(any(matrix[i, ] >= matrix[j, ])) {
+          bool_vec <- c(bool_vec, TRUE)
+        } else {
+          bool_vec <- c(bool_vec, FALSE)
+        }
+      }
+      if(all(bool_vec)) {
+        return_vec <- c(return_vec,i)
+        
+      }
+    }
+    return_vec <- sample(return_vec, 1)
+  }
+  return(return_vec)
 }
 
 ######### Analyse 
@@ -913,9 +958,9 @@ compare_cm_list <- function(lst) {
   df
 }
 
-accuracy_matrix <- function(labled, hidden, data_name, i) {
+accuracy_matrix <- function(labled, hidden, dat, i) {
   lst <- list()
-  data_loader(data_name)
+  data_loader(dat)
   n = 0
   for(lab in labled) {
     sample <- sampleNN(data, formula, n_labled = lab, n_unlabled = 2)
@@ -932,9 +977,10 @@ accuracy_matrix <- function(labled, hidden, data_name, i) {
       K <- length(levels_present)
       n_param <-  h*d + h + K*h + K
       classes <- unique(data$target)
-      test <- test_confiusion(train_scaled, test_scaled, i = i) 
       
-      lst[[n]] <- list(cm = test, labled = lab, hidden = hid)
+      test <- test_confiusion(train_scaled, test_scaled, i = i, h = h, d= d, K = K) 
+      
+      lst[[n]] <- list(cm = test, labled = lab, hidden = h)
     }
   }
   out <- compare_cm_list(lst)
@@ -949,7 +995,7 @@ df_to_matrix <- function(df) {
   return(mat)
 }
 
-ave_accuracy_matrix <- function(labled, hidden, data_name, N, workers = 4, metric = "Accuracy") {
+ave_accuracy_matrix <- function(labled, hidden, dat, N, workers = 4, metric = "Accuracy") {
   
   
   # 2. Parallelisierungsstrategie festlegen (plattformunabhängig)
@@ -966,7 +1012,7 @@ ave_accuracy_matrix <- function(labled, hidden, data_name, N, workers = 4, metri
     
     future_map(1:N, function(i) {
       set.seed(i)
-      result<- accuracy_matrix(labled = labled, hidden = hidden, data_name = data_name, i = i)
+      result<- accuracy_matrix(labled = labled, hidden = hidden, dat = dat, i = i)
       
       
       return(result)

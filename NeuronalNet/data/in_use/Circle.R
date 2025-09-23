@@ -1,6 +1,6 @@
-d = 2
+dim = 2
 tg = mlr3::mlr_task_generators$get("circle")
-tg$param_set$values$d = d
+tg$param_set$values$d = dim
 
 # 2. Dann Datensatz mit n Punkten erzeugen
 set.seed(06082000)
