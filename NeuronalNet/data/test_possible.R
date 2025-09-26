@@ -3,9 +3,9 @@ B <- ave_accuracy_matrix(labled = 2:40, hidden = 1:20, dat = "Breast_Cancer", N 
 C <- ave_accuracy_matrix(labled = 3:30, hidden = 1:10, dat = "Iris", N = 24, workers = 4, metric = "Accuracy")
 D <- ave_accuracy_matrix(labled = 2:100, hidden = 1:25, dat = "Circle", N = 50, workers = 4, metric = "Accuracy")
 
-
-library(reshape2)
-df <- melt(D)
+X <- A
+mean_mat <- Reduce("+", X) / length(X)
+df <- melt(mean_mat)
 
 # Heatmap mit ggplot2
 library(ggplot2)

@@ -1036,9 +1036,8 @@ ave_accuracy_matrix <- function(labled, hidden, dat, N, workers = 4, metric = "A
   })
   
   matrix_list <- lapply(subset_list, function(df) {m <- xtabs(Accuracy ~ labled + hidden, data = df)})
-  mean_mat <- Reduce("+", matrix_list) / length(matrix_list)
   
-  return(mean_mat)
+  return(matrix_list)
 }
 
 

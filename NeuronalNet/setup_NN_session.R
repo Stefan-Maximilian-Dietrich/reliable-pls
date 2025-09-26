@@ -8,7 +8,8 @@ pakete <- c(
   "tidyverse", 
   "mlr3",
   "RCurl",
-  "MASS"
+  "MASS",
+  "reshape2"
 )
 
 # Schleife, um Pakete zu installieren und zu laden
