@@ -5,7 +5,9 @@ pakete <- c(
   "dplyr",        # Paket für parallele Ausführung von purrr-Operationen
   "mvtnorm",
   "caret",
-  "MixGHD"
+  "MixGHD", 
+  "progressr",    # Paket zur Verfolgung des Fortschritts von langen Berechnungen
+  "furrr"
 )
 
 # Schleife, um Pakete zu installieren und zu laden
