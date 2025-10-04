@@ -7,7 +7,8 @@ pakete <- c(
   "caret",
   "MixGHD", 
   "progressr",    # Paket zur Verfolgung des Fortschritts von langen Berechnungen
-  "furrr"
+  "furrr",
+  "mclust"
 )
 
 # Schleife, um Pakete zu installieren und zu laden
