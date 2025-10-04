@@ -32,9 +32,11 @@ while(TRUE){
     future_map(1:N, function(i) {
       set.seed(i)
       sample <- sampler_NB_up(n_labled,n_unlabled,data, formula)
-      train <- sample[[1]]
-      unlabeld <- sample[[2]]
-      test <-sample[[3]]
+      data_train <- sample[[1]]
+      data_unlabeled <- sample[[2]]
+      data_test <-sample[[3]]
+      
+      priors <-  generate_random_priors(data_train, n_priors = refinement,  kappa_range = c(0.1, 3), scale_range = c(0.5, 3),  nu_extra = c(0, 5, 10))      
       
       if(methods$e_admissible){
         e_admissible <- e_admissible_SSL(priors, data_train, data_unlabeled, data_test, alpha)
