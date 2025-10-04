@@ -439,4 +439,6 @@ update_directory_strucutre <- function(){
   }
 }
 
-
+data_loader <- function(dat) {
+  source(paste(getwd(),"/QDA/data/in_use/", dat, ".R", sep = ""))
+}
