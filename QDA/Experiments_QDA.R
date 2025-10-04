@@ -90,7 +90,7 @@ QDA_Seeds <- data.frame(data = c("Seeds", "Seeds","Seeds","Seeds","Seeds","Seeds
 
 )
 
-QDA <- rbind(QDA_Bank)#, QDA_Breast_Cancer,QDA_Cassini, QDA_Wine )
+QDA <- rbind(QDA_Bank) #, QDA_Breast_Cancer,QDA_Cassini, QDA_Wine )
 
 #Greate Experiments Lokal 
 save(QDA, file = "/Users/Stefan/Soft_Revision/QDA/QDA") 

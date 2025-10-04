@@ -14,10 +14,10 @@ N = 100
 methods <- list(SL = T, 
                 SSL = T,
                 e_admissible= T, 
-                SSL_variance = T,
-                SSL_entropy = T,
+                SSL_variance = F,
+                SSL_entropy = F,
                 maximal = F, 
                 M_MaxiMin = T, 
                 M_MaxiMax = F)
 
-source(paste(getwd(),"/NeuronalNet/run_meta.R", sep = ""))   
+source(paste(getwd(),"/QDA/Execution_QDA.R", sep = ""))   

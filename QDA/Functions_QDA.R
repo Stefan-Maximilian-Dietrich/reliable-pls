@@ -280,3 +280,163 @@ generate_random_priors <- function(data, n_priors = 5,  kappa_range = c(0.1, 2),
   return(priors)
 }
 
+######
+row_has_one <- function(mat) {
+  # Überprüfe für jede Zeile, ob mindestens eine 1 vorhanden ist
+  result <- apply(mat, 1, function(x) any(x == 1))
+  
+  return(result)
+} 
+
+e_admissible_creterion <- function(matrix) {
+  indicator <- generate_indicator_matrix(matrix)
+  bool_vec <- row_has_one(indicator)
+  result <- which(bool_vec)
+  return(result)
+  
+}
+
+
+M_MaxiMin_creterion <- function(matrix) {
+  a <- apply(matrix, 1, min)
+  a_s <- which.max(a)[1]
+  return(a_s)
+}
+
+
+M_MaxiMax_creterion <- function(matrix) {
+  a <- apply(matrix, 1, max)
+  a_s <- which.max(a)[1]
+  return(a_s)
+  
+}
+
+maximalitaetskriterium <- function(matrix) {
+  n <- nrow(matrix)
+  return_vec <- NULL
+  for(i in 1:n) {
+    compare <- (1:n)[1:n != i]
+    bool_vec <- NULL
+    for(j in compare) {
+      if(any(matrix[i, ] > matrix[j, ])) {
+        bool_vec <- c(bool_vec, TRUE)
+      } else {
+        bool_vec <- c(bool_vec, FALSE)
+      }
+    }
+    if(all(bool_vec)) {
+      return_vec <- c(return_vec,i)
+      
+    }
+  }
+  
+  if(is.null(return_vec)) {
+    for(i in 1:n) {
+      compare <- (1:n)[1:n != i]
+      bool_vec <- NULL
+      for(j in compare) {
+        if(any(matrix[i, ] >= matrix[j, ])) {
+          bool_vec <- c(bool_vec, TRUE)
+        } else {
+          bool_vec <- c(bool_vec, FALSE)
+        }
+      }
+      if(all(bool_vec)) {
+        return_vec <- c(return_vec,i)
+        
+      }
+    }
+    return_vec <- sample(return_vec, 1)
+  }
+  return(return_vec)
+}
+
+SSL_prob_criterion <- function(probabilitys) {
+  max_per_row <- apply(probabilitys, 1, max)
+  selsect <- which.max(max_per_row)
+  return(selsect)
+}
+
+SSL_var_criterion <- function(probabilitys) {
+  diff <- apply(probabilitys, 1, function(row) {
+    sorted <- sort(row, decreasing = TRUE)
+    sorted[1] - sorted[2]
+  })
+  selsect <- which.max(diff)
+  return(selsect)
+}
+
+SSL_entropy_criterion <- function(probabilitys) {
+  entropy <- apply(probabilitys, 1, function(p) {
+    p <- p[p > 0]  # 0-Werte ausschließen, sonst log(0)
+    -sum(p * log(p))
+  })
+  selsect <- which.min(entropy)
+  
+  return(selsect)
+}
+
+###################################
+check_semaphor <- function() {
+  load("/dss/dsshome1/03/di35lox/MASTER/SEMAPHOR")
+  return(SEMAPHOR)
+}
+
+change_semaphor <- function(bool) {
+  SEMAPHOR = bool
+  save(SEMAPHOR, file = "/dss/dsshome1/03/di35lox/MASTER/SEMAPHOR")
+}
+
+wait <- function() {
+  for(i in 1:15) {
+    if(check_semaphor()) {
+      change_semaphor(FALSE)
+      break
+    } else{
+      Sys.sleep(1)
+    } 
+    if(i == 15) {
+      stop("Zeitüberschreitung in der Semaphore")
+      
+    }
+  }
+}
+
+get_experiment <- function() {
+  adress <- paste0("/dss/dsshome1/03/di35lox/MASTER/experiments/QDA")
+  load(adress)
+  return_exp <- QDA[!QDA$overall & !QDA$inProgress, ][1, ]
+  if(nrow(return_exp) == 0) {
+    stop("all Experiments done or in Progress")
+  }
+  QDA[!QDA$overall & !QDA$inProgress, ][1, ]$inProgress <- TRUE
+  save(QDA, file = adress)
+  return(return_exp)
+}
+
+######
+experiment_to_adress <- function(exp) {
+  adress <- paste0(exp$data, "_L_", exp$L, "_U_", exp$U, "_alp_", exp$alp, "_", exp$prio_t, "_", exp$prio_r)
+  return(adress)
+}
+
+update_directory_strucutre <- function(){
+  dir = "QDA"
+  load("/dss/dsshome1/03/di35lox/MASTER/experiments/QDA")
+  for(i in 1:nrow(QDA)) {
+    exp <- experiment_to_adress(QDA[i,])
+    ordner <- paste0("/dss/dsshome1/03/di35lox/MASTER/results/",dir,"/", exp )
+    if (!dir.exists(ordner)) {
+      dir.create(ordner, recursive = TRUE)
+    }
+    methods <- c("SL","SSL_entropy", "SSL_variance" ,"SSL", "e_admissible", "maximal","M_MaxiMin", "M_MaxiMax")
+    for(method in methods) {
+      sub_ordner <-  paste0(ordner, "/", method)
+      if (!dir.exists(sub_ordner)) {
+        dir.create(sub_ordner, recursive = TRUE)
+      }
+    }
+  }
+}
+
+
