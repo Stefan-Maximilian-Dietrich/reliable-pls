@@ -288,6 +288,30 @@ row_has_one <- function(mat) {
   return(result)
 } 
 
+generate_indicator_matrix <- function(mat) {
+  # Bestimme die Anzahl der Reihen und Spalten
+  m <- nrow(mat)
+  n <- ncol(mat)
+  # Erstelle eine leere Matrix mit der gleichen Dimension, die mit 0 gefüllt ist
+  result <- matrix(0, nrow = m, ncol = n)
+  
+  # Gehe Spalte für Spalte durch
+  for (j in 1:n) {
+    # Bestimme das größte Element in der j-ten Spalte
+    max_value <- max(mat[, j])
+    
+    # Setze die Positionen des größten Werts in der entsprechenden Spalte auf 1
+    for (i in 1:m) {
+      if (mat[i, j] == max_value) {
+        result[i, j] <- 1
+        i <- m ################
+      }
+    }
+  }
+  
+  return(result)
+} #GPT
+
 e_admissible_creterion <- function(matrix) {
   indicator <- generate_indicator_matrix(matrix)
   bool_vec <- row_has_one(indicator)
