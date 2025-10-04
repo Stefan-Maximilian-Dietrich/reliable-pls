@@ -1,0 +1,282 @@
+sampler_NB_up <- function(n_labled, n_unlabled, data, formula) {
+  variables <- all.vars(formula) 
+  target <- variables[1]
+  data_used <- data[, variables]
+  
+  categories <- unique(data_used[, target])
+  if(length(categories)*2  > n_labled) {
+    stop("Labeld date less than reqiert to fit a GNB")
+  }
+  
+  train <- NULL
+  for(cat in categories){
+    data_temp <- data_used[data_used[,target]==cat, ]
+    first <- data_temp[sample(1:nrow(data_temp), 1), , drop=FALSE]
+    train <- rbind(train, first)
+    col_to_check <- 2:ncol(data_temp)
+    #x <- data_temp[1,]
+    indicator <- !apply(data_temp, 1, function(x) {as.numeric(first[col_to_check]) == as.numeric(x)[-1]})
+    
+    witch_diff <- apply(indicator, 2, function(x) all(x))
+    if(!any(witch_diff)) {
+      stop(paste("Data set is not viable for GAUSIAN Naive Bayes. Problem in", cat))
+    }
+    
+    data_temp2 <- data_temp[witch_diff, ]
+    second <- data_temp2[sample(1:nrow(data_temp2), 1), , drop=FALSE]
+    train <- rbind(train, second)
+  }
+  
+  filterd <- data_used[!apply(data_used, 1, function(x) any(apply(train, 1, function(y) all(x == y)))), , drop=FALSE]
+  n <- nrow(filterd)
+  k <- nrow(train)
+  
+  train_idx <- sample(1:n, size = n_labled-k)  
+  remaining_idx <- setdiff(1:n, train_idx)
+  unlabeld_idx <- sample(remaining_idx, size = n_unlabled) 
+  test_idx <- setdiff(remaining_idx, unlabeld_idx)  
+  
+  train_rest <- filterd[train_idx, ]
+  train <- rbind(train, train_rest)
+  unlabed <- filterd[unlabeld_idx,]
+  test <- filterd[test_idx,]
+  
+  
+  return(list(train, unlabed, test))
+  
+}
+
+multi_gamma <- function(a, d) {
+  pi^(d * (d - 1) / 4) * prod(gamma(a + (1 - (1:d)) / 2))
+}
+
+marg_likeli_class <- function(X, mu0, kappa0, Lambda0, nu0) {
+  n <- nrow(X)
+  d <- ncol(X)
+  x_bar <- colMeans(X)
+  
+  S <- t(X - matrix(x_bar, n, d, byrow = TRUE)) %*% (X - matrix(x_bar, n, d, byrow = TRUE))
+  kappa_n <- kappa0 + n
+  nu_n <- nu0 + n
+  Lambda_n <- Lambda0 + S + ((kappa0 * n) / (kappa0 + n)) * (matrix(x_bar - mu0, ncol = 1) %*% t(matrix(x_bar - mu0, ncol = 1)))
+  
+  part1 <- 1 / (pi^(n * d / 2))
+  part2 <- multi_gamma(nu_n / 2, d) / multi_gamma(nu0 / 2, d)
+  part3 <- det(Lambda0)^(nu0 / 2) / det(Lambda_n)^(nu_n / 2)
+  part4 <- (kappa0 / kappa_n)^(d / 2)
+  
+  return(part1 * part2 * part3 * part4)
+}
+
+marg_likeli<- function(data_train , mu0, kappa0, Lambda0, nu0) {
+  classes <- unique(data_train[["target"]])
+  
+  marg_lik <- 0
+  for(class in classes) {
+    X_df <-  data_train[data_train$target == class, ]
+    X_df$target <- NULL
+    X <- as.matrix(X_df)
+    marg_lik = marg_lik + marginal_likelihood_class(X, mu0, kappa0, Lambda0, nu0) 
+  }
+  
+  return(marg_lik)
+}
+
+marginal_likelihoods <- function(data_train, priors) {
+  mag_Likelis <- lapply(seq_along(priors), function(i) {
+    prior <- priors[[i]]
+    marg_likeli(data_train, mu0 = prior$mu0, kappa0 = prior$kappa0,
+                Lambda0 = prior$Lambda0, nu0 = prior$nu0)
+  })
+  return(mag_Likelis)
+}
+
+Posterior <- function(data_train, priors) {
+  X_df <- data_train
+  X_df$target <- NULL
+  X <- as.matrix(X_df)
+  y <- data_train[["target"]]
+  classes <- unique(y)
+  n_classes <- length(classes)
+  
+  results <- list()
+  
+  for (i in seq_along(priors)) {
+    pr <- priors[[i]]
+    mu0 <- pr$mu0
+    kappa0 <- pr$kappa0
+    Lambda0 <- pr$Lambda0
+    nu0 <- pr$nu0
+    
+    for (cls in classes) {
+      Xc <- X[y == cls, ]
+      n <- nrow(Xc)
+      d <- ncol(Xc)
+      x_bar <- colMeans(Xc)
+      S <- t(Xc - matrix(x_bar, n, d, byrow = TRUE)) %*% (Xc - matrix(x_bar, n, d, byrow = TRUE))
+      
+      # Updates
+      kappa_n <- kappa0 + n
+      nu_n <- nu0 + n
+      mu_n <- (kappa0 * mu0 + n * x_bar) / kappa_n
+      diff <- matrix(x_bar - mu0, ncol = 1)
+      Lambda_n <- Lambda0 + S + (kappa0 * n / ( kappa0 + n)) * (diff %*% t(diff))
+      
+      results[[paste0("Prior_", i)]][[ cls]] <-list(
+        Prior = paste0("Prior_", i),
+        Class = cls,
+        mu_n = mu_n,
+        kappa_n = kappa_n,
+        Lambda_n = Lambda_n,
+        nu_n = nu_n
+      )
+    }
+  }
+  return(results)
+}
+
+Pseudo_Posterior_Predictive <- function(data_train,  data_point_pseudo, posterior) {
+  class <-  data_point_pseudo[["target"]]
+  posterior_class  <- posterior[[as.character(class)]]
+  data_train_pseudo <- rbind(data_train,  data_point_pseudo)
+  X_df <-  data_train_pseudo[data_train_pseudo$target == class, ]
+  X_df$target <- NULL
+  X <- as.matrix(X_df)
+  PPP <- marg_likeli_class(X,  mu0 = posterior_class$mu_n, kappa0 = posterior_class$kappa_n, Lambda0 = posterior_class$Lambda_n, nu0 = posterior_class$nu_n)
+  return(PPP)
+}
+
+PPP_matrix <- function(data_train, data_pseudo, posteriors) {
+  ppp_m <- matrix(NA, nrow = nrow(data_pseudo), ncol = length(posteriors))
+  for(i in 1:length(posteriors)) {
+    posterior <- posteriors[[i]]
+    for(j in 1:nrow(data_pseudo)) {
+      data_point_pseudo <- data_pseudo[j, ]
+      ppp_m[j,i] <-Pseudo_Posterior_Predictive(data_train,  data_point_pseudo, posterior)
+    }
+  }
+  return(ppp_m)
+}
+
+qda_predict_proba <- function(data_train, data_new, eps = 1e-0) {
+  # Training
+  y <- data_train$target
+  X <- as.matrix(subset(data_train, select = -target))
+  classes <- levels(y)
+  
+  if ("target" %in% colnames(data_new)) {
+    data_new <- subset(data_new, select = -target)
+  }
+  Xnew <- as.matrix(data_new)
+  
+  # Parameter schätzen
+  params <- lapply(classes, function(cls) {
+    Xc <- X[y == cls, , drop = FALSE]
+    mu <- colMeans(Xc)
+    Sigma <- cov(Xc)
+    pi_k <- nrow(Xc) / nrow(X)
+    list(mu = mu, Sigma = Sigma, pi_k = pi_k)
+  })
+  names(params) <- classes
+  
+  # Diskriminantenfunktionen δ_k(x)
+  discrim <- sapply(classes, function(cls) {
+    mu <- params[[cls]]$mu
+    Sigma <- params[[cls]]$Sigma
+    pi_k <- params[[cls]]$pi_k
+    
+    # Ridge-Regularisierung für numerische Stabilität
+    Sigma_reg <- Sigma + diag(eps, nrow(Sigma))
+    
+    # Cholesky-Zerlegung (stabil für pos. definite Matrizen)
+    cholS <- chol(Sigma_reg)
+    invS <- chol2inv(cholS)
+    logdetS <- 2 * sum(log(diag(cholS)))  # stabiler log(det(Sigma))
+    
+    apply(Xnew, 1, function(x) {
+      delta <- -0.5 * logdetS -
+        0.5 * t(x - mu) %*% invS %*% (x - mu) +
+        log(pi_k)
+      as.numeric(delta)
+    })
+  })
+  
+  if(is.null(nrow(discrim))) {
+    discrim <- matrix(discrim, nrow = 1)
+    
+  } else {
+    discrim <- as.matrix(discrim)
+    
+  }
+  nrow(discrim)
+  # Numerisch stabilisieren via Softmax
+  discrim <- discrim - apply(discrim, 1, max)  # Trick gegen Overflow
+  exp_disc <- exp(discrim)
+  probs <- exp_disc / rowSums(exp_disc)
+  
+  colnames(probs) <- classes
+  return(as.data.frame(probs))
+}
+
+qda_predict_class <- function(data_train, data_new) {
+  probs <- qda_predict_proba(data_train, data_new)
+  pred <- max.col(probs, ties.method = "first")
+  new_target <- factor(colnames(probs)[pred], levels = levels(data_train$target))
+  data_new$target <- new_target
+  return(data_new)
+}
+
+test_confiusion <- function(data_train, data_test) {
+  hard_preds <- qda_predict_class(data_train, data_test)
+  true_labels <- data_test$target
+  predicted_labels <- hard_preds$target
+  confiusion <- caret::confusionMatrix(predicted_labels, true_labels)
+  return(confiusion)
+}
+
+alpha_cut <- function(marg_prioris, alpha, priors) {
+  marg_likelis <- unlist(marg_prioris)
+  max_marg_likeli <- max(marg_likelis)
+  cut_id <- marg_likelis >= alpha * max_marg_likeli
+  cut_prioris <- priors[cut_id]
+  return(cut_prioris)
+}
+
+generate_random_priors <- function(data, n_priors = 5,  kappa_range = c(0.1, 2), scale_range = c(0.5, 2),  nu_extra = c(0, 5, 10)) {
+  # Falls die Zielvariable "target" drin ist → entfernen
+  if ("target" %in% colnames(data)) {
+    data <- subset(data, select = -target)
+  }
+  
+  X <- as.matrix(data)
+  d <- ncol(X)
+  mu_global <- colMeans(X)
+  cov_global <- cov(X)
+  
+  priors <- list()
+  
+  for (i in 1:n_priors) {
+    # µ0: globales Mittel + Zufallsrauschen
+    mu0 <- mu_global + rnorm(d, sd = apply(X, 2, sd))
+    
+    # κ0: zufällig im Bereich
+    kappa0 <- runif(1, min = kappa_range[1], max = kappa_range[2])
+    
+    # Λ0: skaliertes Cov oder isotrop
+    if (runif(1) < 0.5) {
+      c <- runif(1, min = scale_range[1], max = scale_range[2])
+      Lambda0 <- c * cov_global
+    } else {
+      c <- runif(1, min = scale_range[1], max = scale_range[2])
+      Lambda0 <- c * diag(d)
+    }
+    
+    # ν0: mindestens d+1, plus random offset
+    nu0 <- sample(d + 1 + nu_extra, 1)
+    
+    priors[[i]] <- list(mu0 = mu0, kappa0 = kappa0, Lambda0 = Lambda0, nu0 = nu0)
+  }
+  
+  return(priors)
+}
+

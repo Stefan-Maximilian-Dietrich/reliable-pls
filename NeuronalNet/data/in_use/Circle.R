@@ -16,7 +16,7 @@ data <- as.data.frame(data)
 data <- na.omit(data)
 
 vars <- c("target ~")
-for (v in 2:(d+1)) {
+for (v in 2:(dim+1)) {
   vars <- c(vars, colnames(data)[v])
 }
 formula = paste(vars, collapse=" + ") %>% as.formula()

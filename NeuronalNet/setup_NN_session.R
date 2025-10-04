@@ -9,7 +9,10 @@ pakete <- c(
   "mlr3",
   "RCurl",
   "MASS",
-  "reshape2"
+  "reshape2",
+  "ggplot2", 
+  "mlbench",
+  "dplyr"
 )
 
 # Schleife, um Pakete zu installieren und zu laden
