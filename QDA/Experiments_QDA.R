@@ -97,3 +97,6 @@ save(QDA, file = "/Users/Stefan/Soft_Revision/QDA/QDA")
 #Greate Experiments Global 
 save(QDA, file = "/dss/dsshome1/03/di35lox/MASTER/experiments/QDA")
 
+# ADD all Directorys
+update_directory_strucutre()
+
