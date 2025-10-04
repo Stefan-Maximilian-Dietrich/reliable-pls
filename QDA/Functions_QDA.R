@@ -76,7 +76,7 @@ marg_likeli<- function(data_train , mu0, kappa0, Lambda0, nu0) {
     X_df <-  data_train[data_train$target == class, ]
     X_df$target <- NULL
     X <- as.matrix(X_df)
-    marg_lik = marg_lik + marginal_likelihood_class(X, mu0, kappa0, Lambda0, nu0) 
+    marg_lik = marg_lik + marg_likeli_class(X, mu0, kappa0, Lambda0, nu0) 
   }
   
   return(marg_lik)
