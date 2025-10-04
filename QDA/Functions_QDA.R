@@ -55,6 +55,38 @@ marg_likeli_class <- function(X, mu0, kappa0, Lambda0, nu0) {
   d <- ncol(X)
   x_bar <- colMeans(X)
   
+  # Streumatrix S
+  S <- t(X - matrix(x_bar, n, d, byrow = TRUE)) %*% (X - matrix(x_bar, n, d, byrow = TRUE))
+  
+  # Posterior-Parameter
+  kappa_n <- kappa0 + n
+  nu_n <- nu0 + n
+  diff <- matrix(x_bar - mu0, ncol = 1)
+  Lambda_n <- Lambda0 + S + ((kappa0 * n) / (kappa0 + n)) * (diff %*% t(diff))
+  
+  # Log-Marginal Likelihood nach Murphy Eq. (266)
+  log_pi_term <- - (n * d / 2) * log(pi)
+  log_det_term <- (nu0 / 2) * log(det(Lambda0)) - (nu_n / 2) * log(det(Lambda_n))
+  log_kappa_term <- (d / 2) * (log(kappa0) - log(kappa_n))
+  
+  # Multivariate Gammafunktion: log(Γ_d(nu/2))
+  log_multigamma <- function(a, p) {
+    sum(lgamma(a + (1 - (1:p)) / 2))
+  }
+  
+  log_gamma_term <- log_multigamma(nu_n / 2, d) - log_multigamma(nu0 / 2, d)
+  
+  # Summe aller Log-Terme
+  log_marg_lik <- log_pi_term + log_gamma_term + log_det_term + log_kappa_term
+  
+  return(exp(log_marg_lik))
+}
+
+marg_likeli_class2 <- function(X, mu0, kappa0, Lambda0, nu0) {
+  n <- nrow(X)
+  d <- ncol(X)
+  x_bar <- colMeans(X)
+  
   S <- t(X - matrix(x_bar, n, d, byrow = TRUE)) %*% (X - matrix(x_bar, n, d, byrow = TRUE))
   kappa_n <- kappa0 + n
   nu_n <- nu0 + n
@@ -466,3 +498,85 @@ update_directory_strucutre <- function(){
 data_loader <- function(dat) {
   source(paste(getwd(),"/QDA/data/in_use/", dat, ".R", sep = ""))
 }
+duration_function <- function(time_a, time_b) {
+  duration <- as.numeric(difftime(time_b, time_a, units = "secs"))
+  
+  # Intelligente Formatierung
+  if (duration < 60) {
+    out <- sprintf("DONE in %.2f seconds", duration)
+  } else if (duration < 3600) {
+    minutes <- duration / 60
+    out <- sprintf("DONE in %.2f minutes", minutes)
+  } else if (duration < 86400) {
+    hours <- duration / 3600
+    out <- sprintf("DONE in %.2f hours", hours)
+  } else {
+    days <- duration / 86400
+    out <- sprintf("DONE in %.2f days", days)
+  }
+  
+  print(out)
+}
+
+#####
+make_Result_df <- function(experiment_path) {
+  Methods_paths <- list.dirs(experiment_path, full.names = TRUE, recursive = FALSE)
+  Methods <- basename(Methods_paths)
+  experimet_result <- list()
+  for(j in 1:length(Methods)) {
+    run_adresses <- list.files(Methods_paths[j], full.names = TRUE)
+    if(length(run_adresses) > 0) {
+      all_accuracies <- list()
+      for(k in 1:length(run_adresses)) {
+        load(run_adresses[k])
+        run <- get(Methods[j])
+        accuracies <- sapply(run, function(x) x$overall["Accuracy"])
+        all_accuracies[[k]] <- accuracies
+      }
+      accuracy_matrix <- do.call(cbind, all_accuracies)
+      mean_result <- rowMeans(accuracy_matrix)
+      experimet_result[Methods[j]] <- list(mean_result)
+    }
+    df <- do.call(rbind, lapply(names(experimet_result), function(nm) {
+      data.frame(Method = nm, 
+                 Index = 0:(length(experimet_result[[nm]]) - 1),   # Start bei 0
+                 Accuracy = as.numeric(experimet_result[[nm]]))
+    }))
+  }
+  return(df)
+  
+}
+
+make_Result_matrix <- function(experiment_path) {
+  df <- make_Result_df(experiment_path)
+  
+  
+  accuracy_matrix <- pivot_wider(df,
+                                 id_cols = Index,
+                                 names_from = Method,
+                                 values_from = Accuracy) %>%
+    as.data.frame()
+  
+  # Index als rownames und aus den Daten entfernen
+  rownames(accuracy_matrix) <- accuracy_matrix$Index
+  accuracy_matrix$Index <- NULL
+  
+  # jetzt als Matrix
+  mat <- as.matrix(accuracy_matrix)
+  return(mat)
+}
+
+make_Result_Graph <- function(experiment_path) {
+  name <- basename(experiment_path)
+  
+  df <- make_Result_df(experiment_path)
+  G <- ggplot(df, aes(x = Index, y = Accuracy, color = Method)) +
+    geom_line(linewidth = 1) +
+    theme_minimal() +
+    ggtitle(name)
+  
+  print(G)
+  return(G)
+}
+
+

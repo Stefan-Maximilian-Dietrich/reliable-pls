@@ -49,6 +49,7 @@ refernce_SL <- function(data_train, data_unlabeled, data_test) {
   return(result)
 }
 
+#
 maximal_SSL <- function(priors, data_train, data_unlabeled, data_test, alpha) {
   confusion <- test_confiusion(data_train, data_test)
   result <- list(confusion)
