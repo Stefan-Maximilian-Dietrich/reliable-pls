@@ -4,7 +4,8 @@ pakete <- c(
   "matrixStats",    # Paket zur Verfolgung des Fortschritts von langen Berechnungen
   "dplyr",        # Paket für parallele Ausführung von purrr-Operationen
   "mvtnorm",
-  "caret"
+  "caret",
+  "MixGHD"
 )
 
 # Schleife, um Pakete zu installieren und zu laden
