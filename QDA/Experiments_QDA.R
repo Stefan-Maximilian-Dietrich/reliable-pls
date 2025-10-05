@@ -100,3 +100,5 @@ save(QDA, file = "/dss/dsshome1/03/di35lox/MASTER/experiments/QDA")
 # ADD all Directorys
 update_directory_strucutre()
 
+
+A <- unlist(lapply(priors, function(X) det(X$Lambda0))) 

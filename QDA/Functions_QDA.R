@@ -1,3 +1,10 @@
+# Hilfsfunktion für Dateinamen
+.mk_title <- function(base, exp, method, i){
+  paste0(base, exp$data, "_L_", exp$L, "_U_", exp$U,
+         "_alp_", exp$alp, "_", exp$prio_t, "_", exp$prio_r,
+         "/", method, "/", "ID_", i)
+}
+
 sampler_NB_up <- function(n_labled, n_unlabled, data, formula) {
   variables <- all.vars(formula) 
   target <- variables[1]
@@ -274,7 +281,7 @@ alpha_cut <- function(marg_prioris, alpha, priors) {
   return(cut_prioris)
 }
 
-generate_random_priors <- function(data, n_priors = 5,  kappa_range = c(0.1, 2), scale_range = c(0.5, 2),  nu_extra = c(0, 5, 10)) {
+generate_random_priors <- function(data, n_priors = 1000,  kappa_range = c(0.1, 2), scale_range = c(0.5, 2),  nu_extra = c(0, 5, 10)) {
   # Falls die Zielvariable "target" drin ist → entfernen
   if ("target" %in% colnames(data)) {
     data <- subset(data, select = -target)
@@ -302,10 +309,13 @@ generate_random_priors <- function(data, n_priors = 5,  kappa_range = c(0.1, 2),
       c <- runif(1, min = scale_range[1], max = scale_range[2])
       Lambda0 <- c * diag(d)
     }
-    
+    if(det(Lambda0) < 0) {
+      c <- runif(1, min = scale_range[1], max = scale_range[2])
+      Lambda0 <- c * diag(d)
+    }
     # ν0: mindestens d+1, plus random offset
     nu0 <- sample(d + 1 + nu_extra, 1)
-    
+
     priors[[i]] <- list(mu0 = mu0, kappa0 = kappa0, Lambda0 = Lambda0, nu0 = nu0)
   }
   

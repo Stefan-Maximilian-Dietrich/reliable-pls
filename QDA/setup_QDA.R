@@ -9,8 +9,12 @@ pakete <- c(
   "progressr",    # Paket zur Verfolgung des Fortschritts von langen Berechnungen
   "furrr",
   "RCurl",
-  "mlr3"
+  "mlr3",
+  "future",
+  "purrr"
+  
 )
+
 
 # Schleife, um Pakete zu installieren und zu laden
 for (paket in pakete) {
