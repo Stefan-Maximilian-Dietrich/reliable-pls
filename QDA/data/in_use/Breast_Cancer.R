@@ -1,4 +1,3 @@
-library(RCurl)
 UCI_data_URL <- RCurl::getURL('https://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wdbc.data')
 names <- c('id_number', 'diagnosis', 'radius_mean', 
            'texture_mean', 'perimeter_mean', 'area_mean', 

@@ -11,3 +11,7 @@ names(data) <- new_names
 
 formula = target ~  mpg + cyl + disp #+ hp + drat +wt + qsec + am + gear + carb
 
+vars <- all.vars(formula)
+
+# Dataframe auf diese Spalten reduzieren:
+data <- data[, vars]
