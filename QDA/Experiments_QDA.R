@@ -35,7 +35,7 @@ QDA_Cars <- data.frame(data = c("cars", "cars","cars","cars","cars","cars","cars
 
 
 QDA_Mixed  <- data.frame(data = c("Cassini", "Cassini","Cassini","Cassini","Circle","Circle","Circle","Circle","Diabetes","Diabetes","Diabetes","Diabetes", "Iris", "Iris","Iris","Iris","Penguins","Penguins","Penguins","Penguins","Seeds","Seeds","Seeds","Seeds" ),
-                        L = c(6, 12, 24, 48, 4, 8, 16, 32, 4, 8, 16, 32,6, 12, 24, 48, 6, 12, 24, 48, 6, 12, 24, 48),
+                        L = c(6, 12, 24, 96, 4, 8, 16, 64, 4, 8, 16, 32,6, 12, 24, 48, 6, 12, 24, 48, 6, 12, 24, 48),
                         U = c(96, 96, 96, 96, 64, 64, 64, 64, 64, 64, 64, 64,48, 48, 48, 48,96, 96, 96, 96, 96, 96, 96, 96),
                         alpha = c(0.1),
                         prio_t =c("random","random", "random", "random","random","random","random","random","random","random", "random", "random"),
@@ -52,9 +52,9 @@ QDA_Mixed  <- data.frame(data = c("Cassini", "Cassini","Cassini","Cassini","Circ
 )
 
 
-QDA_Cassini <- data.frame(data = "Cassini" ,
+QDA_Penguins <- data.frame(data = "Penguins" ,
                           L = c(6, 6, 6, 6, 6, 6, 12, 12, 12, 12 ,12 ,12, 6, 6, 6, 6, 6, 6, 12, 12, 12, 12 ,12 ,12),
-                          U = c(256, 256, 256, 128, 128, 128, 256, 256, 256, 128, 128, 128, 256, 256, 256, 128, 128, 128, 256, 256, 256, 128, 128, 128),
+                          U = c(96, 96, 96, 192, 192, 192, 96, 96, 96, 192, 192, 192, 96, 96, 96, 192, 192, 192, 96, 96, 96, 192, 192, 192),
                           alpha = c(0.5, 0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5, 0.5, 0.5, 0.00003, 0.00003,0.00003,0.00003,0.00003,0.00003,0.00003,0.00003,0.00003,0.00003, 0.00003, 0.00003),
                           prio_t =c("random","random", "random", "random","random","random","random","random","random","random", "random", "random"),
                           prio_r = c(10,  100, 1000, 10, 100, 1000, 10, 100, 1000 ,10, 100, 1000, 10,  100, 1000, 10, 100, 1000, 10, 100, 1000 ,10, 100, 1000),
