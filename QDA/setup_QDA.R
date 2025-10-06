@@ -11,7 +11,8 @@ pakete <- c(
   "RCurl",
   "mlr3",
   "future",
-  "purrr"
+  "purrr",
+  "mlr3verse"
   
 )
 
