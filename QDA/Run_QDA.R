@@ -15,7 +15,7 @@ N = 100
 
 #Architecture 
 
-methods <- list(SL = T, 
+methods <- list(SL = T,  
                 SSL = T,
                 e_admissible= T, 
                 SSL_variance = T,

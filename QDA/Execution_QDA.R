@@ -1,9 +1,9 @@
 while(TRUE){
-  # Geschützter Bereich
-  wait()
-  experiemnt <- get_experiment()
-  change_semaphor(TRUE)
-  ####
+  #geschützer Bereich
+  experiemnt <- get_experiment(methods) 
+  change_progress(experiemnt, bool = TRUE)
+  #
+  
   
   dat        <- experiemnt$data
   n_labled   <- experiemnt$L
@@ -12,10 +12,6 @@ while(TRUE){
   priori_tec <- experiemnt$prio_t
   refinement <- experiemnt$prio_r
   
-  ######################################################
-
-  
-  ######################################################
   data_loader(dat)
   
   # Plan & Map-Funktion abhängig vom Schalter setzen
@@ -64,41 +60,57 @@ while(TRUE){
         if (methods$e_admissible){
           e_admissible <- e_admissible_SSL(priors, data_train, data_unlabeled, data_test, alpha)
           save(e_admissible, file = .mk_title(save_path, experiemnt, "e_admissible", i))
+          method_done(experiemnt, method = "e_admissible") 
+          
         }
         
         if (methods$maximal){
           maximal <- maximal_SSL(priors, data_train, data_unlabeled, data_test, alpha)
           save(maximal, file = .mk_title(save_path, experiemnt, "maximal", i))
+          method_done(experiemnt, method = "maximal") 
+          
         }
         
         if (methods$SSL){
           SSL <- refernce_SSL(data_train, data_unlabeled, data_test)
           save(SSL, file = .mk_title(save_path, experiemnt, "SSL", i))
+          method_done(experiemnt, method = "SSL") 
+          
         }
         
         if (methods$SL){
           SL <- refernce_SL(data_train, data_unlabeled, data_test)
           save(SL, file = .mk_title(save_path, experiemnt, "SL", i))
+          method_done(experiemnt, method = "SL") 
+          
         }
         
         if (methods$SSL_variance){
           SSL_variance <- refernce_SSL_variance(data_train, data_unlabeled, data_test)
           save(SSL_variance, file = .mk_title(save_path, experiemnt, "SSL_variance", i))
+          method_done(experiemnt, method = "SSL_variance") 
+          
         }
         
         if (methods$SSL_entropy){
           SSL_entropy <- refernce_SSL_entropy(data_train, data_unlabeled, data_test)
           save(SSL_entropy, file = .mk_title(save_path, experiemnt, "SSL_entropy", i))
+          method_done(experiemnt, method = "SSL_entropy") 
+          
         }
         
         if (methods$M_MaxiMin){
           M_MaxiMin <- M_MaxiMin_SSL(priors, data_train, data_unlabeled, data_test, alpha)
           save(M_MaxiMin, file = .mk_title(save_path, experiemnt, "M_MaxiMin", i))
+          method_done(experiemnt, method = "M_MaxiMin") 
+          
         }
         
         if (methods$M_MaxiMax){
           M_MaxiMax <- M_MaxiMax_SSL(priors, data_train, data_unlabeled, data_test, alpha)
           save(M_MaxiMax, file = .mk_title(save_path, experiemnt, "M_MaxiMax", i))
+          method_done(experiemnt, method = "M_MaxiMax") 
+          
         }
         # --------------------------------------------------------------------
         
@@ -126,10 +138,8 @@ while(TRUE){
   )
   make_Result_Graph(experiment_path)
   
-  # Geschützter Bereich
-  wait()
-  experiemnt <- get_experiment()
-  change_semaphor(TRUE)
+  #geschützer Bereich 
+  change_progress(experiemnt, bool = FALSE) 
   ####
   
   time_b <- Sys.time()

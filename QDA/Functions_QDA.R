@@ -468,17 +468,6 @@ wait <- function() {
   }
 }
 
-get_experiment <- function() {
-  adress <- paste0("/dss/dsshome1/03/di35lox/MASTER/experiments/QDA")
-  load(adress)
-  return_exp <- QDA[!QDA$overall & !QDA$inProgress, ][1, ]
-  if(nrow(return_exp) == 0) {
-    stop("all Experiments done or in Progress")
-  }
-  QDA[!QDA$overall & !QDA$inProgress, ][1, ]$inProgress <- TRUE
-  save(QDA, file = adress)
-  return(return_exp)
-}
 
 ######
 experiment_to_adress <- function(exp) {
@@ -589,4 +578,45 @@ make_Result_Graph <- function(experiment_path) {
   return(G)
 }
 
+
+get_experiment <- function(methods) {
+  wait()
+  adress <- paste0("/dss/dsshome1/03/di35lox/MASTER/experiments/QDA")
+  load(adress)
+  QDA$overall <- NULL
+  
+  methos_vec <- unlist(methods)
+  in_progress <- QDA$inProgress
+  QDA$inProgress <- NULL
+  to_do  <- !QDA[sapply(QDA, is.logical)]
+  wanted <- to_do & matrix(methos_vec, nrow = nrow(to_do), ncol = ncol(to_do), byrow = TRUE)
+  wanted_vac <- apply(wanted, 1, any)
+  do_vec <- wanted_vac & !in_progress
+  spezifications <- QDA[ !sapply(QDA, is.logical) ][do_vec, ][1,]
+  to_dos <- wanted[do_vec, ][1,]
+  row1 <- as.data.frame(
+    c(as.list(spezifications),    # jeder Eintrag wird eigene Spalte
+      list(inProgress = TRUE),
+      as.list(to_dos)),
+    check.names = FALSE
+  )
+  change_semaphor(TRUE)
+  return(row1)
+}
+
+method_done <- function(experiemnt, method) {
+  wait()
+  load(file = "/dss/dsshome1/03/di35lox/MASTER/experiments/QDA")
+  QDA[QDA$data ==  experiemnt$data & QDA$L == experiemnt$L & QDA$U ==  experiemnt$U & QDA$alpha ==  experiemnt$alp & QDA$prio_t == experiemnt$prio_t & QDA$prio_r == experiemnt$prio_r,method ] <- TRUE
+  save(QDA, file = "/dss/dsshome1/03/di35lox/MASTER/experiments/QDA")
+  change_semaphor(TRUE)
+}
+
+change_progress <- function(experiemnt, bool) {
+  wait()
+  load(file = "/dss/dsshome1/03/di35lox/MASTER/experiments/QDA")
+  QDA[QDA$data ==  experiemnt$data & QDA$L == experiemnt$L & QDA$U ==  experiemnt$U & QDA$alpha ==  experiemnt$alp & QDA$prio_t == experiemnt$prio_t & QDA$prio_r == experiemnt$prio_r,"inProgress" ] <- bool
+  save(QDA, file = "/dss/dsshome1/03/di35lox/MASTER/experiments/QDA")
+  change_semaphor(TRUE)
+}
 
