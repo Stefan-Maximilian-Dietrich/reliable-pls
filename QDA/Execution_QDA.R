@@ -1,3 +1,4 @@
+continue <- TRUE
 while(continue){
   #geschützer Bereich
   experiemnt <- get_experiment(methods) 
