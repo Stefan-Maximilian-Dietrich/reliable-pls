@@ -49,7 +49,7 @@ while(TRUE){
         data_test      <- sample[[3]]
         
         priors <- generate_random_priors(
-          data_train,
+          data = data_train,
           n_priors    = refinement,
           kappa_range = c(0.1, 3),
           scale_range = c(0.5, 3),

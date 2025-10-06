@@ -71,9 +71,19 @@ marg_likeli_class <- function(X, mu0, kappa0, Lambda0, nu0) {
   diff <- matrix(x_bar - mu0, ncol = 1)
   Lambda_n <- Lambda0 + S + ((kappa0 * n) / (kappa0 + n)) * (diff %*% t(diff))
   
+  
   # Log-Marginal Likelihood nach Murphy Eq. (266)
+  log_det_Lambda_n <- log(det(Lambda_n))
+  log_det_Lambda0 <- log(det(Lambda0))
+  
+  if(is.nan(log_det_Lambda0)| is.nan(log_det_Lambda_n) |det(Lambda_n) == 0 | det(Lambda0) == 0) {
+    log_det_term <-  - 10000000000
+  } else {
+    log_det_term <- (nu0 / 2) * log_det_Lambda0 - (nu_n / 2) * log_det_Lambda_n
+    
+  }
+  
   log_pi_term <- - (n * d / 2) * log(pi)
-  log_det_term <- (nu0 / 2) * log(det(Lambda0)) - (nu_n / 2) * log(det(Lambda_n))
   log_kappa_term <- (d / 2) * (log(kappa0) - log(kappa_n))
   
   # Multivariate Gammafunktion: log(Γ_d(nu/2))
