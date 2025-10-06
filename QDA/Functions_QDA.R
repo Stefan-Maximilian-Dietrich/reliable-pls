@@ -636,3 +636,21 @@ add_experimetns <- function(new_QDA) {
   save(QDA, file = "/dss/dsshome1/03/di35lox/MASTER/experiments/QDA")
   print(paste0("DONE: ", nrow(new_QDA), " experiments added"))
 } 
+
+check_continue <- function(methods) {
+  wait()
+  adress <- paste0("/dss/dsshome1/03/di35lox/MASTER/experiments/QDA")
+  load(adress)
+  QDA$overall <- NULL
+  
+  methos_vec <- unlist(methods)
+  in_progress <- QDA$inProgress
+  QDA$inProgress <- NULL
+  to_do  <- !QDA[sapply(QDA, is.logical)]
+  wanted <- to_do & matrix(methos_vec, nrow = nrow(to_do), ncol = ncol(to_do), byrow = TRUE)
+  wanted_vac <- apply(wanted, 1, any)
+  do_vec <- wanted_vac & !in_progress
+  contiue <- any(do_vec)
+  change_semaphor(TRUE)
+  return(contiue)
+}

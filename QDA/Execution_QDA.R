@@ -1,4 +1,5 @@
-while(TRUE){
+continue <- TRUE
+while(continue){
   #geschützer Bereich
   experiemnt <- get_experiment(methods) 
   change_progress(experiemnt, bool = TRUE)
@@ -130,7 +131,17 @@ while(TRUE){
     })
   })
   
-  #### Plot
+  
+  if (methods$e_admissible){method_done(experiemnt, method = "e_admissible")}
+  if (methods$maximal){method_done(experiemnt, method = "maximal") }
+  if (methods$SSL){method_done(experiemnt, method = "SSL") }
+  if (methods$SL){method_done(experiemnt, method = "SL")}
+  if (methods$SSL_variance){method_done(experiemnt, method = "SSL_variance")}
+  if (methods$SSL_entropy){method_done(experiemnt, method = "SSL_entropy") }
+  if (methods$M_MaxiMin){ method_done(experiemnt, method = "M_MaxiMin")}
+  if (methods$M_MaxiMax){method_done(experiemnt, method = "M_MaxiMax")}
+
+    #### Plot
   experiment_path <- paste0(
     "/dss/dsshome1/03/di35lox/MASTER/results/QDA/",
     experiemnt$data, "_L_", experiemnt$L, "_U_", experiemnt$U,
@@ -147,4 +158,8 @@ while(TRUE){
   
   # Cluster nur stoppen, wenn parallel gelaufen
   if (use_parallel) try(future:::ClusterRegistry("stop"), silent = TRUE)
+  
+  continue <- check_continue(methods)
 }
+
+print("All experiments DONE")
