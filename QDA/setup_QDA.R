@@ -12,7 +12,8 @@ pakete <- c(
   "mlr3",
   "future",
   "purrr",
-  "mlr3verse"
+  "mlr3verse",
+  "tidyr"
   
 )
 

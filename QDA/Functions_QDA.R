@@ -620,3 +620,9 @@ change_progress <- function(experiemnt, bool) {
   change_semaphor(TRUE)
 }
 
+add_experimetns <- function(new_QDA) {
+  load(file = "/dss/dsshome1/03/di35lox/MASTER/experiments/QDA")
+  QDA <- rbind(QDA, new_QDA)
+  save(QDA, file = "/dss/dsshome1/03/di35lox/MASTER/experiments/QDA")
+  print(paste0("DONE: ", nrow(new_QDA), " experiments added"))
+} 
