@@ -283,7 +283,7 @@ PPP_matrix <- function(data_train, data_pseudo, posteriors) {
 
 qda_predict_proba <- function(data_train, data_new) {
   # Sicherstellen, dass beide Inputs data.frames sind
-  data_train <- as.data.frame(data_train)[1:4,]
+  data_train <- as.data.frame(data_train)
   data_new <- as.data.frame(data_new)
   
   # Zielvariable prüfen
