@@ -207,7 +207,41 @@ PPP_matrix <- function(data_train, data_pseudo, posteriors) {
   return(ppp_m)
 }
 
-qda_predict_proba <- function(data_train, data_new, eps = 1e-0) {
+qda_predict_proba <- function(data_train, data_new) {
+  # Sicherstellen, dass beide Inputs data.frames sind
+  data_train <- as.data.frame(data_train)
+  data_new <- as.data.frame(data_new)
+  
+  # Zielvariable prüfen
+  if (!"target" %in% names(data_train)) {
+    stop("Die Zielvariable 'target' fehlt in data_train.")
+  }
+  
+  # Zielvariable in Faktor umwandeln
+  data_train$target <- as.factor(data_train$target)
+  
+  # Zielvariable aus data_new entfernen, falls vorhanden
+  if ("target" %in% names(data_new)) {
+    data_new$target <- NULL
+  }
+  
+  # QDA-Modell trainieren
+  model_qda <- MASS::qda(target ~ ., data = data_train)
+  
+  # Vorhersage mit Wahrscheinlichkeiten
+  prediction <- predict(model_qda, newdata = data_new)
+  
+  # Umwandeln der Posterior-Wahrscheinlichkeiten in data.frame
+  prob_df <- as.data.frame(prediction$posterior)
+  
+  # Optional: Zeilennamen setzen, falls sinnvoll
+  rownames(prob_df) <- seq_len(nrow(data_new))
+  
+  return(prob_df)
+} ##### einbauen
+
+
+qda_predict_proba2 <- function(data_train, data_new, eps = 1e-0) {
   # Training
   y <- data_train$target
   X <- as.matrix(subset(data_train, select = -target))
@@ -265,7 +299,7 @@ qda_predict_proba <- function(data_train, data_new, eps = 1e-0) {
   
   colnames(probs) <- classes
   return(as.data.frame(probs))
-}
+}  ###
 
 qda_predict_class <- function(data_train, data_new) {
   probs <- qda_predict_proba(data_train, data_new)
@@ -653,4 +687,82 @@ check_continue <- function(methods) {
   contiue <- any(do_vec)
   change_semaphor(TRUE)
   return(contiue)
+}
+
+##### Visualisations 
+make_Result_df <- function(experiment_path) {
+  Methods_paths <- list.dirs(experiment_path, full.names = TRUE, recursive = FALSE)
+  Methods <- basename(Methods_paths)
+  experimet_result <- list()
+  for(j in 1:length(Methods)) {
+    run_adresses <- list.files(Methods_paths[j], full.names = TRUE)
+    if(length(run_adresses) > 0) {
+      all_accuracies <- list()
+      for(k in 1:length(run_adresses)) {
+        load(run_adresses[k])
+        run <- get(Methods[j])
+        accuracies <- sapply(run, function(x) x$overall["Accuracy"])
+        all_accuracies[[k]] <- accuracies
+      }
+      accuracy_matrix <- do.call(cbind, all_accuracies)
+      mean_result <- rowMeans(accuracy_matrix)
+      experimet_result[Methods[j]] <- list(mean_result)
+    }
+    df <- do.call(rbind, lapply(names(experimet_result), function(nm) {
+      data.frame(Method = nm, 
+                 Index = 0:(length(experimet_result[[nm]]) - 1),   # Start bei 0
+                 Accuracy = as.numeric(experimet_result[[nm]]))
+    }))
+  }
+  return(df)
+  
+}
+
+make_Result_matrix <- function(experiment_path) {
+  df <- make_Result_df(experiment_path)
+  
+  
+  accuracy_matrix <- pivot_wider(df,
+                                 id_cols = Index,
+                                 names_from = Method,
+                                 values_from = Accuracy) %>%
+    as.data.frame()
+  
+  # Index als rownames und aus den Daten entfernen
+  rownames(accuracy_matrix) <- accuracy_matrix$Index
+  accuracy_matrix$Index <- NULL
+  
+  # jetzt als Matrix
+  mat <- as.matrix(accuracy_matrix)
+  return(mat)
+}
+
+make_Result_Graph <- function(experiment_path) {
+  name <- basename(experiment_path)
+  
+  df <- make_Result_df(experiment_path)
+  G <- ggplot(df, aes(x = Index, y = Accuracy, color = Method)) +
+    geom_line(size = 1) +
+    theme_minimal() +
+    ggtitle(name)
+  
+  print(G)
+  return(G)
+}
+
+
+make_all_Graphs <-function(ground_path, graph_path) {
+  progress <-  check_progress(ground_path) 
+  exp_agg <- aggregate(progress$number_runs, by = list(experiment = progress$experiment), FUN = sum)
+  experiment <- exp_agg[exp_agg$x >0, ]$experiment
+  
+  experiment_paths <- paste0(ground_path,"/", experiment )
+  for(l in 1:length(experiment_paths)) {
+    name <- basename(experiment_paths[l])
+    print(name)
+    graph <- make_Result_Graph(experiment_paths[l])
+    ggsave(paste(graph_path, "/", name, ".png", sep = ""), width = 20, height = 20, units = "cm", dpi = 300,plot = graph)
+    
+  }
+  
 }

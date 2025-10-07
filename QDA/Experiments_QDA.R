@@ -112,3 +112,6 @@ QDA <- QDA[QDA$data != "circle", ]
 add_experimetns(QDA_Mixed)
 update_directory_strucutre()
 
+######
+experiment_path <- "/Users/Stefan/Desktop/Circle_L_64_U_64_alp_0.1_random_200"
+make_Result_Graph(experiment_path)
