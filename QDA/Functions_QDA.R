@@ -5,13 +5,13 @@
          "/", method, "/", "ID_", i)
 }
 
-sampler_NB_up <- function(n_labled, n_unlabled, data, formula) {
+sampler_NB_up <- function(n_labled, n_unlabled, data, formula) { ### 3 pro klasse min 
   variables <- all.vars(formula) 
   target <- variables[1]
   data_used <- data[, variables]
   
   categories <- unique(data_used[, target])
-  if(length(categories)*2  > n_labled) {
+  if(length(categories)*3  > n_labled) {
     stop("Labeld date less than reqiert to fit a GNB")
   }
   
@@ -52,6 +52,80 @@ sampler_NB_up <- function(n_labled, n_unlabled, data, formula) {
   return(list(train, unlabed, test))
   
 }
+
+sampler_QDA_up <- function(n_labeled, n_unlabeled, data, formula) {
+  data <- as.data.frame(data)
+  target_var <- all.vars(formula)[1]
+  
+  if (!target_var %in% names(data)) {
+    stop(paste("Zielvariable", target_var, "nicht im Datensatz gefunden."))
+  }
+  
+  data[[target_var]] <- as.factor(data[[target_var]])
+  class_counts <- table(data[[target_var]])
+  class_levels <- names(class_counts)
+  
+  # Bedingungen prüfen
+  if (any(class_counts < 3)) {
+    stop("Mindestens eine Klasse hat weniger als 3 Beobachtungen – Sampling nicht möglich.")
+  }
+  
+  n_classes <- length(class_levels)
+  min_required <- n_classes * 3
+  if (n_labeled < min_required) {
+    stop(paste("n_labeled muss mindestens", min_required, "sein (3 pro Klasse)."))
+  }
+  
+  total_required <- n_labeled + n_unlabeled
+  if (nrow(data) < total_required) {
+    stop("Nicht genügend Daten für gewünschte Anzahl an labeled und unlabeled.")
+  }
+  
+  # Maximal 5 Versuche für gültiges labeled-Set
+  max_attempts <- 5
+  for (attempt in 1:max_attempts) {
+    labeled_indices <- c()
+    
+    for (cls in class_levels) {
+      cls_indices <- which(data[[target_var]] == cls)
+      labeled_cls <- sample(cls_indices, 3)
+      labeled_indices <- c(labeled_indices, labeled_cls)
+    }
+    
+    # Füge restliche labeled zufällig hinzu
+    remaining_labeled <- n_labeled - length(labeled_indices)
+    remaining_pool <- setdiff(seq_len(nrow(data)), labeled_indices)
+    if (remaining_labeled > 0) {
+      extra_labeled <- sample(remaining_pool, remaining_labeled)
+      labeled_indices <- c(labeled_indices, extra_labeled)
+    }
+    
+    # Prüfe Kovarianzmatrix
+    train_data <- data[labeled_indices, ]
+    x_vars <- all.vars(formula)[-1]
+    cov_matrix <- try(stats::cov(train_data[, x_vars]), silent = TRUE)
+    det_val <- try(det(cov_matrix), silent = TRUE)
+    
+    if (inherits(cov_matrix, "try-error") || inherits(det_val, "try-error") || det_val == 0) {
+      if (attempt == max_attempts) {
+        stop("Konnte in 5 Versuchen keine invertierbare Kovarianzmatrix finden.")
+      }
+      next  # nächster Versuch
+    } else {
+      # Erfolgreicher Versuch → Rest der Partition erstellen
+      remaining_pool <- setdiff(seq_len(nrow(data)), labeled_indices)
+      unlabeled_indices <- sample(remaining_pool, n_unlabeled)
+      test_indices <- setdiff(remaining_pool, unlabeled_indices)
+      
+      return(list(
+        train = train_data,
+        unlabeled = data[unlabeled_indices, ],
+        test = data[test_indices, ]
+      ))
+    }
+  }
+}
+
 
 multi_gamma <- function(a, d) {
   pi^(d * (d - 1) / 4) * prod(gamma(a + (1 - (1:d)) / 2))
@@ -209,7 +283,7 @@ PPP_matrix <- function(data_train, data_pseudo, posteriors) {
 
 qda_predict_proba <- function(data_train, data_new) {
   # Sicherstellen, dass beide Inputs data.frames sind
-  data_train <- as.data.frame(data_train)
+  data_train <- as.data.frame(data_train)[1:4,]
   data_new <- as.data.frame(data_new)
   
   # Zielvariable prüfen

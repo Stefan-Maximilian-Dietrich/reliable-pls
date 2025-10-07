@@ -44,7 +44,7 @@ while(continue){
       tryCatch({
         set.seed(i)
         
-        sample <- sampler_NB_up(n_labled, n_unlabled, data, formula)
+        sample <- sampler_QDA_up(n_labled, n_unlabled, data, formula)
         data_train     <- sample[[1]]
         data_unlabeled <- sample[[2]]
         data_test      <- sample[[3]]
