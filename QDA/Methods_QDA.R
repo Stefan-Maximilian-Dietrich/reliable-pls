@@ -3,7 +3,7 @@ refernce_SSL <- function(data_train, data_unlabeled, data_test) {
   result <- list(confusion)
   for(i in 1:nrow(data_unlabeled)) {
     data_pseudo <- qda_predict_class(data_train, data_new = data_unlabeled) 
-    probabilitys <- qda_predict_proba(data_train, data_new = data_unlabeled, eps = 1e-0) 
+    probabilitys <- qda_predict_proba(data_train, data_new = data_unlabeled) 
     selected <- SSL_prob_criterion(probabilitys)
     data_train <- rbind(data_train, data_pseudo[selected, ])
     data_unlabeled <- data_pseudo[-selected, ]
@@ -18,7 +18,7 @@ refernce_SSL_variance <- function(data_train, data_unlabeled, data_test) {
   result <- list(confusion)
   for(i in 1:nrow(data_unlabeled)) {
     data_pseudo <- qda_predict_class(data_train, data_new = data_unlabeled) 
-    probabilitys <- qda_predict_proba(data_train, data_new = data_unlabeled, eps = 1e-0) 
+    probabilitys <- qda_predict_proba(data_train, data_new = data_unlabeled) 
     selected <- SSL_var_criterion(probabilitys)
     data_train <- rbind(data_train, data_pseudo[selected, ])
     data_unlabeled <- data_pseudo[-selected, ]
@@ -33,7 +33,7 @@ refernce_SSL_entropy <- function(data_train, data_unlabeled, data_test) {
   result <- list(confusion)
   for(i in 1:nrow(data_unlabeled)) {
     data_pseudo <- qda_predict_class(data_train, data_new = data_unlabeled) 
-    probabilitys <- qda_predict_proba(data_train, data_new = data_unlabeled, eps = 1e-0) 
+    probabilitys <- qda_predict_proba(data_train, data_new = data_unlabeled) 
     selected <- SSL_entropy_criterion(probabilitys)
     data_train <- rbind(data_train, data_pseudo[selected, ])
     data_unlabeled <- data_pseudo[-selected, ]
